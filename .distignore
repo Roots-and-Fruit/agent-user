@@ -2,6 +2,8 @@
 /.distignore
 /.phpcs.cache
 /.phpunit.cache
+.git/
+.github/
 /composer.json
 /composer.lock
 /phpcs.xml
