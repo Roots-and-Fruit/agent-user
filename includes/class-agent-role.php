@@ -14,7 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class Agent_Role {
 
-	const SLUG = 'agent_role';
+	const SLUG = 'rootsandfruit_agent_role';
 
 	const NAME = 'Agent';
 

@@ -16,6 +16,8 @@ class Agent_Role_Account {
 
 	const PASSWORD_NAME = 'Agent Role';
 
+	const APP_ID = 'agent-role';
+
 	const TRANSIENT_TTL = 120;
 
 	/**
@@ -141,7 +143,7 @@ class Agent_Role_Account {
 			(int) $user_id,
 			array(
 				'name'   => self::PASSWORD_NAME,
-				'app_id' => 'agent-role',
+				'app_id' => self::APP_ID,
 			)
 		);
 
@@ -219,7 +221,7 @@ class Agent_Role_Account {
 		$passwords = WP_Application_Passwords::get_user_application_passwords( (int) $user_id );
 
 		foreach ( $passwords as $item ) {
-			if ( self::PASSWORD_NAME === $item['name'] ) {
+			if ( self::APP_ID === ( $item['app_id'] ?? '' ) ) {
 				return $item;
 			}
 		}

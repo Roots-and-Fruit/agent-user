@@ -86,6 +86,45 @@ class AccountTest extends TestCase {
 		$this->assertSame( '', Agent_Role_Account::take_password( $admin, $user->ID ) );
 	}
 
+	public function test_create_refuses_an_existing_username(): void {
+		$admin  = $this->make_admin();
+		$login  = $this->unique_login();
+		$first  = Agent_Role_Account::create( $login, 'Helper', $admin );
+		$this->assertIsArray( $first );
+		$this->user_ids[] = $first['user_id'];
+
+		$again = Agent_Role_Account::create( $login, 'Other', $admin );
+
+		$this->assertInstanceOf( WP_Error::class, $again );
+		$this->assertSame( 'agent_role_username_exists', $again->get_error_code() );
+		$this->assertSame( $first['user_id'], username_exists( $login ) );
+	}
+
+	public function test_delete_credentials_keeps_a_password_with_another_app_id(): void {
+		$admin  = $this->make_admin();
+		$result = Agent_Role_Account::create( $this->unique_login(), 'Helper', $admin );
+		$this->assertIsArray( $result );
+		$this->user_ids[] = $result['user_id'];
+
+		$other = WP_Application_Passwords::create_new_application_password(
+			$result['user_id'],
+			array(
+				'name'   => Agent_Role_Account::PASSWORD_NAME,
+				'app_id' => 'someone-else',
+			)
+		);
+		$this->assertIsArray( $other );
+
+		Agent_Role_Account::delete_credentials();
+
+		$remaining = array_values( WP_Application_Passwords::get_user_application_passwords( $result['user_id'] ) );
+		$this->assertCount( 1, $remaining );
+		$this->assertSame( $other[1]['uuid'], $remaining[0]['uuid'] );
+		$this->assertSame( 'someone-else', $remaining[0]['app_id'] );
+		$this->assertSame( Agent_Role_Account::PASSWORD_NAME, $remaining[0]['name'] );
+		$this->assertNull( Agent_Role_Account::managed_password( $result['user_id'] ) );
+	}
+
 	public function test_a_second_password_is_refused_until_revoke(): void {
 		$admin  = $this->make_admin();
 		$login  = $this->unique_login();

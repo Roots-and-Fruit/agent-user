@@ -33,6 +33,7 @@ class RoleTest extends TestCase {
 
 		$role = get_role( Agent_Role::SLUG );
 		$this->assertNotNull( $role );
+		$this->assertSame( 'rootsandfruit_agent_role', Agent_Role::SLUG );
 		$this->assertSame( 'Agent', $this->display_name() );
 		$this->assertSame( $this->expected_caps(), $this->sorted_caps( $role->capabilities ) );
 
