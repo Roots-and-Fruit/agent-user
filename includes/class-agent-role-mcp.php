@@ -22,6 +22,8 @@ class Agent_Role_Mcp {
 
 	const ROUTE = 'mcp/mcp-adapter-default-server';
 
+	const PASSWORD_PLACEHOLDER = 'YOUR_APPLICATION_PASSWORD';
+
 	/**
 	 * Register hooks once every plugin has loaded.
 	 */
@@ -32,6 +34,7 @@ class Agent_Role_Mcp {
 
 		add_filter( 'user_has_cap', array( __CLASS__, 'grant_capability' ), 10, 4 );
 		add_filter( 'mcp_adapter_default_transport_permission_user_capability', array( __CLASS__, 'transport_capability' ) );
+		add_filter( 'mcp_adapter_initialize_response', array( __CLASS__, 'initialize_response' ) );
 	}
 
 	/**
@@ -90,6 +93,33 @@ class Agent_Role_Mcp {
 	 */
 	public static function set_agents_only( $enabled ) {
 		update_option( self::OPTION, $enabled ? '1' : '0' );
+	}
+
+	/**
+	 * Put this agent's instructions on the MCP initialize response.
+	 *
+	 * @param mixed $result Initialize result from the adapter.
+	 * @return mixed
+	 */
+	public static function initialize_response( $result ) {
+		if ( ! is_object( $result ) || ! method_exists( $result, 'toArray' ) ) {
+			return $result;
+		}
+
+		$user = wp_get_current_user();
+		if ( ! Agent_Role::is_agent( $user ) ) {
+			return $result;
+		}
+
+		$note = Agent_Role::instructions_for( $user );
+		if ( '' === $note || ! class_exists( '\WP\McpSchema\Common\Protocol\DTO\InitializeResult' ) ) {
+			return $result;
+		}
+
+		$data                 = $result->toArray();
+		$data['instructions'] = $note;
+
+		return \WP\McpSchema\Common\Protocol\DTO\InitializeResult::fromArray( $data );
 	}
 
 	/**

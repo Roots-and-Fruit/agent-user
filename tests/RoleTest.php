@@ -98,6 +98,38 @@ class RoleTest extends TestCase {
 		$this->assertArrayNotHasKey( 'edit_posts', $role->capabilities );
 	}
 
+	public function test_delete_capability_can_be_turned_off(): void {
+		$this->reset_role();
+		Agent_Role::activate();
+		Agent_Role::apply_cap_choices(
+			array(
+				'edit_posts'             => true,
+				'publish_posts'          => true,
+				'upload_files'           => true,
+				'edit_published_posts'   => true,
+				'delete_posts'           => false,
+				'delete_published_posts' => false,
+			)
+		);
+
+		$caps = $this->sorted_caps( get_role( Agent_Role::SLUG )->capabilities );
+		$this->assertArrayHasKey( 'read', $caps );
+		$this->assertArrayHasKey( 'edit_posts', $caps );
+		$this->assertArrayNotHasKey( 'delete_posts', $caps );
+		$this->assertArrayNotHasKey( 'delete_published_posts', $caps );
+
+		Agent_Role::apply_cap_choices(
+			array(
+				'edit_posts'             => true,
+				'publish_posts'          => true,
+				'upload_files'           => true,
+				'edit_published_posts'   => true,
+				'delete_posts'           => true,
+				'delete_published_posts' => true,
+			)
+		);
+	}
+
 	private function reset_role(): void {
 		remove_role( Agent_Role::SLUG );
 		if ( is_plugin_active( 'agent-role/agent-role.php' ) ) {

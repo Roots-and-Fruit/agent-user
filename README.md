@@ -15,8 +15,9 @@ You keep your own login. If you stop trusting the connection, you revoke one pas
 - A user role named **Agent**, with the same publishing power as an Author.
 - A screen at **Users → Add Agent** that creates the account for you.
 - One application password, shown once, in a window with a Copy button on the site address, the username, the password, and the connection details.
+- A page for each agent where you choose what that account can do, which abilities it may run, and the note it receives when it connects.
 - A normal Users screen that does not offer the Agent role. People stay people. Agents stay agents.
-- Revoke on the same screen when you want a new password.
+- Revoke on the agent list when you want a new password.
 
 An Agent can create, edit, publish, and delete its own posts, and it can upload files. It cannot change settings, install plugins, edit other people's posts, or manage users.
 
@@ -30,7 +31,7 @@ An Agent can create, edit, publish, and delete its own posts, and it can upload 
 
 That password works as the REST API password. Your real login password does not work for this account, and the lost-password email does not either.
 
-If the official [WordPress MCP Adapter](https://github.com/WordPress/mcp-adapter) is also active, the same window includes a ready-made config for Cursor, Claude Desktop, and other MCP apps. A checkbox on the Add Agent screen, off until you turn it on, limits that connection to Agent accounts. Your own admin password then cannot open it.
+If the official [WordPress MCP Adapter](https://github.com/WordPress/mcp-adapter) is also active, the agent list can show a ready-made config for Cursor, Claude Desktop, and other MCP apps. The password in that config is a placeholder. Paste the one you copied when the account was created. A setting on the Settings tab, off until you turn it on, limits that connection to Agent accounts. Your own admin password then cannot open it. Each agent can also keep a short note that the adapter sends when that account connects.
 
 ## If you turn the plugin off
 

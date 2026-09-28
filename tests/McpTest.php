@@ -124,7 +124,7 @@ class McpTest extends TestCase {
 
 		$again = $this->render_created( $admin, $user->ID );
 		$this->assertStringNotContainsString( $expected, $again );
-		$this->assertStringNotContainsString( 'WP_API_PASSWORD', $again );
+		$this->assertStringContainsString( Agent_Role_Mcp::PASSWORD_PLACEHOLDER, $again );
 	}
 
 	public function test_setting_handler_requires_manage_options_and_a_nonce(): void {
@@ -250,14 +250,23 @@ class McpTest extends TestCase {
 
 	private function make_user( string $role ): int {
 		$login   = $this->unique_login();
-		$user_id = wp_insert_user(
-			array(
-				'user_login' => $login,
-				'user_pass'  => wp_generate_password( 24 ),
-				'user_email' => $login . '@example.invalid',
-				'role'       => $role,
+		$user_id = Agent_Role::SLUG === $role
+			? Agent_Role_Account::insert_user(
+				array(
+					'user_login' => $login,
+					'user_pass'  => wp_generate_password( 24 ),
+					'user_email' => $login . '@example.invalid',
+					'role'       => $role,
+				)
 			)
-		);
+			: wp_insert_user(
+				array(
+					'user_login' => $login,
+					'user_pass'  => wp_generate_password( 24 ),
+					'user_email' => $login . '@example.invalid',
+					'role'       => $role,
+				)
+			);
 
 		$this->assertIsInt( $user_id );
 		$this->user_ids[] = $user_id;

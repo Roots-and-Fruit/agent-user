@@ -109,14 +109,23 @@ class AuthTest extends TestCase {
 	 */
 	private function make_user( string $role, string $password ): WP_User {
 		$login   = 'agentrole_test_' . strtolower( wp_generate_password( 8, false, false ) );
-		$user_id = wp_insert_user(
-			array(
-				'user_login' => $login,
-				'user_pass'  => $password,
-				'user_email' => $login . '@example.invalid',
-				'role'       => $role,
+		$user_id = Agent_Role::SLUG === $role
+			? Agent_Role_Account::insert_user(
+				array(
+					'user_login' => $login,
+					'user_pass'  => $password,
+					'user_email' => $login . '@example.invalid',
+					'role'       => $role,
+				)
 			)
-		);
+			: wp_insert_user(
+				array(
+					'user_login' => $login,
+					'user_pass'  => $password,
+					'user_email' => $login . '@example.invalid',
+					'role'       => $role,
+				)
+			);
 
 		$this->assertIsInt( $user_id );
 		$this->user_ids[] = $user_id;
