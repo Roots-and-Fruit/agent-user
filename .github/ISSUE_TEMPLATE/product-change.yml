@@ -1,0 +1,73 @@
+name: Product change
+description: A change a site owner would notice. Start with the pitch, then who it is for, then how to build it.
+title: "[Who] can …"
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Write this as a product change, not a dump of files to edit. Open with the elevator pitch: currently vs after this issue. The next four sections describe the site owner or the agent account. The last section should be detailed enough that a developer or agent can start in the right layer without a second discovery pass.
+
+        This plugin registers an Agent role for accounts that cannot log in as people. Each account gets one application password. The WordPress MCP Adapter integration is optional. Humans stay on the Users screen. Agents stay on Users → Add Agent.
+
+  - type: textarea
+    id: tldr
+    attributes:
+      label: TL;DR
+      description: |
+        The elevator pitch. Two sentences: what is true today, then what will be true when this issue is done. Start the first with “Currently,” and the second with “By addressing this issue,” so a reader never has to guess before vs after. Someone who reads only this section should know whether to open the rest.
+      placeholder: Currently, deleting the plugin removes the agent_role role even when another plugin created it. By addressing this issue, uninstall removes the role and application passwords only when this plugin created them.
+    validations:
+      required: true
+
+  - type: textarea
+    id: who
+    attributes:
+      label: Who this is for
+      description: Name the person and the moment they are in (site owner, administrator, or the agent account) and what they are trying to do. This keeps the issue attached to a human job. If you cannot name them, you are still describing a system change, not a product change.
+      placeholder: A site owner already has a role or an application password, installs Agent Role, and later deletes the plugin.
+    validations:
+      required: true
+
+  - type: textarea
+    id: experience
+    attributes:
+      label: How this impacts the product experience
+      description: What changes in wp-admin or in the agent connection once this ships. A screen, a notice, a checkbox, a list, a password that remains. Be specific enough that two people would picture the same screen. If the impact is only "safer uninstall" with no visible result, say what the site owner still has afterward.
+      placeholder: Users → Add Agent still creates the account. Deleting the plugin leaves a pre-existing agent_role role and a person's own application password named Agent Role in place.
+    validations:
+      required: true
+
+  - type: textarea
+    id: done
+    attributes:
+      label: What Done looks like
+      description: The check that closes the issue. A screen to open, a role to assign, a password that still exists, a test that fails before the change. Include important negatives (what this issue will not change). This is how you know the experience landed, not merely that a PR merged.
+      placeholder: Activate on a site that already has agent_role with only the read capability. Delete the plugin. That role is still there, and a password whose name is Agent Role but whose app_id is not agent-role is still on the user.
+    validations:
+      required: true
+
+  - type: textarea
+    id: urgency
+    attributes:
+      label: Urgency
+      description: Why this is ahead of other open issues, or say it can wait. Cost of delay only. "Nothing is decaying; do it when touching this surface" is a valid answer. This is for sequencing, not persuasion.
+      placeholder: Uninstall is one-way for a role this plugin did not create. Do this before a directory release.
+    validations:
+      required: true
+
+  - type: textarea
+    id: technical
+    attributes:
+      label: How to solve this technically
+      description: |
+        Enough for a developer or agent to start without reverse-engineering the plugin. Include current behavior, intended change, likely files or surfaces, data already in the product to reuse, contracts that must not break, and out of scope.
+
+        This should not be a full implementation plan or a file-by-file patch. It should be heavier than a sticky note. If someone still has to guess whether this is the role, the application password, the Users screen, or the MCP gate, this section is too thin.
+      placeholder: |
+        Current: Agent_Role::activate() returns when get_role( 'agent_role' ) is set, and uninstall always calls remove_role().
+        Change: record that this plugin created the role, and delete passwords by app_id agent-role.
+        Surface: includes/class-agent-role.php and includes/class-agent-role-account.php. Reuse Agent_Role_Account::PASSWORD_NAME and the app_id already passed to create_new_application_password().
+        Do not: change the role slug; do not hide Agents from the Users list in this issue.
+    validations:
+      required: true
