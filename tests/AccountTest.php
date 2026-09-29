@@ -31,10 +31,15 @@ class AccountTest extends TestCase {
 	}
 
 	protected function tearDown(): void {
+		global $wpdb;
+
+		$table = Agent_Role_Log::table();
 		foreach ( $this->user_ids as $user_id ) {
 			if ( get_userdata( $user_id ) ) {
 				wp_delete_user( $user_id );
 			}
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is not user input.
+			$wpdb->query( $wpdb->prepare( "DELETE FROM {$table} WHERE user_id = %d", $user_id ) );
 		}
 		$this->user_ids = array();
 		remove_all_filters( 'wp_redirect' );

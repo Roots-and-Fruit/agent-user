@@ -142,6 +142,7 @@ class Agent_Role_Account {
 		}
 
 		Agent_Role::seed_agent( $user_id );
+		Agent_Role_Log::record( $user_id, 'admin', 'Agent account created', 'account-created', 'changed' );
 
 		return array(
 			'user_id' => $user_id,
@@ -355,6 +356,10 @@ class Agent_Role_Account {
 			self::TRANSIENT_TTL
 		);
 
+		if ( class_exists( 'Agent_Role_Log' ) ) {
+			Agent_Role_Log::record( (int) $user_id, 'admin', 'Application password issued', 'password', 'changed' );
+		}
+
 		return true;
 	}
 
@@ -404,6 +409,10 @@ class Agent_Role_Account {
 				'agent_role_password_missing',
 				__( 'This agent has no application password.', 'agent-role' )
 			);
+		}
+
+		if ( class_exists( 'Agent_Role_Log' ) ) {
+			Agent_Role_Log::record( (int) $user_id, 'admin', 'Application password revoked', 'password', 'changed' );
 		}
 
 		return true;

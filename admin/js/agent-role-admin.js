@@ -257,4 +257,60 @@
 	}
 
 	bindCopy(document);
+
+	if (window.jQuery && jQuery.fn.datepicker) {
+		var $from = jQuery('.ar-rf-date--from');
+		var $to = jQuery('.ar-rf-date--to');
+		if ($from.length && $to.length) {
+			var available = {};
+			var logDates = (window.agentRoleAdmin && agentRoleAdmin.logDates) || [];
+			logDates.forEach(function (day) {
+				available[day] = true;
+			});
+			var dayKey = function (date) {
+				return jQuery.datepicker.formatDate('yy-mm-dd', date);
+			};
+			var markRange = function (date) {
+				if (!available[dayKey(date)]) {
+					return [false, 'ar-rf-date-unavailable'];
+				}
+				var start = $from.datepicker('getDate');
+				var end = $to.datepicker('getDate');
+				if (start && end && date >= start && date <= end) {
+					return [true, 'ar-rf-date-in-range'];
+				}
+				return [true, ''];
+			};
+			var earliest = null;
+			Object.keys(available).sort().forEach(function (day) {
+				if (!earliest) {
+					earliest = jQuery.datepicker.parseDate('yy-mm-dd', day);
+				}
+			});
+			$from.datepicker({
+				minDate: earliest || 0,
+				maxDate: 0,
+				beforeShowDay: markRange,
+				onSelect: function (dateText) {
+					$to.datepicker('option', 'minDate', dateText);
+				}
+			});
+			$to.datepicker({
+				minDate: earliest || 0,
+				maxDate: 0,
+				beforeShowDay: markRange,
+				onSelect: function (dateText) {
+					$from.datepicker('option', 'maxDate', dateText);
+				}
+			});
+			var startDate = $from.datepicker('getDate');
+			var endDate = $to.datepicker('getDate');
+			if (startDate) {
+				$to.datepicker('option', 'minDate', startDate);
+			}
+			if (endDate) {
+				$from.datepicker('option', 'maxDate', endDate);
+			}
+		}
+	}
 }());

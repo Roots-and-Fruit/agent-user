@@ -12,5 +12,6 @@ if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
 require_once __DIR__ . '/includes/class-agent-role.php';
 require_once __DIR__ . '/includes/class-agent-role-account.php';
 require_once __DIR__ . '/includes/class-agent-role-mcp.php';
+require_once __DIR__ . '/includes/class-agent-role-log.php';
 
 Agent_Role::uninstall();

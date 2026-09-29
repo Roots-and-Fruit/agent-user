@@ -133,6 +133,11 @@ class Agent_Role {
 		remove_role( self::SLUG );
 		Agent_Role_Account::delete_credentials();
 		delete_option( Agent_Role_Mcp::OPTION );
+		if ( class_exists( 'Agent_Role_Log' ) ) {
+			delete_option( Agent_Role_Log::OPTION_DAYS );
+			delete_option( Agent_Role_Log::OPTION_CAP );
+			Agent_Role_Log::drop();
+		}
 	}
 
 	/**

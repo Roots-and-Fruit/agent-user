@@ -23,6 +23,7 @@ class Agent_Role_Admin {
 		add_action( 'admin_post_agent_role_revoke', array( __CLASS__, 'handle_revoke' ) );
 		add_action( 'admin_post_agent_role_reissue', array( __CLASS__, 'handle_reissue' ) );
 		add_action( 'admin_post_agent_role_mcp_setting', array( __CLASS__, 'handle_mcp_setting' ) );
+		add_action( 'admin_post_agent_role_log_setting', array( __CLASS__, 'handle_log_setting' ) );
 		add_action( 'admin_post_agent_role_save_agent', array( __CLASS__, 'handle_save_agent' ) );
 		add_action( 'wp_ajax_agent_role_create_agent', array( __CLASS__, 'handle_create_ajax' ) );
 		add_action( 'wp_ajax_agent_role_draft_instructions', array( __CLASS__, 'handle_draft_instructions' ) );
@@ -82,10 +83,11 @@ class Agent_Role_Admin {
 			array(),
 			$version
 		);
+		wp_enqueue_script( 'jquery-ui-datepicker' );
 		wp_enqueue_script(
 			'agent-role-admin',
 			plugins_url( 'admin/js/agent-role-admin.js', AGENT_ROLE_FILE ),
-			array(),
+			array( 'jquery-ui-datepicker' ),
 			$version,
 			true
 		);
@@ -102,6 +104,7 @@ class Agent_Role_Admin {
 				'draftDone'  => __( 'Draft is in the box. Update Agent saves it.', 'agent-role' ),
 				'resetting'  => __( 'Writing the built-in hint…', 'agent-role' ),
 				'resetDone'  => __( 'Built-in hint is in the box. Update Agent saves it.', 'agent-role' ),
+				'logDates'   => Agent_Role_Log::logged_dates(),
 			)
 		);
 	}
@@ -152,6 +155,8 @@ class Agent_Role_Admin {
 			self::render_tabs();
 			if ( 'settings' === self::current_tab() ) {
 				self::render_settings_tab();
+			} elseif ( 'activity' === self::current_tab() ) {
+				self::render_activity_tab();
 			} else {
 				self::render_agents_tab( $password, $agent );
 			}
@@ -166,7 +171,10 @@ class Agent_Role_Admin {
 	private static function current_tab() {
 		// Tab only chooses which view to render. It does not change data.
 		$tab = isset( $_GET['tab'] ) ? sanitize_key( wp_unslash( $_GET['tab'] ) ) : 'agents'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		return 'settings' === $tab ? 'settings' : 'agents';
+		if ( 'settings' === $tab || 'activity' === $tab ) {
+			return $tab;
+		}
+		return 'agents';
 	}
 
 	/**
@@ -177,7 +185,204 @@ class Agent_Role_Admin {
 		echo '<nav class="nav-tab-wrapper">';
 		echo '<a class="nav-tab' . ( 'agents' === $current ? ' nav-tab-active' : '' ) . '" href="' . esc_url( admin_url( 'users.php?page=agent-role&tab=agents' ) ) . '">' . esc_html__( 'Agents', 'agent-role' ) . '</a>';
 		echo '<a class="nav-tab' . ( 'settings' === $current ? ' nav-tab-active' : '' ) . '" href="' . esc_url( admin_url( 'users.php?page=agent-role&tab=settings' ) ) . '">' . esc_html__( 'Settings', 'agent-role' ) . '</a>';
+		echo '<a class="nav-tab' . ( 'activity' === $current ? ' nav-tab-active' : '' ) . '" href="' . esc_url( admin_url( 'users.php?page=agent-role&tab=activity' ) ) . '">' . esc_html__( 'Activity', 'agent-role' ) . '</a>';
 		echo '</nav>';
+	}
+
+	/**
+	 * Turn a date from the filter into a site-local datetime bound.
+	 *
+	 * @param string $raw        Submitted date text.
+	 * @param bool   $end_of_day True for the inclusive end of the range.
+	 */
+	private static function activity_bound( $raw, $end_of_day ) {
+		$raw = trim( (string) $raw );
+		if ( '' === $raw ) {
+			return '';
+		}
+
+		$dt = date_create_immutable( $raw, wp_timezone() );
+		if ( ! $dt ) {
+			return '';
+		}
+
+		$dt = $end_of_day ? $dt->setTime( 23, 59, 59 ) : $dt->setTime( 0, 0, 0 );
+		return $dt->format( 'Y-m-d H:i:s' );
+	}
+
+	/**
+	 * Show a stored bound with the General Settings date format.
+	 *
+	 * @param string $mysql Site-local datetime, or empty.
+	 */
+	private static function activity_input_value( $mysql ) {
+		if ( '' === $mysql ) {
+			return '';
+		}
+
+		$dt = date_create_immutable( $mysql, wp_timezone() );
+		if ( ! $dt ) {
+			return '';
+		}
+
+		return wp_date( get_option( 'date_format' ), $dt->getTimestamp(), wp_timezone() );
+	}
+
+	/**
+	 * Activity across every Agent, filtered by account and event type.
+	 */
+	private static function render_activity_tab() {
+		$agent_filter = isset( $_GET['agent'] ) ? absint( wp_unslash( $_GET['agent'] ) ) : 0; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$event_filter = isset( $_GET['event'] ) ? sanitize_key( wp_unslash( $_GET['event'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		if ( ! in_array( $event_filter, Agent_Role_Log::TYPES, true ) ) {
+			$event_filter = '';
+		}
+
+		$from_raw = isset( $_GET['from'] ) ? sanitize_text_field( wp_unslash( $_GET['from'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$to_raw   = isset( $_GET['to'] ) ? sanitize_text_field( wp_unslash( $_GET['to'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$from_sql = self::activity_bound( $from_raw, false );
+		$to_sql   = self::activity_bound( $to_raw, true );
+
+		$agents   = get_users(
+			array(
+				'role'   => Agent_Role::SLUG,
+				'fields' => array( 'ID', 'display_name' ),
+			)
+		);
+		$rows     = Agent_Role_Log::query( $agent_filter, $event_filter, $from_sql, $to_sql );
+		$labels   = array(
+			'ability' => __( 'Ability Calls', 'agent-role' ),
+			'rest'    => __( 'REST API', 'agent-role' ),
+			'admin'   => __( 'Admin Changes', 'agent-role' ),
+		);
+		$outcomes = array(
+			'success' => __( 'Success', 'agent-role' ),
+			'denied'  => __( 'Denied', 'agent-role' ),
+			'changed' => __( 'Changed', 'agent-role' ),
+			'error'   => __( 'Error', 'agent-role' ),
+		);
+
+		echo '<div class="ar-rf-panel">';
+		echo '<div class="ar-rf-toolbar">';
+		echo '<div>';
+		echo '<h2>' . esc_html__( 'Activity', 'agent-role' ) . '</h2>';
+		echo '<p class="description">' . esc_html__( 'A record of agent actions and access changes.', 'agent-role' ) . '</p>';
+		echo '</div>';
+		echo '<p class="ar-rf-activity__note">' . esc_html(
+			sprintf(
+				/* translators: 1: days to keep events, 2: maximum events per agent. */
+				__( 'Retained for %1$d days (capped at %2$d events per agent)', 'agent-role' ),
+				Agent_Role_Log::days(),
+				Agent_Role_Log::cap()
+			)
+		) . '</p>';
+		echo '</div>';
+
+		echo '<form method="get" class="ar-rf-activity__filters">';
+		echo '<input type="hidden" name="page" value="agent-role" />';
+		echo '<input type="hidden" name="tab" value="activity" />';
+		echo '<label class="ar-rf-field"><span class="ar-rf-field__label">' . esc_html__( 'Agent', 'agent-role' ) . '</span>';
+		echo '<select class="ar-rf-select" name="agent">';
+		echo '<option value="">' . esc_html__( 'All Agents', 'agent-role' ) . '</option>';
+		foreach ( $agents as $agent_user ) {
+			echo '<option value="' . esc_attr( (string) $agent_user->ID ) . '" ' . selected( $agent_filter, (int) $agent_user->ID, false ) . '>' . esc_html( $agent_user->display_name ) . '</option>';
+		}
+		echo '</select></label>';
+		echo '<label class="ar-rf-field"><span class="ar-rf-field__label">' . esc_html__( 'Event type', 'agent-role' ) . '</span>';
+		echo '<select class="ar-rf-select" name="event">';
+		echo '<option value="">' . esc_html__( 'All Events', 'agent-role' ) . '</option>';
+		foreach ( $labels as $type => $label ) {
+			echo '<option value="' . esc_attr( $type ) . '" ' . selected( $event_filter, $type, false ) . '>' . esc_html( $label ) . '</option>';
+		}
+		echo '</select></label>';
+		echo '<label class="ar-rf-field"><span class="ar-rf-field__label">' . esc_html__( 'From', 'agent-role' ) . '</span>';
+		echo '<input class="ar-rf-select ar-rf-date ar-rf-date--from" type="text" name="from" value="' . esc_attr( self::activity_input_value( $from_sql ) ) . '" autocomplete="off" />';
+		echo '</label>';
+		echo '<label class="ar-rf-field"><span class="ar-rf-field__label">' . esc_html__( 'To', 'agent-role' ) . '</span>';
+		echo '<input class="ar-rf-select ar-rf-date ar-rf-date--to" type="text" name="to" value="' . esc_attr( self::activity_input_value( $to_sql ) ) . '" autocomplete="off" />';
+		echo '</label>';
+		echo '<span class="ar-rf-field ar-rf-field--action">';
+		echo '<span class="ar-rf-field__label" aria-hidden="true">&#160;</span>';
+		echo '<button type="submit" class="button ar-rf-filter">' . esc_html__( 'Filter', 'agent-role' ) . '</button>';
+		echo '</span>';
+		$count = sprintf(
+			/* translators: %d: number of visible activity rows. */
+			_n( '%d event', '%d events', count( $rows ), 'agent-role' ),
+			count( $rows )
+		);
+		echo '<p class="ar-rf-activity__count">' . esc_html( $count ) . '</p>';
+		echo '</form>';
+
+		if ( ! $rows ) {
+			echo '<p>' . esc_html__( 'No agent activity yet.', 'agent-role' ) . '</p>';
+			echo '</div>';
+			return;
+		}
+
+		echo '<table class="widefat ar-rf-table"><thead><tr>';
+		echo '<th>' . esc_html__( 'Time', 'agent-role' ) . '</th>';
+		echo '<th>' . esc_html__( 'Agent', 'agent-role' ) . '</th>';
+		echo '<th>' . esc_html__( 'Event type', 'agent-role' ) . '</th>';
+		echo '<th>' . esc_html__( 'Details', 'agent-role' ) . '</th>';
+		echo '<th>' . esc_html__( 'Outcome', 'agent-role' ) . '</th>';
+		echo '</tr></thead><tbody>';
+		$deleted_at = Agent_Role_Log::deleted_at( array_column( $rows, 'user_id' ) );
+		foreach ( $rows as $row ) {
+			$user    = get_userdata( (int) $row['user_id'] );
+			$name    = $user instanceof WP_User ? $user->display_name : (string) $row['user_id'];
+			$local   = Agent_Role_Log::format_timestamp( $row['created_at'] );
+			$type    = isset( $labels[ $row['event_type'] ] ) ? $labels[ $row['event_type'] ] : $row['event_type'];
+			$outcome = isset( $outcomes[ $row['outcome'] ] ) ? $outcomes[ $row['outcome'] ] : $row['outcome'];
+			echo '<tr>';
+			echo '<td>' . esc_html( $local ) . '</td>';
+			echo '<td class="ar-rf-activity__agent">';
+			if ( $user instanceof WP_User ) {
+				$edit_url = add_query_arg(
+					array(
+						'page'    => 'agent-role',
+						'user_id' => (int) $user->ID,
+					),
+					admin_url( 'users.php' )
+				);
+				echo '<a class="ar-rf-agent-link" href="' . esc_url( $edit_url ) . '">' . esc_html( $name ) . '</a>';
+			} else {
+				echo esc_html( $name );
+				$when = isset( $deleted_at[ (int) $row['user_id'] ] ) ? $deleted_at[ (int) $row['user_id'] ] : '';
+				echo self::deleted_agent_mark( $when ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped in deleted_agent_mark().
+			}
+			echo '</td>';
+			echo '<td>' . esc_html( $type ) . '</td>';
+			echo '<td><span class="ar-rf-activity__detail">' . esc_html( $row['detail'] ) . '</span>';
+			if ( $row['identifier'] !== $row['detail'] ) {
+				echo '<span class="ar-rf-activity__id">' . esc_html( $row['identifier'] ) . '</span>';
+			}
+			echo '</td>';
+			echo '<td><span class="ar-rf-outcome ar-rf-outcome--' . esc_attr( $row['outcome'] ) . '">' . esc_html( $outcome ) . '</span></td>';
+			echo '</tr>';
+		}
+		echo '</tbody></table></div>';
+	}
+
+	/**
+	 * Red info mark for an agent account that no longer exists.
+	 *
+	 * @param string $deleted_at Site-local deletion time, or empty when unknown.
+	 */
+	private static function deleted_agent_mark( $deleted_at ) {
+		if ( '' !== $deleted_at ) {
+			$text = sprintf(
+				/* translators: %s: date and time the agent account was deleted. */
+				__( 'This agent account was deleted on %s.', 'agent-role' ),
+				Agent_Role_Log::format_timestamp( $deleted_at )
+			);
+		} else {
+			$text = __( 'This agent account was deleted.', 'agent-role' );
+		}
+
+		return '<span class="ar-rf-deleted">'
+			. '<button type="button" class="ar-rf-deleted__icon" aria-label="' . esc_attr( $text ) . '">i</button>'
+			. '<span class="ar-rf-deleted__tip" role="tooltip">' . esc_html( $text ) . '</span>'
+			. '</span>';
 	}
 
 	/**
@@ -586,12 +791,13 @@ class Agent_Role_Admin {
 	 * MCP Adapter setting. Capability and ability switches live on each agent.
 	 */
 	private static function render_settings_tab() {
-		if ( ! Agent_Role_Mcp::is_available() ) {
+		if ( Agent_Role_Mcp::is_available() ) {
+			self::render_mcp_setting();
+		} else {
 			echo '<p class="description">' . esc_html__( 'The MCP Adapter is not active.', 'agent-role' ) . '</p>';
-			return;
 		}
 
-		self::render_mcp_setting();
+		self::render_log_setting();
 	}
 
 	/**
@@ -735,8 +941,11 @@ class Agent_Role_Admin {
 			wp_die( esc_html__( 'That account is not an Agent.', 'agent-role' ), '', array( 'response' => 400 ) );
 		}
 
-		$previous = Agent_Role::instructions_for( $user );
-		$posted   = isset( $_POST['agent_role_instructions'] ) ? sanitize_textarea_field( wp_unslash( $_POST['agent_role_instructions'] ) ) : '';
+		$previous         = Agent_Role::instructions_for( $user );
+		$posted           = isset( $_POST['agent_role_instructions'] ) ? sanitize_textarea_field( wp_unslash( $_POST['agent_role_instructions'] ) ) : '';
+		$before_caps      = get_user_meta( $user_id, Agent_Role::CAPS_META, true );
+		$before_abilities = get_user_meta( $user_id, Agent_Role::ABILITIES_META, true );
+		$before_note      = metadata_exists( 'user', $user_id, Agent_Role::INSTRUCTIONS_META ) ? (string) get_user_meta( $user_id, Agent_Role::INSTRUCTIONS_META, true ) : '';
 
 		list( $caps, $abilities ) = self::posted_maps();
 		update_user_meta( $user_id, Agent_Role::CAPS_META, $caps );
@@ -746,6 +955,21 @@ class Agent_Role_Admin {
 			Agent_Role::store_instructions( $user_id );
 		} else {
 			update_user_meta( $user_id, Agent_Role::INSTRUCTIONS_META, self::normalize_instructions( $posted ) );
+		}
+
+		$after_note = metadata_exists( 'user', $user_id, Agent_Role::INSTRUCTIONS_META ) ? (string) get_user_meta( $user_id, Agent_Role::INSTRUCTIONS_META, true ) : '';
+		if ( $before_caps !== $caps || $before_abilities !== $abilities ) {
+			Agent_Role_Log::record( $user_id, 'admin', 'Switches saved', 'switches', 'changed' );
+		}
+		if ( self::normalize_instructions( $before_note ) !== self::normalize_instructions( $after_note ) ) {
+			$rewritten = self::normalize_instructions( $after_note ) === self::normalize_instructions( Agent_Role::compose_instructions( $user ) );
+			Agent_Role_Log::record(
+				$user_id,
+				'admin',
+				$rewritten ? 'Instructions rewritten' : 'Instructions saved from the box',
+				'instructions',
+				'changed'
+			);
 		}
 
 		wp_safe_redirect(
@@ -919,6 +1143,46 @@ class Agent_Role_Admin {
 		check_admin_referer( 'agent_role_mcp_setting', 'agent_role_mcp_nonce' );
 
 		Agent_Role_Mcp::set_agents_only( ! empty( $_POST['agent_role_mcp_agents_only'] ) );
+
+		wp_safe_redirect( admin_url( 'users.php?page=agent-role&tab=settings' ) );
+		exit;
+	}
+
+	/**
+	 * Days to keep events, and how many events to keep for each agent.
+	 */
+	private static function render_log_setting() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			return;
+		}
+
+		echo '<h2>' . esc_html__( 'Activity log', 'agent-role' ) . '</h2>';
+		echo '<form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '" class="ar-rf-log-settings">';
+		wp_nonce_field( 'agent_role_log_setting', 'agent_role_log_nonce' );
+		echo '<input type="hidden" name="action" value="agent_role_log_setting" />';
+		echo '<p class="ar-rf-log-settings__field"><label for="agent_role_log_days">' . esc_html__( 'Keep records for', 'agent-role' ) . '</label> ';
+		echo '<input type="number" class="small-text" id="agent_role_log_days" name="agent_role_log_days" min="1" max="' . esc_attr( (string) Agent_Role_Log::MAX_DAYS ) . '" value="' . esc_attr( (string) Agent_Role_Log::days() ) . '" required /> ';
+		echo '<span>' . esc_html__( 'days', 'agent-role' ) . '</span></p>';
+		echo '<p class="ar-rf-log-settings__field"><label for="agent_role_log_cap">' . esc_html__( 'Events per agent', 'agent-role' ) . '</label> ';
+		echo '<input type="number" class="small-text" id="agent_role_log_cap" name="agent_role_log_cap" min="1" max="' . esc_attr( (string) Agent_Role_Log::MAX_CAP ) . '" value="' . esc_attr( (string) Agent_Role_Log::cap() ) . '" required /></p>';
+		echo '<p class="description">' . esc_html__( 'A longer window or a higher cap stores more of what agents tried, including ability names and REST routes, and the Activity screen has to load all of it. The log does not store passwords or request contents. The limit is 365 days and 5,000 events per agent. Saving a smaller number deletes the older rows.', 'agent-role' ) . '</p>';
+		submit_button( __( 'Save log settings', 'agent-role' ) );
+		echo '</form>';
+	}
+
+	/**
+	 * Save how long activity rows are kept.
+	 */
+	public static function handle_log_setting() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die( esc_html__( 'You do not have permission to change this setting.', 'agent-role' ), '', array( 'response' => 403 ) );
+		}
+
+		check_admin_referer( 'agent_role_log_setting', 'agent_role_log_nonce' );
+
+		$days = isset( $_POST['agent_role_log_days'] ) ? absint( wp_unslash( $_POST['agent_role_log_days'] ) ) : Agent_Role_Log::DAYS;
+		$cap  = isset( $_POST['agent_role_log_cap'] ) ? absint( wp_unslash( $_POST['agent_role_log_cap'] ) ) : Agent_Role_Log::CAP;
+		Agent_Role_Log::save_limits( $days, $cap );
 
 		wp_safe_redirect( admin_url( 'users.php?page=agent-role&tab=settings' ) );
 		exit;
