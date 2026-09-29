@@ -3,7 +3,7 @@ Contributors: webdevmattcrom
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.0
+Stable tag: 1.4.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 Tags: users, roles, rest-api
@@ -39,6 +39,9 @@ Yes, and the adapter is optional. When it is active, the agent list can show the
 The role stays, so existing Agent accounts keep their capabilities. The login blocks are removed with the plugin. Uninstalling the plugin removes the role, the application passwords it created, and the activity log. It does not delete the users.
 
 == Changelog ==
+
+= 1.4.0 =
+* Draw Agents, Settings, and Activity as folder tabs on one white panel.
 
 = 1.3.0 =
 * Store each agent's publishing switches on that account. Turning one off leaves the shared Agent role, and the other agents, as they were.

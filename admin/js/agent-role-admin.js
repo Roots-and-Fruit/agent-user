@@ -1,4 +1,9 @@
 (function () {
+	var currentTab = document.querySelector('.ar-rf-settings a.rf-tabs__tab.is-current');
+	if (currentTab && typeof currentTab.scrollIntoView === 'function') {
+		currentTab.scrollIntoView({ inline: 'nearest', block: 'nearest' });
+	}
+
 	var dialog = document.getElementById('ar-agent-modal');
 	var openButton = document.getElementById('ar-new-agent');
 	var createStep = document.getElementById('ar-agent-step-create');

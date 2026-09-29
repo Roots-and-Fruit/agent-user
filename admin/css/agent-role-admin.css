@@ -24,6 +24,7 @@
 	--rf-green: #62744d;
 	--rf-green-deep: #4b5e2e;
 	--rf-green-soft: #e4eadc;
+	--rf-panel: #ebe4d8;
 	--rf-panel-soft: #f3ece2;
 	--rf-leading-callout: 1.55;
 	--rf-measure: 60ch;
@@ -109,45 +110,288 @@
 	box-shadow: 0 -2px 6px -4px rgba(44, 41, 34, 0.22);
 }
 
-.ar-rf-settings .nav-tab-wrapper {
-	display: block;
-	overflow: hidden;
-	margin: 0 0 var(--rf-space-5);
+/* Folder tabs.
+   Scoped under this screen and reset with !important so wp-admin, admin color
+   schemes, and other plugins cannot flatten the shoulder or restyle the links.
+   `all` does not reset custom properties, so --rf-tab-face still drives the fill. */
+.wp-core-ui .ar-rf-settings .rf-tabs {
+	all: unset !important;
+	display: block !important;
+	position: relative !important;
+	box-sizing: border-box !important;
+	max-width: var(--rf-content-max) !important;
+	margin: 0 0 var(--rf-space-5) !important;
+	overflow: visible !important;
+	float: none !important;
+	clear: both !important;
+	border: 0 !important;
+	background: transparent !important;
+	box-shadow: none !important;
+	color: var(--rf-ink) !important;
+	font-family: var(--rf-font-sans) !important;
+	filter: drop-shadow(0 2px 10px rgba(44, 41, 34, 0.08)) !important;
+}
+
+.wp-core-ui .ar-rf-settings nav.rf-tabs__list {
+	all: unset !important;
+	display: flex !important;
+	align-items: flex-end !important;
+	flex-wrap: nowrap !important;
+	gap: 2rem !important;
+	box-sizing: border-box !important;
+	margin: 0 !important;
+	padding: 0 2.25rem 0 1.15rem !important;
+	position: relative !important;
+	z-index: 2 !important;
+	overflow: visible !important;
+	float: none !important;
+	border: 0 !important;
+	background: transparent !important;
+	background-image: none !important;
+	box-shadow: none !important;
+	list-style: none !important;
+}
+
+.wp-core-ui .ar-rf-settings a.rf-tabs__tab,
+.wp-core-ui .ar-rf-settings a.rf-tabs__tab:hover,
+.wp-core-ui .ar-rf-settings a.rf-tabs__tab:focus,
+.wp-core-ui .ar-rf-settings a.rf-tabs__tab:active,
+.wp-core-ui .ar-rf-settings a.rf-tabs__tab:visited {
+	all: unset !important;
+	--rf-tab-face: var(--rf-panel);
+	position: relative !important;
+	isolation: isolate !important;
+	display: inline-flex !important;
+	align-items: center !important;
+	flex: 0 0 auto !important;
+	gap: 0.55rem !important;
+	box-sizing: border-box !important;
+	margin: 0.45rem 0 0 !important;
+	padding: 0.55rem 1.15rem 0.55rem 0.8rem !important;
+	width: auto !important;
+	height: auto !important;
+	min-width: 0 !important;
+	min-height: 0 !important;
+	max-width: none !important;
+	overflow: visible !important;
+	float: none !important;
+	clear: none !important;
+	border-style: solid !important;
+	border-color: var(--rf-rule) !important;
+	border-width: 1px 0 0 1px !important;
+	border-start-start-radius: 0.7rem !important;
+	border-start-end-radius: 0 !important;
+	border-end-start-radius: 0 !important;
+	border-end-end-radius: 0 !important;
+	background: var(--rf-tab-face) !important;
+	background-image: none !important;
+	color: var(--rf-ink) !important;
+	font-family: var(--rf-font-sans) !important;
+	font-size: var(--rf-text-sm) !important;
+	font-weight: 700 !important;
+	font-style: normal !important;
+	line-height: 1.2 !important;
+	letter-spacing: normal !important;
+	text-align: start !important;
+	text-decoration: none !important;
+	text-shadow: none !important;
+	text-transform: none !important;
+	white-space: nowrap !important;
+	vertical-align: baseline !important;
+	cursor: pointer !important;
+	appearance: none !important;
+	box-shadow: none !important;
+	outline: none !important;
+	transition: background-color 0.18s ease !important;
+}
+
+.wp-core-ui .ar-rf-settings a.rf-tabs__tab:hover:not(.is-current) {
+	--rf-tab-face: var(--rf-panel-soft);
+}
+
+.wp-core-ui .ar-rf-settings a.rf-tabs__tab.is-current,
+.wp-core-ui .ar-rf-settings a.rf-tabs__tab.is-current:hover,
+.wp-core-ui .ar-rf-settings a.rf-tabs__tab.is-current:focus,
+.wp-core-ui .ar-rf-settings a.rf-tabs__tab.is-current:active,
+.wp-core-ui .ar-rf-settings a.rf-tabs__tab.is-current:visited {
+	z-index: 2 !important;
+	margin-block-start: 0 !important;
+	--rf-tab-face: var(--rf-white);
+	color: var(--rf-ink) !important;
+}
+
+.wp-core-ui .ar-rf-settings a.rf-tabs__tab.is-current::before {
+	content: "" !important;
+	position: absolute !important;
+	z-index: 1 !important;
+	inset-inline: 0 !important;
+	bottom: -1px !important;
+	display: block !important;
+	width: auto !important;
+	height: 2px !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	border: 0 !important;
+	background: var(--rf-tab-face) !important;
+	pointer-events: none !important;
+	box-shadow: none !important;
+}
+
+.wp-core-ui .ar-rf-settings a.rf-tabs__tab:focus {
+	outline: none !important;
+	box-shadow: none !important;
+}
+
+.wp-core-ui .ar-rf-settings a.rf-tabs__tab:focus-visible {
+	outline: none !important;
+	box-shadow: var(--rf-focus) !important;
+}
+
+.wp-core-ui .ar-rf-settings a.rf-tabs__tab .rf-tabs__dot {
+	all: unset !important;
+	position: relative !important;
+	box-sizing: border-box !important;
+	display: block !important;
+	flex: none !important;
+	width: 18px !important;
+	height: 18px !important;
+	min-width: 18px !important;
+	min-height: 18px !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	border: 2px solid color-mix(in srgb, var(--rf-ink) 45%, transparent) !important;
+	border-radius: 50% !important;
+	background: transparent !important;
+	background-image: none !important;
+	box-shadow: none !important;
+	color: transparent !important;
+	font-size: 0 !important;
+	line-height: 0 !important;
+	overflow: hidden !important;
+}
+
+.wp-core-ui .ar-rf-settings a.rf-tabs__tab .rf-tabs__dot::before {
+	content: "" !important;
+	position: absolute !important;
+	width: 8px !important;
+	height: 8px !important;
+	inset-block-start: 50% !important;
+	inset-inline-start: 50% !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	border: 0 !important;
+	border-radius: 50% !important;
+	background: var(--rf-orange) !important;
+	box-shadow: none !important;
+	transform: translate(-50%, -50%) scale(0) !important;
+	transition: transform 0.18s ease !important;
+}
+
+.wp-core-ui .ar-rf-settings a.rf-tabs__tab.is-current .rf-tabs__dot {
+	border-color: var(--rf-ink) !important;
+}
+
+.wp-core-ui .ar-rf-settings a.rf-tabs__tab.is-current .rf-tabs__dot::before {
+	transform: translate(-50%, -50%) scale(1) !important;
+}
+
+.wp-core-ui .ar-rf-settings a.rf-tabs__tab svg.rf-tabs__shoulder {
+	all: unset !important;
+	position: absolute !important;
+	inset-block-start: -1px !important;
+	inset-inline-end: -28px !important;
+	display: block !important;
+	box-sizing: content-box !important;
+	width: 48px !important;
+	height: calc(100% + 1px) !important;
+	min-width: 48px !important;
+	min-height: 0 !important;
+	max-width: none !important;
+	max-height: none !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	overflow: visible !important;
+	border: 0 !important;
+	background: none !important;
+	fill: none !important;
+	stroke: none !important;
+	pointer-events: none !important;
+	vertical-align: top !important;
+}
+
+.wp-core-ui .ar-rf-settings a.rf-tabs__tab.is-current svg.rf-tabs__shoulder {
+	height: calc(100% + 2px) !important;
+}
+
+.wp-core-ui .ar-rf-settings a.rf-tabs__tab svg.rf-tabs__shoulder path.rf-tabs__shoulder-face {
+	fill: var(--rf-tab-face) !important;
+	stroke: none !important;
+	vector-effect: non-scaling-stroke;
+}
+
+.wp-core-ui .ar-rf-settings a.rf-tabs__tab svg.rf-tabs__shoulder path.rf-tabs__shoulder-edge {
+	fill: none !important;
+	stroke: var(--rf-rule) !important;
+	stroke-width: 1px !important;
+	stroke-linejoin: round !important;
+	vector-effect: non-scaling-stroke;
+}
+
+.wp-core-ui .ar-rf-settings .rf-tabs__panel {
+	all: unset !important;
+	display: flow-root !important;
+	position: relative !important;
+	z-index: 1 !important;
+	box-sizing: border-box !important;
+	width: auto !important;
+	max-width: none !important;
+	margin: 0 !important;
+	padding: var(--rf-space-5) !important;
+	overflow: visible !important;
+	float: none !important;
+	clear: both !important;
+	border: 1px solid var(--rf-rule) !important;
+	border-radius: var(--rf-radius) !important;
+	background: var(--rf-white) !important;
+	background-image: none !important;
+	color: var(--rf-ink) !important;
+	font-family: var(--rf-font-sans) !important;
+	box-shadow: none !important;
+}
+
+.wp-core-ui .ar-rf-settings .rf-tabs__panel > .ar-rf-panel {
+	max-width: none;
+	margin: 0;
 	padding: 0;
-	border-bottom: 1px solid var(--rf-rule);
-}
-
-.ar-rf-settings .nav-tab-wrapper::after {
-	display: none;
-}
-
-.ar-rf-settings .nav-tab {
-	float: left;
-	margin: 0 var(--rf-space-2) -1px 0;
-	padding: var(--rf-space-3) var(--rf-space-4);
+	background: transparent;
 	border: 0;
-	border-bottom: 2px solid transparent;
-	border-radius: var(--rf-radius-sm) var(--rf-radius-sm) 0 0;
-	background: transparent;
-	color: var(--rf-ink-muted);
-	font-size: var(--rf-text-sm);
-	font-weight: 600;
-	line-height: var(--rf-leading-snug);
-	text-decoration: none;
+	border-radius: 0;
+	box-shadow: none;
 }
 
-.ar-rf-settings .nav-tab:hover,
-.ar-rf-settings .nav-tab:focus {
-	background: var(--rf-green-soft);
-	color: var(--rf-green-deep);
+@media (max-width: 782px) {
+	.wp-core-ui .ar-rf-settings .rf-tabs {
+		min-width: 0 !important;
+		max-width: 100% !important;
+	}
+
+	.wp-core-ui .ar-rf-settings nav.rf-tabs__list {
+		min-width: 0 !important;
+		max-width: 100% !important;
+		overflow-x: auto !important;
+		overflow-y: hidden !important;
+		padding-bottom: 3px !important;
+		margin-bottom: -3px !important;
+		overscroll-behavior-x: contain !important;
+		scrollbar-width: thin;
+	}
 }
 
-.ar-rf-settings .nav-tab-active,
-.ar-rf-settings .nav-tab-active:hover,
-.ar-rf-settings .nav-tab-active:focus {
-	background: transparent;
-	color: var(--rf-green);
-	border-bottom-color: var(--rf-green);
+@media (prefers-reduced-motion: reduce) {
+	.wp-core-ui .ar-rf-settings a.rf-tabs__tab,
+	.wp-core-ui .ar-rf-settings a.rf-tabs__tab .rf-tabs__dot::before {
+		transition: none !important;
+	}
 }
 
 .ar-rf-panel {

@@ -149,13 +149,20 @@ class Agent_Role_Admin {
 			if ( false === $detail ) {
 				echo '<div class="notice notice-error"><p>' . esc_html__( 'That account is not an Agent.', 'agent-role' ) . '</p></div>';
 			}
+			$tab = self::current_tab();
+			echo '<div class="rf-tabs">';
 			self::render_tabs();
-			if ( 'settings' === self::current_tab() ) {
+			echo '<div class="rf-tabs__panel">';
+			if ( 'settings' === $tab ) {
 				self::render_settings_tab();
-			} elseif ( 'activity' === self::current_tab() ) {
+			} elseif ( 'activity' === $tab ) {
 				self::render_activity_tab();
 			} else {
-				self::render_agents_tab( $password, $agent );
+				self::render_agents_tab();
+			}
+			echo '</div></div>';
+			if ( 'agents' === $tab ) {
+				self::render_agent_dialogs( $password, $agent );
 			}
 		}
 
@@ -175,15 +182,52 @@ class Agent_Role_Admin {
 	}
 
 	/**
-	 * Tab links.
+	 * Folder tabs. Each link reloads the screen so filters and the agent editor keep working.
 	 */
 	private static function render_tabs() {
 		$current = self::current_tab();
-		echo '<nav class="nav-tab-wrapper">';
-		echo '<a class="nav-tab' . ( 'agents' === $current ? ' nav-tab-active' : '' ) . '" href="' . esc_url( admin_url( 'users.php?page=agent-role&tab=agents' ) ) . '">' . esc_html__( 'Agents', 'agent-role' ) . '</a>';
-		echo '<a class="nav-tab' . ( 'settings' === $current ? ' nav-tab-active' : '' ) . '" href="' . esc_url( admin_url( 'users.php?page=agent-role&tab=settings' ) ) . '">' . esc_html__( 'Settings', 'agent-role' ) . '</a>';
-		echo '<a class="nav-tab' . ( 'activity' === $current ? ' nav-tab-active' : '' ) . '" href="' . esc_url( admin_url( 'users.php?page=agent-role&tab=activity' ) ) . '">' . esc_html__( 'Activity', 'agent-role' ) . '</a>';
+		echo '<nav class="rf-tabs__list" aria-label="' . esc_attr__( 'Agent Role', 'agent-role' ) . '">';
+		self::render_tab_link( 'agents', __( 'Agents', 'agent-role' ), $current );
+		self::render_tab_link( 'settings', __( 'Settings', 'agent-role' ), $current );
+		self::render_tab_link( 'activity', __( 'Activity', 'agent-role' ), $current );
 		echo '</nav>';
+	}
+
+	/**
+	 * One folder tab.
+	 *
+	 * @param string $slug    Tab query value.
+	 * @param string $label   Visible label.
+	 * @param string $current Active tab slug.
+	 */
+	private static function render_tab_link( $slug, $label, $current ) {
+		$active = $slug === $current;
+		$url    = add_query_arg(
+			array(
+				'page' => 'agent-role',
+				'tab'  => $slug,
+			),
+			admin_url( 'users.php' )
+		);
+
+		echo '<a class="rf-tabs__tab' . ( $active ? ' is-current' : '' ) . '" href="' . esc_url( $url ) . '"';
+		if ( $active ) {
+			echo ' aria-current="page"';
+		}
+		echo '>';
+		echo '<span class="rf-tabs__dot" aria-hidden="true"></span>';
+		echo esc_html( $label );
+		echo self::tab_shoulder(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped in tab_shoulder().
+		echo '</a>';
+	}
+
+	/**
+	 * Slanted right edge of a folder tab.
+	 */
+	private static function tab_shoulder() {
+		return self::kses_icon(
+			'<svg class="rf-tabs__shoulder" viewBox="0 0 48 40" width="48" height="40" preserveAspectRatio="none" aria-hidden="true" focusable="false"><path class="rf-tabs__shoulder-face" d="M0 0H20Q26 0 30 8L46 40H0Z" /><path class="rf-tabs__shoulder-edge" d="M0 .5H20Q26 .5 30 8.5L46 40" /></svg>'
+		);
 	}
 
 	/**
@@ -383,14 +427,9 @@ class Agent_Role_Admin {
 	}
 
 	/**
-	 * The agent list and the create modal.
-	 *
-	 * @param string       $password One-time password, or empty.
-	 * @param WP_User|false $agent   Account the password belongs to.
+	 * The agent list.
 	 */
-	private static function render_agents_tab( $password, $agent ) {
-		$show_result = '' !== $password && $agent instanceof WP_User;
-
+	private static function render_agents_tab() {
 		echo '<div class="ar-rf-panel">';
 		echo '<div class="ar-rf-toolbar">';
 		echo '<h2>' . esc_html__( 'Agents', 'agent-role' ) . '</h2>';
@@ -477,6 +516,16 @@ class Agent_Role_Admin {
 			echo '<p class="description">' . esc_html__( 'No agents yet. Create one when you are ready to connect a tool.', 'agent-role' ) . '</p>';
 		}
 		echo '</div>';
+	}
+
+	/**
+	 * Create-agent and MCP dialogs. Kept outside the folder tab so its shadow cannot trap them.
+	 *
+	 * @param string        $password One-time password, or empty.
+	 * @param WP_User|false $agent    Account the password belongs to.
+	 */
+	private static function render_agent_dialogs( $password, $agent ) {
+		$show_result = '' !== $password && $agent instanceof WP_User;
 
 		echo '<dialog class="ar-rf-modal" id="ar-agent-modal">';
 		echo '<form method="dialog" class="ar-rf-modal__panel" id="ar-agent-form">';
@@ -598,22 +647,24 @@ class Agent_Role_Admin {
 		return wp_kses(
 			$icon,
 			array(
-				'svg'  => array(
-					'xmlns'           => true,
-					'width'           => true,
-					'height'          => true,
-					'viewbox'         => true,
-					'fill'            => true,
-					'stroke'          => true,
-					'stroke-width'    => true,
-					'stroke-linecap'  => true,
-					'stroke-linejoin' => true,
-					'class'           => true,
-					'aria-hidden'     => true,
-					'focusable'       => true,
-					'role'            => true,
+				'svg'    => array(
+					'xmlns'               => true,
+					'width'               => true,
+					'height'              => true,
+					'viewbox'             => true,
+					'preserveaspectratio' => true,
+					'fill'                => true,
+					'stroke'              => true,
+					'stroke-width'        => true,
+					'stroke-linecap'      => true,
+					'stroke-linejoin'     => true,
+					'class'               => true,
+					'aria-hidden'         => true,
+					'focusable'           => true,
+					'role'                => true,
 				),
 				'path' => array(
+					'class'           => true,
 					'd'               => true,
 					'fill'            => true,
 					'stroke'          => true,
