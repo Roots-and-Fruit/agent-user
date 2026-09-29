@@ -24,6 +24,8 @@ class Agent_Role_Mcp {
 
 	const PASSWORD_PLACEHOLDER = 'YOUR_APPLICATION_PASSWORD';
 
+	const GROUP = 'agent_role_mcp';
+
 	/**
 	 * Register hooks once every plugin has loaded.
 	 */
@@ -35,6 +37,36 @@ class Agent_Role_Mcp {
 		add_filter( 'user_has_cap', array( __CLASS__, 'grant_capability' ), 10, 4 );
 		add_filter( 'mcp_adapter_default_transport_permission_user_capability', array( __CLASS__, 'transport_capability' ) );
 		add_filter( 'mcp_adapter_initialize_response', array( __CLASS__, 'initialize_response' ) );
+		add_action( 'admin_init', array( __CLASS__, 'register_setting' ) );
+		self::register_setting();
+	}
+
+	/**
+	 * Register the agents-only option with the Settings API.
+	 */
+	public static function register_setting() {
+		if ( isset( $GLOBALS['wp_registered_settings'][ self::OPTION ] ) ) {
+			return;
+		}
+
+		register_setting(
+			self::GROUP,
+			self::OPTION,
+			array(
+				'type'              => 'string',
+				'sanitize_callback' => array( __CLASS__, 'sanitize_agents_only' ),
+				'show_in_rest'      => false,
+			)
+		);
+	}
+
+	/**
+	 * Store on only for the posted checkbox value.
+	 *
+	 * @param mixed $value Raw option value. A missing checkbox arrives as null.
+	 */
+	public static function sanitize_agents_only( $value ) {
+		return ( true === $value || 1 === $value || '1' === $value ) ? '1' : '0';
 	}
 
 	/**
@@ -92,7 +124,7 @@ class Agent_Role_Mcp {
 	 * @param bool $enabled Whether only Agents may use the MCP server.
 	 */
 	public static function set_agents_only( $enabled ) {
-		update_option( self::OPTION, $enabled ? '1' : '0' );
+		update_option( self::OPTION, self::sanitize_agents_only( $enabled ? '1' : null ) );
 	}
 
 	/**

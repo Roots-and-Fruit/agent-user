@@ -20,6 +20,8 @@ class Agent_Role {
 
 	const CAPS_META = '_agent_role_caps';
 
+	const MIGRATED_OPTION = 'agent_role_caps_migrated';
+
 	const ABILITIES_META = '_agent_role_abilities';
 
 	const INSTRUCTIONS_META = '_agent_role_instructions';
@@ -94,25 +96,83 @@ class Agent_Role {
 	}
 
 	/**
-	 * Turn the chosen capabilities on and the others off. Read stays on.
+	 * The six switches as this user has them now. Read is not included.
 	 *
+	 * A missing key follows the role. A stored false is off.
+	 *
+	 * @param WP_User $user User to read.
+	 * @return array<string,bool>
+	 */
+	public static function cap_map( $user ) {
+		$map = array();
+		if ( ! $user instanceof WP_User ) {
+			return $map;
+		}
+
+		foreach ( self::cap_slugs() as $cap ) {
+			$map[ $cap ] = $user->has_cap( $cap );
+		}
+
+		return $map;
+	}
+
+	/**
+	 * Write the six switches onto this user. Read stays on the role.
+	 *
+	 * Off is add_cap( $cap, false ). remove_cap() would drop the key and the role grant would return.
+	 *
+	 * @param int                $user_id User ID.
 	 * @param array<string,bool> $enabled Capability slug => whether it is on.
 	 */
-	public static function apply_cap_choices( array $enabled ) {
-		$role = get_role( self::SLUG );
-		if ( ! $role ) {
+	public static function apply_cap_map( $user_id, array $enabled ) {
+		$user = get_userdata( $user_id );
+		if ( ! $user instanceof WP_User ) {
 			return;
 		}
 
-		$role->add_cap( 'read' );
-		foreach ( self::cap_choices() as $cap => $choice ) {
-			unset( $choice );
-			if ( ! empty( $enabled[ $cap ] ) ) {
-				$role->add_cap( $cap );
-			} else {
-				$role->remove_cap( $cap );
-			}
+		foreach ( self::cap_slugs() as $cap ) {
+			$user->add_cap( $cap, ! empty( $enabled[ $cap ] ) );
 		}
+	}
+
+	/**
+	 * Copy legacy per-agent meta onto the user once.
+	 *
+	 * An Agent with no legacy map keeps following the role.
+	 */
+	public static function maybe_migrate_caps() {
+		if ( defined( 'AGENT_ROLE_SKIP_MIGRATE' ) && AGENT_ROLE_SKIP_MIGRATE ) {
+			return;
+		}
+
+		self::migrate_caps();
+	}
+
+	/**
+	 * Copy `_agent_role_caps` onto each Agent, then forget that meta.
+	 */
+	public static function migrate_caps() {
+		if ( get_option( self::MIGRATED_OPTION ) ) {
+			return;
+		}
+
+		$ids = get_users(
+			array(
+				'role'   => self::SLUG,
+				'fields' => 'ID',
+			)
+		);
+		foreach ( $ids as $user_id ) {
+			$saved = get_user_meta( (int) $user_id, self::CAPS_META, true );
+			if ( ! is_array( $saved ) ) {
+				continue;
+			}
+
+			self::apply_cap_map( (int) $user_id, $saved );
+			delete_user_meta( (int) $user_id, self::CAPS_META );
+		}
+
+		update_option( self::MIGRATED_OPTION, '1', false );
 	}
 
 	/**
@@ -133,6 +193,7 @@ class Agent_Role {
 		remove_role( self::SLUG );
 		Agent_Role_Account::delete_credentials();
 		delete_option( Agent_Role_Mcp::OPTION );
+		delete_option( self::MIGRATED_OPTION );
 		if ( class_exists( 'Agent_Role_Log' ) ) {
 			delete_option( Agent_Role_Log::OPTION_DAYS );
 			delete_option( Agent_Role_Log::OPTION_CAP );
@@ -209,9 +270,86 @@ class Agent_Role {
 	 * Per-agent capability and ability checks.
 	 */
 	public static function register() {
-		add_filter( 'user_has_cap', array( __CLASS__, 'filter_caps' ), 20, 4 );
+		self::register_meta_keys();
+		add_action( 'init', array( __CLASS__, 'maybe_migrate_caps' ) );
 		add_filter( 'wp_ability_permission_result', array( __CLASS__, 'filter_ability_permission' ), 10, 4 );
 		add_action( 'wp_abilities_api_init', array( __CLASS__, 'maybe_refresh_instructions' ), 100 );
+	}
+
+	/**
+	 * Sanitize the user meta this plugin still stores.
+	 */
+	public static function register_meta_keys() {
+		register_meta(
+			'user',
+			self::ABILITIES_META,
+			array(
+				'type'              => 'array',
+				'single'            => true,
+				'show_in_rest'      => false,
+				'sanitize_callback' => array( __CLASS__, 'sanitize_abilities' ),
+			)
+		);
+		register_meta(
+			'user',
+			self::INSTRUCTIONS_META,
+			array(
+				'type'              => 'string',
+				'single'            => true,
+				'show_in_rest'      => false,
+				'sanitize_callback' => array( __CLASS__, 'sanitize_instructions' ),
+			)
+		);
+		register_meta(
+			'user',
+			Agent_Role_Account::META,
+			array(
+				'type'              => 'string',
+				'single'            => true,
+				'show_in_rest'      => false,
+				'sanitize_callback' => array( __CLASS__, 'sanitize_managed' ),
+			)
+		);
+	}
+
+	/**
+	 * Ability name => whether it is on.
+	 *
+	 * @param mixed $value Raw meta value.
+	 * @return array<string,bool>
+	 */
+	public static function sanitize_abilities( $value ) {
+		if ( ! is_array( $value ) ) {
+			return array();
+		}
+
+		$clean = array();
+		foreach ( $value as $name => $on ) {
+			if ( ! is_string( $name ) || '' === $name ) {
+				continue;
+			}
+			$clean[ $name ] = (bool) $on;
+		}
+
+		return $clean;
+	}
+
+	/**
+	 * Connection note. Tags are stripped. The text is otherwise kept.
+	 *
+	 * @param mixed $value Raw meta value.
+	 */
+	public static function sanitize_instructions( $value ) {
+		return sanitize_textarea_field( is_string( $value ) ? $value : '' );
+	}
+
+	/**
+	 * Managed-account flag. Only the literal on value is stored.
+	 *
+	 * @param mixed $value Raw meta value.
+	 */
+	public static function sanitize_managed( $value ) {
+		return ( true === $value || 1 === $value || '1' === $value ) ? '1' : '';
 	}
 
 	/**
@@ -253,37 +391,9 @@ class Agent_Role {
 			unset( $choice );
 			$caps[ $cap ] = (bool) ( $role && ! empty( $role->capabilities[ $cap ] ) );
 		}
-		update_user_meta( $user_id, self::CAPS_META, $caps );
+		self::apply_cap_map( $user_id, $caps );
 		update_user_meta( $user_id, self::ABILITIES_META, self::abilities_allowed_now( $user_id ) );
 		self::store_instructions( $user_id );
-	}
-
-	/**
-	 * Apply one agent's saved capabilities. Read stays on. Unsaved agents keep the role.
-	 *
-	 * @param array<string,bool> $allcaps Capabilities the user has.
-	 * @param string[]           $caps    Primitive capabilities being checked.
-	 * @param array<int,mixed>   $args    Arguments passed to has_cap().
-	 * @param WP_User            $user    User being checked.
-	 * @return array<string,bool>
-	 */
-	public static function filter_caps( $allcaps, $caps, $args, $user ) {
-		unset( $caps, $args );
-		if ( ! self::is_agent( $user ) ) {
-			return $allcaps;
-		}
-
-		$saved = get_user_meta( $user->ID, self::CAPS_META, true );
-		if ( ! is_array( $saved ) ) {
-			return $allcaps;
-		}
-
-		$allcaps['read'] = true;
-		foreach ( self::cap_slugs() as $cap ) {
-			$allcaps[ $cap ] = ! empty( $saved[ $cap ] );
-		}
-
-		return $allcaps;
 	}
 
 	/**
@@ -309,7 +419,14 @@ class Agent_Role {
 			return $result;
 		}
 
-		return ! empty( $saved[ $name ] );
+		if ( ! empty( $saved[ $name ] ) ) {
+			return $result;
+		}
+
+		return new WP_Error(
+			'agent_role_ability_off',
+			__( 'This ability is off for this agent.', 'agent-role' )
+		);
 	}
 
 	/**
@@ -407,7 +524,7 @@ class Agent_Role {
 	 * @param array<string,bool>|null $caps Capability map. Null reads the saved map.
 	 */
 	private static function capability_boundary_sentence( $user, $caps = null ) {
-		$saved  = is_array( $caps ) ? $caps : get_user_meta( $user->ID, self::CAPS_META, true );
+		$saved  = is_array( $caps ) ? $caps : self::cap_map( $user );
 		$labels = array();
 		if ( is_array( $saved ) ) {
 			foreach ( self::cap_choices() as $cap => $choice ) {

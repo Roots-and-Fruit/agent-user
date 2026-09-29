@@ -127,58 +127,16 @@ class McpTest extends TestCase {
 		$this->assertStringContainsString( Agent_Role_Mcp::PASSWORD_PLACEHOLDER, $again );
 	}
 
-	public function test_setting_handler_requires_manage_options_and_a_nonce(): void {
-		Agent_Role_Mcp::set_agents_only( false );
-		$this->catch_wp_die();
+	public function test_the_mcp_option_is_a_registered_boolean_setting(): void {
+		$this->assertFalse( method_exists( Agent_Role_Admin::class, 'handle_mcp_setting' ) );
 
-		$editor = $this->make_user( 'editor' );
-		wp_set_current_user( $editor );
-		$_POST['agent_role_mcp_agents_only'] = '1';
-		try {
-			Agent_Role_Admin::handle_mcp_setting();
-			$this->fail( 'An editor must not change the MCP setting.' );
-		} catch ( RuntimeException $exception ) {
-			$this->assertStringContainsString( 'permission', strtolower( $exception->getMessage() ) );
-		}
-		$this->assertFalse( Agent_Role_Mcp::agents_only() );
+		Agent_Role_Mcp::register_setting();
+		global $new_allowed_options;
+		$this->assertContains( Agent_Role_Mcp::OPTION, $new_allowed_options[ Agent_Role_Mcp::GROUP ] );
 
-		$admin = $this->make_user( 'administrator' );
-		wp_set_current_user( $admin );
-		unset( $_REQUEST['agent_role_mcp_nonce'] );
-		try {
-			Agent_Role_Admin::handle_mcp_setting();
-			$this->fail( 'A missing nonce must stop the handler.' );
-		} catch ( RuntimeException $exception ) {
-			$this->assertNotSame( '', $exception->getMessage() );
-		}
-		$this->assertFalse( Agent_Role_Mcp::agents_only() );
-
-		add_filter(
-			'wp_redirect',
-			static function () {
-				throw new RuntimeException( 'redirect' );
-			}
-		);
-
-		$_REQUEST['agent_role_mcp_nonce']    = wp_create_nonce( 'agent_role_mcp_setting' );
-		$_POST['agent_role_mcp_nonce']       = $_REQUEST['agent_role_mcp_nonce'];
-		$_POST['agent_role_mcp_agents_only'] = '1';
-		try {
-			Agent_Role_Admin::handle_mcp_setting();
-			$this->fail( 'The handler should redirect.' );
-		} catch ( RuntimeException $exception ) {
-			$this->assertSame( 'redirect', $exception->getMessage() );
-		}
-		$this->assertTrue( Agent_Role_Mcp::agents_only() );
-
-		unset( $_POST['agent_role_mcp_agents_only'] );
-		try {
-			Agent_Role_Admin::handle_mcp_setting();
-			$this->fail( 'The handler should redirect.' );
-		} catch ( RuntimeException $exception ) {
-			$this->assertSame( 'redirect', $exception->getMessage() );
-		}
-		$this->assertFalse( Agent_Role_Mcp::agents_only() );
+		$this->assertSame( '0', Agent_Role_Mcp::sanitize_agents_only( null ) );
+		$this->assertSame( '1', Agent_Role_Mcp::sanitize_agents_only( '1' ) );
+		$this->assertSame( '0', Agent_Role_Mcp::sanitize_agents_only( 'yes' ) );
 	}
 
 	public function test_uninstall_removes_the_option(): void {

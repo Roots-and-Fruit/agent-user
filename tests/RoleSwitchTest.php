@@ -113,6 +113,13 @@ class RoleSwitchTest extends TestCase {
 		$html = ob_get_clean();
 
 		$this->assertStringContainsString( 'Users → Add Agent', $html );
+
+		$editor = $this->make_user( 'editor' );
+		wp_set_current_user( $editor );
+		ob_start();
+		Agent_Role_Admin::role_note( get_userdata( $editor ) );
+		$editor_html = ob_get_clean();
+		$this->assertStringNotContainsString( 'Users → Add Agent', $editor_html );
 	}
 
 	private function make_user( string $role ): int {

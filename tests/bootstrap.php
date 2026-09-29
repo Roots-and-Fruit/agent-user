@@ -12,6 +12,10 @@ $_SERVER['REMOTE_ADDR'] = isset( $_SERVER['REMOTE_ADDR'] ) ? $_SERVER['REMOTE_AD
 
 $agent_role_site_root = dirname( __DIR__, 4 );
 
+if ( ! defined( 'AGENT_ROLE_SKIP_MIGRATE' ) ) {
+	define( 'AGENT_ROLE_SKIP_MIGRATE', true );
+}
+
 require $agent_role_site_root . '/wp-load.php';
 
 require_once ABSPATH . 'wp-admin/includes/user.php';
@@ -27,7 +31,15 @@ if ( false === $agent_role_plugin_file ) {
 require_once $agent_role_plugin_file;
 
 // The plugin may already be inactive, so plugins_loaded has fired without it.
+// PHPUnit is not wp-admin, so the admin screen is not loaded with the plugin.
 Agent_Role_Mcp::register();
+if ( ! class_exists( 'Agent_Role_Admin', false ) ) {
+	require_once dirname( $agent_role_plugin_file ) . '/includes/class-agent-role-admin.php';
+	require_once dirname( $agent_role_plugin_file ) . '/includes/class-agent-role-brief.php';
+}
+if ( ! has_action( 'admin_menu', array( 'Agent_Role_Admin', 'menu' ) ) ) {
+	Agent_Role_Admin::register();
+}
 
 /*
  * Uninstall tests delete every Agent Role application password on this site,
@@ -63,8 +75,29 @@ foreach ( $agent_role_password_users as $agent_role_password_user_id ) {
 	}
 }
 
+$agent_role_caps_migrated  = get_option( Agent_Role::MIGRATED_OPTION, null );
+$agent_role_saved_cap_users = array();
+$agent_role_cap_ids         = get_users(
+	array(
+		'role'   => Agent_Role::SLUG,
+		'fields' => 'ID',
+	)
+);
+foreach ( $agent_role_cap_ids as $agent_role_cap_id ) {
+	$agent_role_cap_user = get_userdata( (int) $agent_role_cap_id );
+	if ( ! $agent_role_cap_user instanceof WP_User ) {
+		continue;
+	}
+	$agent_role_saved_cap_users[ (int) $agent_role_cap_id ] = array(
+		'cap_key'    => $agent_role_cap_user->cap_key,
+		'caps'       => get_user_meta( (int) $agent_role_cap_id, $agent_role_cap_user->cap_key, true ),
+		'legacy'     => get_user_meta( (int) $agent_role_cap_id, Agent_Role::CAPS_META, true ),
+		'had_legacy' => metadata_exists( 'user', (int) $agent_role_cap_id, Agent_Role::CAPS_META ),
+	);
+}
+
 register_shutdown_function(
-	static function () use ( $agent_role_saved_role, $agent_role_was_active, $agent_role_plugin_basename, $agent_role_mcp_option, $agent_role_saved_passwords ) {
+	static function () use ( $agent_role_saved_role, $agent_role_was_active, $agent_role_plugin_basename, $agent_role_mcp_option, $agent_role_saved_passwords, $agent_role_caps_migrated, $agent_role_saved_cap_users ) {
 		remove_role( Agent_Role::SLUG );
 
 		if ( null !== $agent_role_saved_role ) {
@@ -91,6 +124,25 @@ register_shutdown_function(
 			delete_option( Agent_Role_Mcp::OPTION );
 		} else {
 			update_option( Agent_Role_Mcp::OPTION, $agent_role_mcp_option );
+		}
+
+		foreach ( $agent_role_saved_cap_users as $user_id => $saved ) {
+			if ( ! get_userdata( $user_id ) ) {
+				continue;
+			}
+			update_user_meta( $user_id, $saved['cap_key'], $saved['caps'] );
+			if ( $saved['had_legacy'] ) {
+				update_user_meta( $user_id, Agent_Role::CAPS_META, $saved['legacy'] );
+			} else {
+				delete_user_meta( $user_id, Agent_Role::CAPS_META );
+			}
+			clean_user_cache( $user_id );
+		}
+
+		if ( null === $agent_role_caps_migrated ) {
+			delete_option( Agent_Role::MIGRATED_OPTION );
+		} else {
+			update_option( Agent_Role::MIGRATED_OPTION, $agent_role_caps_migrated, false );
 		}
 
 		if ( $agent_role_was_active && ! is_plugin_active( $agent_role_plugin_basename ) ) {

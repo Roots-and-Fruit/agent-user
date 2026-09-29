@@ -105,36 +105,88 @@ class RoleTest extends TestCase {
 		$this->assertArrayNotHasKey( 'edit_posts', $role->capabilities );
 	}
 
-	public function test_delete_capability_can_be_turned_off(): void {
+	public function test_delete_capability_can_be_turned_off_for_one_agent(): void {
 		$this->reset_role();
 		Agent_Role::activate();
-		Agent_Role::apply_cap_choices(
+
+		$denied = $this->make_managed_agent();
+		$kept   = $this->make_managed_agent();
+		Agent_Role::apply_cap_map(
+			$denied,
 			array(
 				'edit_posts'             => true,
+				'edit_published_posts'   => true,
 				'publish_posts'          => true,
 				'upload_files'           => true,
-				'edit_published_posts'   => true,
 				'delete_posts'           => false,
 				'delete_published_posts' => false,
 			)
 		);
 
-		$caps = $this->sorted_caps( get_role( Agent_Role::SLUG )->capabilities );
-		$this->assertArrayHasKey( 'read', $caps );
-		$this->assertArrayHasKey( 'edit_posts', $caps );
-		$this->assertArrayNotHasKey( 'delete_posts', $caps );
-		$this->assertArrayNotHasKey( 'delete_published_posts', $caps );
+		$denied_user = get_userdata( $denied );
+		$kept_user   = get_userdata( $kept );
+		$this->assertFalse( $denied_user->has_cap( 'delete_posts' ) );
+		$this->assertFalse( $denied_user->has_cap( 'delete_published_posts' ) );
+		$this->assertTrue( $kept_user->has_cap( 'delete_posts' ) );
+		$this->assertTrue( $kept_user->has_cap( 'delete_published_posts' ) );
 
-		Agent_Role::apply_cap_choices(
+		$role = get_role( Agent_Role::SLUG );
+		$this->assertArrayHasKey( 'delete_posts', $role->capabilities );
+		$this->assertArrayHasKey( 'delete_published_posts', $role->capabilities );
+
+		$denied_user->set_role( 'editor' );
+		$again = get_userdata( $denied );
+		$this->assertTrue( Agent_Role::is_agent( $again ) );
+		$this->assertFalse( $again->has_cap( 'delete_posts' ) );
+		$this->assertFalse( $again->has_cap( 'delete_published_posts' ) );
+	}
+
+	public function test_legacy_cap_meta_is_copied_once(): void {
+		$this->reset_role();
+		Agent_Role::activate();
+		delete_option( Agent_Role::MIGRATED_OPTION );
+
+		$user_id = $this->make_managed_agent();
+		update_user_meta(
+			$user_id,
+			Agent_Role::CAPS_META,
 			array(
 				'edit_posts'             => true,
-				'publish_posts'          => true,
-				'upload_files'           => true,
 				'edit_published_posts'   => true,
+				'publish_posts'          => true,
+				'upload_files'           => false,
 				'delete_posts'           => true,
 				'delete_published_posts' => true,
 			)
 		);
+
+		Agent_Role::migrate_caps();
+
+		$user = get_userdata( $user_id );
+		$this->assertFalse( $user->has_cap( 'upload_files' ) );
+		$this->assertFalse( metadata_exists( 'user', $user_id, Agent_Role::CAPS_META ) );
+
+		$stored = get_user_meta( $user_id, $user->cap_key, true );
+		Agent_Role::migrate_caps();
+		$this->assertSame( $stored, get_user_meta( $user_id, $user->cap_key, true ) );
+	}
+
+	private function make_managed_agent(): int {
+		$login   = 'agentrole_test_' . strtolower( wp_generate_password( 8, false, false ) );
+		add_filter( 'insert_custom_user_meta', array( 'Agent_Role_Account', 'add_managed_meta' ), 10, 4 );
+		$user_id = wp_insert_user(
+			array(
+				'user_login' => $login,
+				'user_pass'  => wp_generate_password( 24 ),
+				'user_email' => $login . '@example.invalid',
+				'role'       => Agent_Role::SLUG,
+			)
+		);
+		remove_filter( 'insert_custom_user_meta', array( 'Agent_Role_Account', 'add_managed_meta' ), 10 );
+		$this->assertIsInt( $user_id );
+		$this->user_ids[] = $user_id;
+
+		return $user_id;
 	}
 
 	private function reset_role(): void {

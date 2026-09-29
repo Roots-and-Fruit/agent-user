@@ -14,6 +14,10 @@ class WriterTest extends TestCase {
 
 	const ABILITY = 'agent-role/log-probe';
 
+	const DENY = 'agent-role/permission-deny';
+
+	const ALLOW = 'agent-role/permission-allow';
+
 	/**
 	 * Users created by the current test.
 	 *
@@ -47,6 +51,8 @@ class WriterTest extends TestCase {
 		}
 		if ( function_exists( 'wp_unregister_ability' ) ) {
 			wp_unregister_ability( self::ABILITY );
+			wp_unregister_ability( self::DENY );
+			wp_unregister_ability( self::ALLOW );
 		}
 		remove_all_filters( 'wp_redirect' );
 		wp_set_current_user( 0 );
@@ -182,6 +188,54 @@ class WriterTest extends TestCase {
 		$this->assertSame( 1, $deleted );
 	}
 
+	public function test_an_on_switch_keeps_the_ability_result_and_an_off_switch_is_an_error(): void {
+		$agent  = $this->make_agent();
+		$author = $this->make_user( 'author' );
+
+		update_user_meta(
+			$agent,
+			Agent_Role::ABILITIES_META,
+			array(
+				self::DENY  => true,
+				self::ALLOW => true,
+			)
+		);
+
+		wp_set_current_user( $agent );
+		$deny  = wp_get_ability( self::DENY );
+		$allow = wp_get_ability( self::ALLOW );
+		$this->assertNotNull( $deny );
+		$this->assertNotNull( $allow );
+
+		$on = $deny->check_permissions();
+		$this->assertInstanceOf( WP_Error::class, $on );
+		$this->assertSame( 'probe_denied', $on->get_error_code() );
+
+		$this->assertTrue( $allow->check_permissions() );
+
+		update_user_meta(
+			$agent,
+			Agent_Role::ABILITIES_META,
+			array(
+				self::DENY  => false,
+				self::ALLOW => false,
+			)
+		);
+
+		$off = $deny->check_permissions();
+		$this->assertInstanceOf( WP_Error::class, $off );
+		$this->assertSame( 'agent_role_ability_off', $off->get_error_code() );
+
+		$allow_off = $allow->check_permissions();
+		$this->assertInstanceOf( WP_Error::class, $allow_off );
+		$this->assertSame( 'agent_role_ability_off', $allow_off->get_error_code() );
+
+		wp_set_current_user( $author );
+		$author_result = $deny->check_permissions();
+		$this->assertInstanceOf( WP_Error::class, $author_result );
+		$this->assertSame( 'probe_denied', $author_result->get_error_code() );
+	}
+
 	/**
 	 * @return string[]
 	 */
@@ -198,7 +252,7 @@ class WriterTest extends TestCase {
 			$this->fail( 'The Abilities API is not loaded.' );
 		}
 		$registry = WP_Abilities_Registry::get_instance();
-		if ( $registry && $registry->is_registered( self::ABILITY ) ) {
+		if ( $registry && $registry->is_registered( self::ABILITY ) && $registry->is_registered( self::DENY ) && $registry->is_registered( self::ALLOW ) ) {
 			return;
 		}
 
@@ -207,23 +261,61 @@ class WriterTest extends TestCase {
 		add_action(
 			'wp_abilities_api_init',
 			static function () {
-				if ( WP_Abilities_Registry::get_instance()->is_registered( WriterTest::ABILITY ) ) {
-					return;
+				$registry = WP_Abilities_Registry::get_instance();
+				if ( ! $registry->is_registered( WriterTest::ABILITY ) ) {
+					wp_register_ability(
+						WriterTest::ABILITY,
+						array(
+							'label'               => 'Log probe',
+							'description'         => 'Probe used by the activity log tests.',
+							'category'            => 'site',
+							'permission_callback' => static function () {
+								return '1' === (string) get_user_meta( get_current_user_id(), '_agent_role_log_allow', true );
+							},
+							'execute_callback'    => static function () {
+								return true;
+							},
+						)
+					);
 				}
-				wp_register_ability(
-					WriterTest::ABILITY,
-					array(
-						'label'               => 'Log probe',
-						'description'         => 'Probe used by the activity log tests.',
-						'category'            => 'site',
-						'permission_callback' => static function () {
-							return '1' === (string) get_user_meta( get_current_user_id(), '_agent_role_log_allow', true );
-						},
-						'execute_callback'    => static function () {
-							return true;
-						},
-					)
-				);
+				if ( ! $registry->is_registered( WriterTest::DENY ) ) {
+					wp_register_ability(
+						WriterTest::DENY,
+						array(
+							'label'               => 'Permission deny probe',
+							'description'         => 'Probe that always denies.',
+							'category'            => 'site',
+							'permission_callback' => static function () {
+								return new WP_Error( 'probe_denied', 'The probe denied this call.' );
+							},
+							'execute_callback'    => static function () {
+								return true;
+							},
+							'meta'                => array(
+								'public' => true,
+							),
+						)
+					);
+				}
+				if ( ! $registry->is_registered( WriterTest::ALLOW ) ) {
+					wp_register_ability(
+						WriterTest::ALLOW,
+						array(
+							'label'               => 'Permission allow probe',
+							'description'         => 'Probe that always allows.',
+							'category'            => 'site',
+							'permission_callback' => static function () {
+								return true;
+							},
+							'execute_callback'    => static function () {
+								return true;
+							},
+							'meta'                => array(
+								'public' => true,
+							),
+						)
+					);
+				}
 			}
 		);
 		do_action( 'wp_abilities_api_init', WP_Abilities_Registry::get_instance() );

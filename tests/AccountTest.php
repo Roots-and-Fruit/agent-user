@@ -164,24 +164,51 @@ class AccountTest extends TestCase {
 		$this->assertFalse( $fired );
 	}
 
-	public function test_handler_rejects_a_user_without_create_users_and_a_bad_nonce(): void {
-		$subscriber = $this->make_user( 'subscriber' );
-		wp_set_current_user( $subscriber );
+	public function test_handler_rejects_an_editor_and_a_bad_nonce(): void {
+		$editor = $this->make_user( 'editor' );
+		wp_set_current_user( $editor );
 		$this->catch_wp_die();
 
-		$_POST['agent_role_username'] = $this->unique_login();
+		$login                        = $this->unique_login();
+		$_POST['agent_role_username'] = $login;
 		try {
 			Agent_Role_Admin::handle_add();
-			$this->fail( 'A subscriber should not create an agent.' );
+			$this->fail( 'An editor should not create an agent.' );
 		} catch ( RuntimeException $exception ) {
 			$this->assertStringContainsString( 'permission', strtolower( $exception->getMessage() ) );
 		}
-		$this->assertFalse( username_exists( $_POST['agent_role_username'] ) );
+		$this->assertFalse( username_exists( $login ) );
 
-		$admin = $this->make_admin();
+		$admin  = $this->make_admin();
+		$created = Agent_Role_Account::create( $this->unique_login(), 'Helper', $admin );
+		$this->assertIsArray( $created );
+		$this->user_ids[] = $created['user_id'];
+		$before           = Agent_Role_Account::managed_password( $created['user_id'] );
+		$this->assertIsArray( $before );
+
+		wp_set_current_user( $editor );
+		$_REQUEST['user_id']  = (string) $created['user_id'];
+		$_REQUEST['_wpnonce'] = wp_create_nonce( 'agent_role_revoke_' . $created['user_id'] );
+		try {
+			Agent_Role_Admin::handle_revoke();
+			$this->fail( 'An editor should not revoke an agent password.' );
+		} catch ( RuntimeException $exception ) {
+			$this->assertStringContainsString( 'permission', strtolower( $exception->getMessage() ) );
+		}
+		$this->assertSame( $before['uuid'], Agent_Role_Account::managed_password( $created['user_id'] )['uuid'] );
+
+		$_REQUEST['_wpnonce'] = wp_create_nonce( 'agent_role_reissue_' . $created['user_id'] );
+		try {
+			Agent_Role_Admin::handle_reissue();
+			$this->fail( 'An editor should not reissue an agent password.' );
+		} catch ( RuntimeException $exception ) {
+			$this->assertStringContainsString( 'permission', strtolower( $exception->getMessage() ) );
+		}
+		$this->assertSame( $before['uuid'], Agent_Role_Account::managed_password( $created['user_id'] )['uuid'] );
+
 		wp_set_current_user( $admin );
 		$_POST['agent_role_username'] = $this->unique_login();
-		unset( $_REQUEST['agent_role_nonce'] );
+		unset( $_REQUEST['agent_role_nonce'], $_REQUEST['_wpnonce'] );
 		try {
 			Agent_Role_Admin::handle_add();
 			$this->fail( 'A missing nonce should stop the handler.' );

@@ -22,7 +22,6 @@ class Agent_Role_Admin {
 		add_action( 'admin_post_agent_role_add_agent', array( __CLASS__, 'handle_add' ) );
 		add_action( 'admin_post_agent_role_revoke', array( __CLASS__, 'handle_revoke' ) );
 		add_action( 'admin_post_agent_role_reissue', array( __CLASS__, 'handle_reissue' ) );
-		add_action( 'admin_post_agent_role_mcp_setting', array( __CLASS__, 'handle_mcp_setting' ) );
 		add_action( 'admin_post_agent_role_log_setting', array( __CLASS__, 'handle_log_setting' ) );
 		add_action( 'admin_post_agent_role_save_agent', array( __CLASS__, 'handle_save_agent' ) );
 		add_action( 'wp_ajax_agent_role_create_agent', array( __CLASS__, 'handle_create_ajax' ) );
@@ -40,7 +39,7 @@ class Agent_Role_Admin {
 	 */
 	public static function role_note( $user ) {
 		unset( $user );
-		if ( ! current_user_can( 'create_users' ) && ! current_user_can( 'promote_users' ) ) {
+		if ( ! current_user_can( 'manage_options' ) ) {
 			return;
 		}
 
@@ -54,7 +53,7 @@ class Agent_Role_Admin {
 		add_users_page(
 			__( 'Add Agent', 'agent-role' ),
 			__( 'Add Agent', 'agent-role' ),
-			'create_users',
+			'manage_options',
 			'agent-role',
 			array( __CLASS__, 'render' )
 		);
@@ -113,9 +112,7 @@ class Agent_Role_Admin {
 	 * Render the form, the one-time password, and existing agents.
 	 */
 	public static function render() {
-		if ( ! current_user_can( 'create_users' ) ) {
-			wp_die( esc_html__( 'You do not have permission to create users.', 'agent-role' ), '', array( 'response' => 403 ) );
-		}
+		self::require_manage_options();
 
 		$admin_id = get_current_user_id();
 		$created  = self::created_user_id();
@@ -689,14 +686,7 @@ class Agent_Role_Admin {
 			echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'Agent updated.', 'agent-role' ) . '</p></div>';
 		}
 
-		$saved_caps = get_user_meta( $agent->ID, Agent_Role::CAPS_META, true );
-		$caps       = is_array( $saved_caps ) ? $saved_caps : array();
-		if ( ! is_array( $saved_caps ) ) {
-			foreach ( Agent_Role::cap_choices() as $cap => $choice ) {
-				unset( $choice );
-				$caps[ $cap ] = $agent->has_cap( $cap );
-			}
-		}
+		$caps = Agent_Role::cap_map( $agent );
 
 		$saved_abilities = get_user_meta( $agent->ID, Agent_Role::ABILITIES_META, true );
 		$abilities       = is_array( $saved_abilities ) ? $saved_abilities : Agent_Role::abilities_allowed_now( $agent->ID );
@@ -791,6 +781,8 @@ class Agent_Role_Admin {
 	 * MCP Adapter setting. Capability and ability switches live on each agent.
 	 */
 	private static function render_settings_tab() {
+		settings_errors();
+
 		if ( Agent_Role_Mcp::is_available() ) {
 			self::render_mcp_setting();
 		} else {
@@ -860,12 +852,7 @@ class Agent_Role_Admin {
 	 */
 	public static function handle_create_ajax() {
 		check_ajax_referer( 'agent_role_add_agent', 'nonce' );
-		if ( ! current_user_can( 'create_users' ) ) {
-			wp_send_json_error(
-				array( 'message' => __( 'You do not have permission to create users.', 'agent-role' ) ),
-				403
-			);
-		}
+		self::require_manage_options( true );
 
 		$username = isset( $_POST['agent_role_username'] ) ? sanitize_user( wp_unslash( $_POST['agent_role_username'] ), true ) : '';
 		$display  = isset( $_POST['agent_role_display_name'] ) ? sanitize_text_field( wp_unslash( $_POST['agent_role_display_name'] ) ) : '';
@@ -929,9 +916,7 @@ class Agent_Role_Admin {
 	 * A box changed by Generate, Reset, or typing is stored as written.
 	 */
 	public static function handle_save_agent() {
-		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_die( esc_html__( 'You do not have permission to change this setting.', 'agent-role' ), '', array( 'response' => 403 ) );
-		}
+		self::require_manage_options();
 
 		$user_id = isset( $_POST['user_id'] ) ? absint( wp_unslash( $_POST['user_id'] ) ) : 0;
 		check_admin_referer( 'agent_role_save_agent_' . $user_id, 'agent_role_agent_nonce' );
@@ -943,12 +928,12 @@ class Agent_Role_Admin {
 
 		$previous         = Agent_Role::instructions_for( $user );
 		$posted           = isset( $_POST['agent_role_instructions'] ) ? sanitize_textarea_field( wp_unslash( $_POST['agent_role_instructions'] ) ) : '';
-		$before_caps      = get_user_meta( $user_id, Agent_Role::CAPS_META, true );
+		$before_caps      = Agent_Role::cap_map( $user );
 		$before_abilities = get_user_meta( $user_id, Agent_Role::ABILITIES_META, true );
 		$before_note      = metadata_exists( 'user', $user_id, Agent_Role::INSTRUCTIONS_META ) ? (string) get_user_meta( $user_id, Agent_Role::INSTRUCTIONS_META, true ) : '';
 
 		list( $caps, $abilities ) = self::posted_maps();
-		update_user_meta( $user_id, Agent_Role::CAPS_META, $caps );
+		Agent_Role::apply_cap_map( $user_id, $caps );
 		update_user_meta( $user_id, Agent_Role::ABILITIES_META, $abilities );
 
 		if ( self::normalize_instructions( $posted ) === self::normalize_instructions( $previous ) ) {
@@ -1112,9 +1097,8 @@ class Agent_Role_Admin {
 		}
 
 		echo '<h2>' . esc_html__( 'MCP Adapter', 'agent-role' ) . '</h2>';
-		echo '<form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '">';
-		wp_nonce_field( 'agent_role_mcp_setting', 'agent_role_mcp_nonce' );
-		echo '<input type="hidden" name="action" value="agent_role_mcp_setting" />';
+		echo '<form method="post" action="' . esc_url( admin_url( 'options.php' ) ) . '">';
+		settings_fields( Agent_Role_Mcp::GROUP );
 		echo '<p>';
 		self::render_toggle(
 			array(
@@ -1130,22 +1114,6 @@ class Agent_Role_Admin {
 		echo '<p class="description">' . esc_html__( 'When off, the MCP Adapter accepts any logged-in user, as it ships.', 'agent-role' ) . '</p>';
 		submit_button( __( 'Save MCP Setting', 'agent-role' ) );
 		echo '</form>';
-	}
-
-	/**
-	 * Save the MCP gate setting.
-	 */
-	public static function handle_mcp_setting() {
-		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_die( esc_html__( 'You do not have permission to change this setting.', 'agent-role' ), '', array( 'response' => 403 ) );
-		}
-
-		check_admin_referer( 'agent_role_mcp_setting', 'agent_role_mcp_nonce' );
-
-		Agent_Role_Mcp::set_agents_only( ! empty( $_POST['agent_role_mcp_agents_only'] ) );
-
-		wp_safe_redirect( admin_url( 'users.php?page=agent-role&tab=settings' ) );
-		exit;
 	}
 
 	/**
@@ -1174,9 +1142,7 @@ class Agent_Role_Admin {
 	 * Save how long activity rows are kept.
 	 */
 	public static function handle_log_setting() {
-		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_die( esc_html__( 'You do not have permission to change this setting.', 'agent-role' ), '', array( 'response' => 403 ) );
-		}
+		self::require_manage_options();
 
 		check_admin_referer( 'agent_role_log_setting', 'agent_role_log_nonce' );
 
@@ -1192,7 +1158,7 @@ class Agent_Role_Admin {
 	 * Create an agent from the form.
 	 */
 	public static function handle_add() {
-		self::require_create_users();
+		self::require_manage_options();
 		check_admin_referer( 'agent_role_add_agent', 'agent_role_nonce' );
 
 		$username = isset( $_POST['agent_role_username'] ) ? sanitize_user( wp_unslash( $_POST['agent_role_username'] ), true ) : '';
@@ -1213,7 +1179,7 @@ class Agent_Role_Admin {
 	 * Revoke the named application password.
 	 */
 	public static function handle_revoke() {
-		self::require_create_users();
+		self::require_manage_options();
 		$user_id = isset( $_REQUEST['user_id'] ) ? absint( wp_unslash( $_REQUEST['user_id'] ) ) : 0;
 		check_admin_referer( 'agent_role_revoke_' . $user_id );
 
@@ -1230,7 +1196,7 @@ class Agent_Role_Admin {
 	 * Issue a replacement password after revoke.
 	 */
 	public static function handle_reissue() {
-		self::require_create_users();
+		self::require_manage_options();
 		$user_id = isset( $_REQUEST['user_id'] ) ? absint( wp_unslash( $_REQUEST['user_id'] ) ) : 0;
 		check_admin_referer( 'agent_role_reissue_' . $user_id );
 
@@ -1282,13 +1248,20 @@ class Agent_Role_Admin {
 	}
 
 	/**
-	 * Stop users who cannot create accounts.
+	 * Stop the request when the current user cannot manage these settings.
+	 *
+	 * @param bool $ajax True when the response must be JSON.
 	 */
-	private static function require_create_users() {
-		if ( current_user_can( 'create_users' ) ) {
+	private static function require_manage_options( $ajax = false ) {
+		if ( current_user_can( 'manage_options' ) ) {
 			return;
 		}
 
-		wp_die( esc_html__( 'You do not have permission to create users.', 'agent-role' ), '', array( 'response' => 403 ) );
+		$message = __( 'You do not have permission to manage these settings.', 'agent-role' );
+		if ( $ajax ) {
+			wp_send_json_error( array( 'message' => $message ), 403 );
+		}
+
+		wp_die( esc_html( $message ), '', array( 'response' => 403 ) );
 	}
 }

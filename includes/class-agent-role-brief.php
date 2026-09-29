@@ -137,10 +137,10 @@ class Agent_Role_Brief {
 	 * @return string[]
 	 */
 	private static function capability_names( $user, $enabled, $caps = null ) {
-		$saved = is_array( $caps ) ? $caps : get_user_meta( $user->ID, Agent_Role::CAPS_META, true );
+		$saved = is_array( $caps ) ? $caps : Agent_Role::cap_map( $user );
 		$names = array();
 		foreach ( Agent_Role::cap_choices() as $cap => $choice ) {
-			$on = is_array( $saved ) ? ! empty( $saved[ $cap ] ) : $user->has_cap( $cap );
+			$on = ! empty( $saved[ $cap ] );
 			if ( $on === $enabled ) {
 				$names[] = $choice['label'];
 			}
