@@ -17,7 +17,7 @@ class Agent_Role_Brief {
 	/**
 	 * System instruction for the draft. The model may use only the brief.
 	 */
-	const SYSTEM = 'Write the MCP instructions for this agent in 80 to 140 words. Use only the brief. Four parts: identity, how to call the three ability tools, which abilities are on, how to report results. The agent may run only abilities_on, and those names must appear. Any other ability is off. capabilities_on are WordPress account permissions, not tools. Do not say the agent can create, edit, publish, delete, or upload content unless an ability in abilities_on does that work. Do not invent abilities.';
+	const SYSTEM = 'Write the MCP instructions for this agent in 80 to 140 words. Use only the brief. Lead with what this persona is for, using persona.purpose. Name the site. Do not list abilities or WordPress capabilities. Do not invent tools. End with: use only tools this account is allowed to run; if a tool is denied, stop; lead with the result.';
 
 	/**
 	 * JSON packet for one Agent, built at the moment of the request.
@@ -25,9 +25,10 @@ class Agent_Role_Brief {
 	 * @param int                      $user_id   Agent user ID.
 	 * @param array<string,bool>|null $caps      Capability map. Null reads the saved map.
 	 * @param array<string,bool>|null $abilities Ability map. Null reads the saved map.
+	 * @param string                  $persona   Persona slug. Empty reads the saved persona.
 	 * @return array<string,mixed>|WP_Error
 	 */
-	public static function for_user( $user_id, $caps = null, $abilities = null ) {
+	public static function for_user( $user_id, $caps = null, $abilities = null, $persona = '' ) {
 		$user = get_userdata( (int) $user_id );
 		if ( ! $user instanceof WP_User || ! Agent_Role::is_agent( $user ) ) {
 			return new WP_Error( 'agent_role_not_agent', __( 'That user is not an Agent.', 'rf-agent-role' ) );
@@ -35,6 +36,10 @@ class Agent_Role_Brief {
 
 		$home = home_url( '/' );
 		$site = site_url( '/' );
+		if ( ! is_string( $persona ) || '' === $persona ) {
+			$saved   = get_user_meta( $user->ID, Agent_Role_Admin::PERSONA_META, true );
+			$persona = is_string( $saved ) ? $saved : '';
+		}
 
 		return array(
 			'site'          => array(
@@ -44,6 +49,7 @@ class Agent_Role_Brief {
 				'wordpress_version' => get_bloginfo( 'version' ),
 				'php_version'       => PHP_VERSION,
 			),
+			'persona'       => self::persona_brief( $persona ),
 			'agent'         => array(
 				'login'            => $user->user_login,
 				'capabilities_on'  => self::capability_names( $user, true, $caps ),
@@ -67,33 +73,34 @@ class Agent_Role_Brief {
 	 * @param int                      $user_id   Agent user ID.
 	 * @param array<string,bool>|null $caps      Capability map. Null reads the saved map.
 	 * @param array<string,bool>|null $abilities Ability map. Null reads the saved map.
+	 * @param string                  $persona   Persona slug.
 	 * @return string|WP_Error
 	 */
-	public static function draft( $user_id, $caps = null, $abilities = null ) {
-		if ( ! function_exists( 'wp_ai_client_prompt' ) || ! function_exists( 'wp_supports_ai' ) || ! wp_supports_ai() ) {
+	public static function draft( $user_id, $caps = null, $abilities = null, $persona = '' ) {
+		if ( ! self::can_draft() ) {
+			return new WP_Error(
+				'agent_role_ai_unavailable',
+				self::unavailable_message()
+			);
+		}
+
+		$brief = self::for_user( $user_id, $caps, $abilities, $persona );
+		if ( is_wp_error( $brief ) ) {
+			return $brief;
+		}
+
+		try {
+			$text = wp_ai_client_prompt( wp_json_encode( $brief ) )
+				->using_system_instruction( self::SYSTEM )
+				->using_temperature( 0.2 )
+				->generate_text();
+		} catch ( \Throwable $e ) {
+			unset( $e );
 			return new WP_Error(
 				'agent_role_ai_unavailable',
 				__( 'AI is not available on this site.', 'rf-agent-role' )
 			);
 		}
-
-		if ( ! self::has_text_connector() ) {
-			return new WP_Error(
-				'agent_role_ai_unavailable',
-				/* translators: "Settings" and "Connectors" are WordPress admin menu labels. */
-				__( 'Connect an AI provider under Settings → Connectors, then try again.', 'rf-agent-role' )
-			);
-		}
-
-		$brief = self::for_user( $user_id, $caps, $abilities );
-		if ( is_wp_error( $brief ) ) {
-			return $brief;
-		}
-
-		$text = wp_ai_client_prompt( wp_json_encode( $brief ) )
-			->using_system_instruction( self::SYSTEM )
-			->using_temperature( 0.2 )
-			->generate_text();
 
 		if ( is_wp_error( $text ) ) {
 			return $text;
@@ -107,26 +114,82 @@ class Agent_Role_Brief {
 	}
 
 	/**
+	 * Whether this site can draft instructions. Optional. Never required.
+	 */
+	public static function can_draft() {
+		try {
+			if ( ! function_exists( 'wp_ai_client_prompt' ) || ! function_exists( 'wp_supports_ai' ) ) {
+				return false;
+			}
+			if ( ! wp_supports_ai() ) {
+				return false;
+			}
+			return self::has_text_connector();
+		} catch ( \Throwable $e ) {
+			unset( $e );
+			return false;
+		}
+	}
+
+	/**
+	 * Message when Generate cannot run.
+	 */
+	private static function unavailable_message() {
+		try {
+			if ( function_exists( 'wp_ai_client_prompt' ) && function_exists( 'wp_supports_ai' ) && wp_supports_ai() ) {
+				/* translators: "Settings" and "Connectors" are WordPress admin menu labels. */
+				return __( 'Connect an AI provider under Settings → Connectors, then try again.', 'rf-agent-role' );
+			}
+		} catch ( \Throwable $e ) {
+			unset( $e );
+		}
+
+		return __( 'AI is not available on this site.', 'rf-agent-role' );
+	}
+
+	/**
 	 * Whether a connected AI provider can write text.
 	 */
 	private static function has_text_connector() {
-		if ( ! function_exists( 'wp_get_connectors' ) ) {
+		if ( ! function_exists( 'wp_ai_client_prompt' ) ) {
 			return false;
 		}
 
-		$has_provider = false;
-		foreach ( wp_get_connectors() as $connector ) {
-			if ( isset( $connector['type'] ) && 'ai_provider' === $connector['type'] ) {
-				$has_provider = true;
-				break;
+		try {
+			$prompt = wp_ai_client_prompt( 'ping' );
+			if ( ! is_object( $prompt ) ) {
+				return false;
 			}
-		}
-
-		if ( ! $has_provider ) {
+			$supported = $prompt->is_supported_for_text_generation();
+			if ( is_wp_error( $supported ) ) {
+				return false;
+			}
+			return (bool) $supported;
+		} catch ( \Throwable $e ) {
+			unset( $e );
 			return false;
 		}
+	}
 
-		return (bool) wp_ai_client_prompt( 'ping' )->is_supported_for_text_generation();
+	/**
+	 * Persona slug and the purpose text for that job.
+	 *
+	 * @param string $persona Persona slug.
+	 * @return array{slug:string,purpose:string}
+	 */
+	private static function persona_brief( $persona ) {
+		if ( ! is_string( $persona ) || '' === $persona ) {
+			return array(
+				'slug'    => '',
+				'purpose' => '',
+			);
+		}
+
+		$shape = Agent_Role_Admin::site_persona_shape( $persona );
+		return array(
+			'slug'    => $persona,
+			'purpose' => isset( $shape['instructions'] ) ? (string) $shape['instructions'] : '',
+		);
 	}
 
 	/**

@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.6.0] - 2026-09-30
+
+### Changed
+
+- The agent screen header shows a sparkle mark beside the name. Username and Persona sit on one line, and a Customized badge appears when the account differs from the default.
+- Each persona ships its own default connection instructions, written for that job, not from the ability list.
+- Customize this Agent no longer guesses whether a tool would refuse this account. Save as Default still drops a tool the agent could not run even with the switch on.
+- New agents start as the Analyst persona.
+- Customize this Agent sits on the chosen persona card. The other cards have a Select [Name] Persona button so the row stays even.
+- Customize instructions is a closed section inside Customize this Agent.
+- Opening Customize this Agent joins the chosen card to the tools as one tab, with the same colored border around both.
+- Tools from other plugins sit in Create, Read, Undo, Delete, and Other with the built-in switches. Each one has a small badge naming the plugin.
+
+### Fixed
+
+- Opening an agent no longer prints PHP warnings from other plugins' abilities that need a post ID or other input.
+- Generate instructions stays hidden unless this site has an AI client that can write text, so turning off AI Services does not leave a broken button. Agent Role still runs with no extra plugins.
+
 ## [1.5.0] - 2026-09-30
 
 ### Added
@@ -69,7 +87,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - First release.
 
-[Unreleased]: https://github.com/Roots-and-Fruit/agent-user/compare/v1.5.0...HEAD
+[Unreleased]: https://github.com/Roots-and-Fruit/agent-user/compare/v1.6.0...HEAD
+[1.6.0]: https://github.com/Roots-and-Fruit/agent-user/compare/v1.5.0...v1.6.0
 [1.5.0]: https://github.com/Roots-and-Fruit/agent-user/compare/v1.4.0...v1.5.0
 [1.4.0]: https://github.com/Roots-and-Fruit/agent-user/compare/v1.3.0...v1.4.0
 [1.3.0]: https://github.com/Roots-and-Fruit/agent-user/compare/v1.2.0...v1.3.0

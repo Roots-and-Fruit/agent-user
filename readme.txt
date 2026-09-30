@@ -3,7 +3,7 @@ Contributors: webdevmattcrom
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.5.0
+Stable tag: 1.6.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 Tags: users, roles, rest-api
@@ -39,6 +39,25 @@ Yes, and the adapter is optional. When it is active, the agent list can show the
 The role stays, so existing Agent accounts keep their capabilities. The login blocks are removed with the plugin. Uninstalling the plugin removes the role, the application passwords it created, and the activity log. It does not delete the users.
 
 == Changelog ==
+
+= 1.6.0 =
+Released 2026-09-30.
+
+**Changed**
+
+* The agent screen header shows a sparkle mark beside the name. Username and Persona sit on one line, and a Customized badge appears when the account differs from the default.
+* Each persona ships its own default connection instructions, written for that job, not from the ability list.
+* Customize this Agent no longer guesses whether a tool would refuse this account. Save as Default still drops a tool the agent could not run even with the switch on.
+* New agents start as the Analyst persona.
+* Customize this Agent sits on the chosen persona card. The other cards have a Select [Name] Persona button so the row stays even.
+* Customize instructions is a closed section inside Customize this Agent.
+* Opening Customize this Agent joins the chosen card to the tools as one tab, with the same colored border around both.
+* Tools from other plugins sit in Create, Read, Undo, Delete, and Other with the built-in switches. Each one has a small badge naming the plugin.
+
+**Fixed**
+
+* Opening an agent no longer prints PHP warnings from other plugins' abilities that need a post ID or other input.
+* Generate instructions stays hidden unless this site has an AI client that can write text, so turning off AI Services does not leave a broken button. Agent Role still runs with no extra plugins.
 
 = 1.5.0 =
 Released 2026-09-30.
@@ -109,6 +128,9 @@ Released 2026-09-28.
 * First release.
 
 == Upgrade Notice ==
+
+= 1.6.0 =
+Each persona starts with its own connection instructions. The agent header shows a sparkle mark, the username, and the persona.
 
 = 1.5.0 =
 Agent personas and a Customize list for this site's abilities. Agents you already customized stay as they are.

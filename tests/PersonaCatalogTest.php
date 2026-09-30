@@ -24,6 +24,10 @@ class PersonaCatalogTest extends TestCase {
 
 	const NEEDY = 'agent-role/catalog-needy';
 
+	const REQUIRED = 'agent-role/catalog-required';
+
+	const WARN = 'agent-role/catalog-warn';
+
 	/**
 	 * Users created by this process.
 	 *
@@ -55,6 +59,8 @@ class PersonaCatalogTest extends TestCase {
 			wp_unregister_ability( self::DELETE );
 			wp_unregister_ability( self::OTHER );
 			wp_unregister_ability( self::NEEDY );
+			wp_unregister_ability( self::REQUIRED );
+			wp_unregister_ability( self::WARN );
 		}
 		delete_option( Agent_Role::PERSONA_DEFAULTS_OPTION );
 		remove_all_filters( 'wp_redirect' );
@@ -138,6 +144,75 @@ class PersonaCatalogTest extends TestCase {
 		$this->assertTrue( ! empty( $saved[ self::READ ] ) );
 		$this->assertTrue( empty( $saved[ self::NEEDY ] ) );
 		$this->assertSame( '', (string) get_user_meta( $agent, Agent_Role_Admin::PERSONA_CUSTOM_META, true ) );
+	}
+
+	public function test_an_ability_that_needs_input_is_kept_and_does_not_warn(): void {
+		$agent  = $this->make_agent();
+		$leaked = array();
+		set_error_handler(
+			static function ( $errno, $errstr ) use ( &$leaked ) {
+				unset( $errno );
+				$leaked[] = $errstr;
+				return false;
+			}
+		);
+
+		try {
+			$required = wp_get_ability( self::REQUIRED );
+			$warn     = wp_get_ability( self::WARN );
+			$this->assertNull( Agent_Role::probe_ability_permission( $required ) );
+			$this->assertNull( Agent_Role::probe_ability_permission( $warn ) );
+
+			$catalog_method = new ReflectionMethod( 'Agent_Role_Admin', 'catalog_ability_rows' );
+			$catalog_method->setAccessible( true );
+			$catalog        = $catalog_method->invoke( null );
+			$catalog_hints  = array();
+			foreach ( $catalog as $sources ) {
+				foreach ( $sources as $rows ) {
+					foreach ( $rows as $row ) {
+						$catalog_hints[ $row['id'] ] = $row['hint'];
+					}
+				}
+			}
+			$this->assertArrayHasKey( self::REQUIRED, $catalog_hints );
+			$this->assertArrayHasKey( self::WARN, $catalog_hints );
+			$this->assertArrayHasKey( self::NEEDY, $catalog_hints );
+			$this->assertSame( '', $catalog_hints[ self::REQUIRED ] );
+			$this->assertSame( '', $catalog_hints[ self::WARN ] );
+			$this->assertSame( '', $catalog_hints[ self::NEEDY ] );
+
+			$kept = Agent_Role_Admin::keep_runnable_abilities(
+				$agent,
+				array(
+					self::READ     => true,
+					self::REQUIRED => true,
+					self::WARN     => true,
+					self::NEEDY    => true,
+				)
+			);
+			$this->assertTrue( $kept['abilities'][ self::READ ] );
+			$this->assertTrue( $kept['abilities'][ self::REQUIRED ] );
+			$this->assertTrue( $kept['abilities'][ self::WARN ] );
+			$this->assertTrue( empty( $kept['abilities'][ self::NEEDY ] ) );
+			$this->assertTrue( $kept['stripped'] );
+
+			$seeded = Agent_Role::abilities_allowed_now( $agent );
+			$this->assertTrue( empty( $seeded[ self::REQUIRED ] ) );
+			$this->assertTrue( empty( $seeded[ self::WARN ] ) );
+		} finally {
+			restore_error_handler();
+		}
+
+		$this->assertSame( array(), $leaked );
+	}
+
+	public function test_generate_availability_never_fatals(): void {
+		$this->assertIsBool( Agent_Role_Brief::can_draft() );
+		if ( Agent_Role_Brief::can_draft() ) {
+			return;
+		}
+		$result = Agent_Role_Brief::draft( $this->make_agent() );
+		$this->assertInstanceOf( WP_Error::class, $result );
 	}
 
 	public function test_save_as_default_leaves_a_customized_agent_alone(): void {
@@ -252,6 +327,113 @@ class PersonaCatalogTest extends TestCase {
 
 		$this->assertFalse( Agent_Role_Admin::has_site_persona_default( 'writer' ) );
 		$this->assertSame( array(), get_user_meta( $agent, Agent_Role_Admin::ACTIONS_META, true ) );
+		$this->assertSame(
+			Agent_Role_Admin::factory_persona_shape( 'writer' )['instructions'],
+			get_user_meta( $agent, Agent_Role::INSTRUCTIONS_META, true )
+		);
+	}
+
+	public function test_each_persona_ships_its_own_purpose_instructions(): void {
+		$writer  = Agent_Role_Admin::factory_persona_shape( 'writer' )['instructions'];
+		$analyst = Agent_Role_Admin::factory_persona_shape( 'analyst' )['instructions'];
+		$editor  = Agent_Role_Admin::factory_persona_shape( 'editor' )['instructions'];
+		$webdev  = Agent_Role_Admin::factory_persona_shape( 'webdev' )['instructions'];
+
+		$this->assertStringContainsString( 'Writer', $writer );
+		$this->assertStringContainsString( 'Analyst', $analyst );
+		$this->assertStringContainsString( 'Editor', $editor );
+		$this->assertStringContainsString( 'Web Dev', $webdev );
+		$this->assertNotSame( $writer, $analyst );
+		$this->assertStringNotContainsString( 'core/get-site-info', $writer );
+		$this->assertStringNotContainsString( 'This agent may run', $writer );
+	}
+
+	public function test_new_agents_start_as_analyst(): void {
+		$agent = $this->make_agent();
+		Agent_Role::seed_agent( $agent );
+
+		$this->assertSame( 'analyst', get_user_meta( $agent, Agent_Role_Admin::PERSONA_META, true ) );
+		$this->assertSame( '', (string) get_user_meta( $agent, Agent_Role_Admin::PERSONA_CUSTOM_META, true ) );
+		$shape = Agent_Role_Admin::site_persona_shape( 'analyst' );
+		$this->assertSame( $shape['instructions'], get_user_meta( $agent, Agent_Role::INSTRUCTIONS_META, true ) );
+		$this->assertSame( $shape['abilities'], get_user_meta( $agent, Agent_Role::ABILITIES_META, true ) );
+		$this->assertSame( $shape['actions'], get_user_meta( $agent, Agent_Role_Admin::ACTIONS_META, true ) );
+	}
+
+	public function test_save_as_default_stores_instructions_with_the_persona(): void {
+		$admin = $this->make_user( 'administrator' );
+		$agent = $this->make_agent();
+		wp_set_current_user( $admin );
+
+		$note = "You are the Writer for this site.\n\nStay in your own work.";
+		update_user_meta( $agent, Agent_Role::INSTRUCTIONS_META, $note );
+
+		$_POST['user_id']                   = (string) $agent;
+		$_POST['agent_role_agent_nonce']    = wp_create_nonce( 'agent_role_save_agent_' . $agent );
+		$_REQUEST['agent_role_agent_nonce'] = $_POST['agent_role_agent_nonce'];
+		$_POST['agent_role_persona']        = 'writer';
+		$_POST['agent_role_persona_custom'] = '1';
+		$_POST['agent_role_persona_action'] = 'save_default';
+		$_POST['agent_role_caps']           = array( 'edit_posts', 'edit_published_posts', 'publish_posts', 'upload_files' );
+		$_POST['agent_role_actions']        = array();
+		$_POST['agent_role_abilities']      = array( 'core/get-site-info' );
+		$_POST['agent_role_instructions']   = $note;
+
+		$this->save_and_redirect();
+
+		$stored = Agent_Role_Admin::site_persona_shape( 'writer' );
+		$this->assertSame( $note, $stored['instructions'] );
+		$this->assertSame( $note, get_user_meta( $agent, Agent_Role::INSTRUCTIONS_META, true ) );
+	}
+
+	public function test_untouched_instructions_are_not_rewritten_from_permissions(): void {
+		$admin = $this->make_user( 'administrator' );
+		$agent = $this->make_agent();
+		wp_set_current_user( $admin );
+
+		$note = 'Keep this wording. Do not replace it from the ability list.';
+		update_user_meta( $agent, Agent_Role::INSTRUCTIONS_META, $note );
+		update_user_meta( $agent, Agent_Role_Admin::PERSONA_META, 'writer' );
+
+		$_POST['user_id']                   = (string) $agent;
+		$_POST['agent_role_agent_nonce']    = wp_create_nonce( 'agent_role_save_agent_' . $agent );
+		$_REQUEST['agent_role_agent_nonce'] = $_POST['agent_role_agent_nonce'];
+		$_POST['agent_role_persona']        = 'writer';
+		$_POST['agent_role_persona_custom'] = '1';
+		$_POST['agent_role_caps']           = array( 'edit_posts' );
+		$_POST['agent_role_actions']        = array();
+		$_POST['agent_role_abilities']      = array( 'core/get-site-info' );
+		$_POST['agent_role_instructions']   = $note;
+
+		$this->save_and_redirect();
+
+		$this->assertSame( $note, get_user_meta( $agent, Agent_Role::INSTRUCTIONS_META, true ) );
+	}
+
+	public function test_picking_a_persona_with_an_untouched_box_uses_that_persona_default(): void {
+		$admin = $this->make_user( 'administrator' );
+		$agent = $this->make_agent();
+		wp_set_current_user( $admin );
+
+		$old = Agent_Role::compose_instructions( get_userdata( $agent ) );
+		update_user_meta( $agent, Agent_Role::INSTRUCTIONS_META, $old );
+
+		$_POST['user_id']                   = (string) $agent;
+		$_POST['agent_role_agent_nonce']    = wp_create_nonce( 'agent_role_save_agent_' . $agent );
+		$_REQUEST['agent_role_agent_nonce'] = $_POST['agent_role_agent_nonce'];
+		$_POST['agent_role_persona']        = 'analyst';
+		$_POST['agent_role_persona_custom'] = '0';
+		$_POST['agent_role_caps']           = array();
+		$_POST['agent_role_actions']        = array( 'read_others', 'export' );
+		$_POST['agent_role_abilities']      = array( 'core/get-site-info' );
+		$_POST['agent_role_instructions']   = $old;
+
+		$this->save_and_redirect();
+
+		$this->assertSame(
+			Agent_Role_Admin::factory_persona_shape( 'analyst' )['instructions'],
+			get_user_meta( $agent, Agent_Role::INSTRUCTIONS_META, true )
+		);
 	}
 
 	private function save_and_redirect() {
@@ -352,6 +534,41 @@ class PersonaCatalogTest extends TestCase {
 						return new WP_Error( 'needy', 'Needs a permission this agent does not have.' );
 					}
 				);
+				PersonaCatalogTest::register_one(
+					PersonaCatalogTest::REQUIRED,
+					'Catalog required',
+					array(
+						'readonly'    => true,
+						'destructive' => false,
+						'idempotent'  => true,
+					),
+					static function ( $args ) {
+						return (int) $args['post_id'] > 0;
+					},
+					array(
+						'input_schema' => array(
+							'type'       => 'object',
+							'properties' => array(
+								'post_id' => array(
+									'type' => 'integer',
+								),
+							),
+							'required'   => array( 'post_id' ),
+						),
+					)
+				);
+				PersonaCatalogTest::register_one(
+					PersonaCatalogTest::WARN,
+					'Catalog warn',
+					array(
+						'readonly'    => true,
+						'destructive' => false,
+						'idempotent'  => true,
+					),
+					static function ( $args = array() ) {
+						return (int) $args['post_id'] > 0;
+					}
+				);
 			}
 		);
 		do_action( 'wp_abilities_api_init', WP_Abilities_Registry::get_instance() );
@@ -366,8 +583,9 @@ class PersonaCatalogTest extends TestCase {
 	 * @param string               $label       Visible label.
 	 * @param array<string,mixed>  $annotations Filing marks.
 	 * @param callable             $permission  Permission callback.
+	 * @param array<string,mixed>  $extra       Extra register_ability args.
 	 */
-	public static function register_one( $name, $label, array $annotations, $permission ) {
+	public static function register_one( $name, $label, array $annotations, $permission, array $extra = array() ) {
 		$registry = WP_Abilities_Registry::get_instance();
 		if ( $registry && $registry->is_registered( $name ) ) {
 			return;
@@ -375,18 +593,21 @@ class PersonaCatalogTest extends TestCase {
 
 		wp_register_ability(
 			$name,
-			array(
-				'label'               => $label,
-				'description'         => $label,
-				'category'            => 'site',
-				'permission_callback' => $permission,
-				'execute_callback'    => static function () {
-					return true;
-				},
-				'meta'                => array(
-					'public'      => true,
-					'annotations' => $annotations,
+			array_merge(
+				array(
+					'label'               => $label,
+					'description'         => $label,
+					'category'            => 'site',
+					'permission_callback' => $permission,
+					'execute_callback'    => static function () {
+						return true;
+					},
+					'meta'                => array(
+						'public'      => true,
+						'annotations' => $annotations,
+					),
 				),
+				$extra
 			)
 		);
 	}

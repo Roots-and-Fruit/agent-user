@@ -223,27 +223,28 @@ class Agent_Role {
 	}
 
 	/**
-	 * MCP hint built from this agent's saved abilities and account permissions.
+	 * Fallback note when this agent has no persona yet.
 	 *
-	 * @param WP_User              $user       Agent account.
-	 * @param array<string,bool>|null $caps       Capability map. Null reads the saved map.
-	 * @param array<string,bool>|null $abilities  Ability map. Null reads the saved map.
+	 * Persona defaults live on Agent_Role_Admin. Those are written for the job,
+	 * not from the ability list.
+	 *
+	 * @param WP_User                 $user      Agent account.
+	 * @param array<string,bool>|null $caps      Unused. Kept so older callers still type-check.
+	 * @param array<string,bool>|null $abilities Unused. Kept so older callers still type-check.
 	 */
 	public static function compose_instructions( $user, $caps = null, $abilities = null ) {
+		unset( $caps, $abilities );
 		if ( ! $user instanceof WP_User ) {
 			return '';
 		}
 
-		$paragraphs = array(
-			sprintf( 'This connection is the WordPress agent %s.', $user->user_login ),
-			'Call mcp-adapter-discover-abilities or mcp-adapter-get-ability-info before mcp-adapter-execute-ability when the ability name or its parameters are not already known. Pass only parameters that ability\'s schema lists.',
-			self::ability_grant_sentence( $user, $abilities ),
-			self::capability_boundary_sentence( $user, $caps ),
-			'If an ability returns permission denied, say it is off for this agent and stop.',
-			'When you report back, lead with the result and use the values the ability returned. Quote the url field from Get Site Information.',
+		return implode(
+			"\n\n",
+			array(
+				sprintf( 'This connection is the WordPress agent %s.', $user->user_login ),
+				'Work only with the tools this account is allowed to run. If a tool is denied, stop. When you report back, lead with the result.',
+			)
 		);
-
-		return implode( "\n\n", $paragraphs );
 	}
 
 	/**
@@ -474,15 +475,11 @@ class Agent_Role {
 	 * @param int $user_id Agent user ID.
 	 */
 	public static function seed_agent( $user_id ) {
-		$role = get_role( self::SLUG );
-		$caps = array();
-		foreach ( self::cap_choices() as $cap => $choice ) {
-			unset( $choice );
-			$caps[ $cap ] = (bool) ( $role && ! empty( $role->capabilities[ $cap ] ) );
+		if ( ! class_exists( 'Agent_Role_Admin', false ) ) {
+			require_once AGENT_ROLE_DIR . 'includes/class-agent-role-admin.php';
 		}
-		self::apply_cap_map( $user_id, $caps );
-		update_user_meta( $user_id, self::ABILITIES_META, self::abilities_allowed_now( $user_id ) );
-		self::store_instructions( $user_id );
+
+		Agent_Role_Admin::assign_persona( $user_id, Agent_Role_Admin::DEFAULT_PERSONA );
 	}
 
 	/**
@@ -528,12 +525,21 @@ class Agent_Role {
 			return false;
 		}
 
-		$meta = $ability->get_meta();
+		try {
+			$meta = $ability->get_meta();
+		} catch ( \Throwable $e ) {
+			unset( $e );
+			return false;
+		}
+
 		return ! empty( $meta['public'] ) || ( isset( $meta['mcp']['public'] ) && $meta['mcp']['public'] );
 	}
 
 	/**
 	 * Abilities this user can run before a saved list exists.
+	 *
+	 * Abilities that need input are left off. Other plugins may warn or throw
+	 * when probed with an empty payload; those stay off too.
 	 *
 	 * @param int $user_id User to check as.
 	 * @return array<string,bool>
@@ -546,87 +552,95 @@ class Agent_Role {
 
 		$previous = get_current_user_id();
 		wp_set_current_user( $user_id );
-		foreach ( wp_get_abilities() as $ability ) {
-			if ( ! self::is_listed_ability( $ability ) ) {
-				continue;
+		try {
+			foreach ( wp_get_abilities() as $ability ) {
+				try {
+					if ( ! self::is_listed_ability( $ability ) ) {
+						continue;
+					}
+					$allowed[ $ability->get_name() ] = true === self::probe_ability_permission( $ability );
+				} catch ( \Throwable $e ) {
+					unset( $e );
+				}
 			}
-			$ok = false;
-			try {
-				$ok = true === $ability->check_permissions( array() );
-			} catch ( \Throwable $e ) {
-				unset( $e );
-				$ok = false;
-			}
-			$allowed[ $ability->get_name() ] = $ok;
+		} finally {
+			wp_set_current_user( $previous );
 		}
-		wp_set_current_user( $previous );
 
 		return $allowed;
 	}
 
 	/**
-	 * Names of abilities this agent is allowed to run.
+	 * Whether this ability would admit the current user with no input.
 	 *
-	 * @param WP_User              $user      Agent account.
-	 * @param array<string,bool>|null $abilities Ability map. Null reads the saved map.
+	 * @param mixed $ability Ability instance.
+	 * @return bool|null True, false, or null when the ability cannot be probed safely.
 	 */
-	private static function ability_grant_sentence( $user, $abilities = null ) {
-		$saved = is_array( $abilities ) ? $abilities : get_user_meta( $user->ID, self::ABILITIES_META, true );
-		if ( ! is_array( $saved ) ) {
-			return 'Run only abilities this account is allowed to run.';
+	public static function probe_ability_permission( $ability ) {
+		if ( ! is_object( $ability ) || ! method_exists( $ability, 'check_permissions' ) ) {
+			return null;
 		}
 
-		$enabled = array();
-		$seen    = array();
-		if ( function_exists( 'wp_get_abilities' ) ) {
-			foreach ( wp_get_abilities() as $ability ) {
-				if ( ! self::is_listed_ability( $ability ) ) {
-					continue;
+		if ( self::ability_needs_input( $ability ) ) {
+			return null;
+		}
+
+		$fault = false;
+		// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_set_error_handler -- Other plugins may warn from a permission callback when we pass an empty probe.
+		set_error_handler(
+			static function ( $errno ) use ( &$fault ) {
+				if ( $errno & ( E_WARNING | E_NOTICE | E_USER_WARNING | E_USER_NOTICE | E_DEPRECATED | E_USER_DEPRECATED ) ) {
+					$fault = true;
+					return true;
 				}
-				$name = $ability->get_name();
-				if ( empty( $saved[ $name ] ) ) {
-					continue;
-				}
-				$seen[ $name ] = true;
-				$enabled[]     = $name . ' (' . wp_strip_all_tags( $ability->get_label() ) . ')';
+				return false;
 			}
-		}
+		);
 
-		foreach ( $saved as $name => $on ) {
-			if ( empty( $on ) || ! is_string( $name ) || isset( $seen[ $name ] ) ) {
-				continue;
+		$ok = false;
+		try {
+			$result = $ability->check_permissions( array() );
+			if ( is_wp_error( $result ) && 'ability_callback_exception' === $result->get_error_code() ) {
+				$fault = true;
+			} else {
+				$ok = true === $result;
 			}
-			$enabled[] = $name;
+		} catch ( \Throwable $e ) {
+			unset( $e );
+			$fault = true;
+			$ok    = false;
+		} finally {
+			restore_error_handler();
 		}
 
-		if ( ! $enabled ) {
-			return 'This agent has no abilities turned on.';
+		if ( $fault ) {
+			return null;
 		}
 
-		return 'This agent may run ' . implode( ', ', $enabled ) . '. Any other ability is off.';
+		return $ok;
 	}
 
 	/**
-	 * Account permissions, named so they are not mistaken for abilities.
+	 * Whether a permission check needs arguments this plugin does not have.
 	 *
-	 * @param WP_User              $user Agent account.
-	 * @param array<string,bool>|null $caps Capability map. Null reads the saved map.
+	 * @param mixed $ability Ability instance.
 	 */
-	private static function capability_boundary_sentence( $user, $caps = null ) {
-		$saved  = is_array( $caps ) ? $caps : self::cap_map( $user );
-		$labels = array();
-		if ( is_array( $saved ) ) {
-			foreach ( self::cap_choices() as $cap => $choice ) {
-				if ( ! empty( $saved[ $cap ] ) ) {
-					$labels[] = $choice['label'];
-				}
-			}
+	public static function ability_needs_input( $ability ) {
+		if ( ! is_object( $ability ) || ! method_exists( $ability, 'get_input_schema' ) ) {
+			return false;
 		}
 
-		if ( ! $labels ) {
-			return 'WordPress permissions on: read. Post, publish, upload, and delete permissions are off. None of those permissions are abilities on this connection.';
+		try {
+			$schema = $ability->get_input_schema();
+		} catch ( \Throwable $e ) {
+			unset( $e );
+			return true;
 		}
 
-		return 'WordPress permissions on: ' . implode( ', ', $labels ) . '. None of those permissions are abilities on this connection.';
+		if ( ! is_array( $schema ) ) {
+			return false;
+		}
+
+		return ! empty( $schema['required'] ) && is_array( $schema['required'] );
 	}
 }

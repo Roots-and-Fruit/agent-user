@@ -107,9 +107,9 @@ class Agent_Role_Admin {
 				'drafting'   => __( 'Writing instructions…', 'rf-agent-role' ),
 				/* translators: "Update Agent" is the primary submit button on this screen. */
 				'draftDone'  => __( 'Draft is in the box. Click "Update Agent" to save it.', 'rf-agent-role' ),
-				'resetting'  => __( 'Writing the built-in hint…', 'rf-agent-role' ),
+				'resetting'  => __( 'Loading this persona’s default instructions…', 'rf-agent-role' ),
 				/* translators: "Update Agent" is the primary submit button on this screen. */
-				'resetDone'  => __( 'Built-in hint is in the box. Click "Update Agent" to save it.', 'rf-agent-role' ),
+				'resetDone'  => __( 'This persona’s default instructions are in the box. Click "Update Agent" to save them.', 'rf-agent-role' ),
 				'logDates'   => Agent_Role_Log::logged_dates(),
 			)
 		);
@@ -596,6 +596,17 @@ class Agent_Role_Admin {
 	}
 
 	/**
+	 * Plug mark for a tool that comes from another plugin.
+	 *
+	 * The WordPress 7.1 icon library has no plug, so this is the Lucide plug.
+	 */
+	private static function plugin_badge_icon() {
+		return self::kses_icon(
+			'<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="ar-persona-source__icon" aria-hidden="true" focusable="false"><path d="M12 22v-5"/><path d="M15 8V2"/><path d="M17 8a1 1 0 0 1 1 1v4a4 4 0 0 1-4 4h-4a4 4 0 0 1-4-4V9a1 1 0 0 1 1-1z"/><path d="M9 8V2"/></svg>'
+		);
+	}
+
+	/**
 	 * Plus icon matching Site Functions. Core icon on WordPress 7.1+, Dashicons before that.
 	 */
 	private static function plus_icon() {
@@ -636,12 +647,10 @@ class Agent_Role_Admin {
 	}
 
 	/**
-	 * Profile mark for an Agent: a rounded frame, the letters AI, and a few sparkles.
+	 * Profile mark for an Agent.
 	 */
 	private static function agent_mark() {
-		return self::kses_icon(
-			'<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none" class="ar-rf-profile__mark" aria-hidden="true" focusable="false"><path d="M20 14h10M50 26v18a8 8 0 0 1-8 8H20a8 8 0 0 1-8-8V22a8 8 0 0 1 8-8h2" stroke="#4b5e2e" stroke-width="4" stroke-linecap="round"/><text x="30" y="40" text-anchor="middle" fill="#4b5e2e" font-size="18" font-weight="700" font-family="Nunito Sans, system-ui, sans-serif">AI</text><path fill="#4b5e2e" d="M48 8l1.4 4.4 4.4 1.4-4.4 1.4L48 19.6l-1.4-4.4-4.4-1.4 4.4-1.4zM57 20l.8 2.2 2.2.8-2.2.8L57 26l-.8-2.2-2.2-.8 2.2-.8zM40 6l.6 1.5 1.5.6-1.5.6L40 10.2l-.6-1.5-1.5-.6 1.5-.6z"/></svg>'
-		);
+		return '<img class="ar-rf-profile__mark" src="' . esc_url( plugins_url( 'admin/images/agent-mark.png', AGENT_ROLE_FILE ) ) . '" alt="" width="72" height="72" />';
 	}
 
 	/**
@@ -754,7 +763,8 @@ class Agent_Role_Admin {
 			}
 		}
 
-		$caps = Agent_Role::cap_map( $agent );
+		$caps  = Agent_Role::cap_map( $agent );
+		$state = self::persona_state( $agent );
 
 		echo '<form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '">';
 		wp_nonce_field( 'agent_role_save_agent_' . $agent->ID, 'agent_role_agent_nonce' );
@@ -762,43 +772,24 @@ class Agent_Role_Admin {
 		echo '<input type="hidden" name="user_id" value="' . esc_attr( (string) $agent->ID ) . '" />';
 
 		echo '<div class="ar-rf-panel ar-rf-agent">';
-		echo '<div class="ar-rf-profile">';
-		echo self::agent_mark(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- SVG is escaped in agent_mark().
+		echo '<div class="ar-rf-profile"' . ( $state['color'] ? ' style="--ar-persona:' . esc_attr( $state['color'] ) . '"' : '' ) . '>';
+		echo self::agent_mark(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- URL is escaped in agent_mark().
 		echo '<div class="ar-rf-profile__text">';
 		echo '<h2 class="ar-rf-profile__name">' . esc_html( $agent->display_name ) . '</h2>';
-		echo '<p class="ar-rf-profile__login">' . esc_html( $agent->user_login ) . '</p>';
+		echo '<p class="ar-rf-profile__meta">';
+		echo '<span class="ar-rf-profile__fact">';
+		echo '<span class="ar-rf-profile__label">' . esc_html__( 'Username', 'rf-agent-role' ) . '</span>';
+		echo '<span class="ar-rf-profile__value">' . esc_html( $agent->user_login ) . '</span>';
+		echo '</span>';
+		echo '<span class="ar-rf-profile__fact" id="ar-profile-persona-line"' . ( $state['slug'] ? '' : ' hidden' ) . '>';
+		echo '<span class="ar-rf-profile__label">' . esc_html__( 'Persona', 'rf-agent-role' ) . '</span>';
+		echo '<span class="ar-rf-profile__value" id="ar-profile-persona-name">' . esc_html( $state['label'] ) . '</span>';
+		echo '</span>';
+		echo '<span class="ar-rf-profile__badge" id="ar-profile-custom-badge"' . ( $state['custom'] ? '' : ' hidden' ) . '>' . esc_html__( 'Customized', 'rf-agent-role' ) . '</span>';
+		echo '</p>';
 		echo '</div></div>';
 
 		self::render_personas( $agent, $caps );
-
-		$instructions = Agent_Role::instructions_for( $agent );
-		echo '<fieldset class="ar-rf-section">';
-		echo '<legend>' . esc_html__( 'Instructions', 'rf-agent-role' ) . '</legend>';
-		echo '<p class="ar-rf-section__tools">';
-		echo '<button type="button" class="button" id="ar-instructions-toggle" aria-expanded="false" aria-controls="ar-instructions-panel">';
-		echo esc_html__( 'Customize instructions', 'rf-agent-role' );
-		echo '</button></p>';
-		echo '<div class="ar-rf-instructions-panel" id="ar-instructions-panel" hidden>';
-		echo '<p class="ar-rf-lede">' . esc_html__(
-			/* translators: Quoted words are button labels on this screen: Reset, Generate, and Update Agent. */
-			'Sent when this agent connects over MCP. "Reset" sets this back to the plugin default instructions. "Generate" drafts a version with AI via your Connector. "Update Agent" saves the instructions. If you change the Agent persona capabilities and leave this box untouched, the hint is rewritten from the persona.',
-			'rf-agent-role'
-		) . '</p>';
-		echo '<textarea class="ar-rf-instructions" id="agent_role_instructions" name="agent_role_instructions" rows="14">';
-		echo esc_textarea( $instructions );
-		echo '</textarea>';
-		echo '<p class="ar-rf-draft">';
-		if ( current_user_can( 'manage_options' ) ) {
-			echo '<button type="button" class="button" id="ar-draft-instructions" data-user="' . esc_attr( (string) $agent->ID ) . '">';
-			echo esc_html__( 'Generate Instructions based on your website', 'rf-agent-role' );
-			echo '</button>';
-		}
-		echo '<button type="button" class="button" id="ar-reset-instructions" data-user="' . esc_attr( (string) $agent->ID ) . '">';
-		echo esc_html__( 'Reset Instructions', 'rf-agent-role' );
-		echo '</button></p>';
-		echo '<p class="ar-rf-draft__status" id="ar-draft-instructions-status" aria-live="polite"></p>';
-		echo '</div>';
-		echo '</fieldset>';
 
 		submit_button( __( 'Update Agent', 'rf-agent-role' ) );
 		echo '</div></form>';
@@ -925,7 +916,13 @@ class Agent_Role_Admin {
 		}
 
 		list( $caps, $abilities ) = self::posted_maps();
-		$text                     = Agent_Role_Brief::draft( $user->ID, $caps, $abilities );
+		$persona                  = isset( $_POST['agent_role_persona'] ) ? sanitize_key( wp_unslash( $_POST['agent_role_persona'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce checked above.
+		try {
+			$text = Agent_Role_Brief::draft( $user->ID, $caps, $abilities, $persona );
+		} catch ( \Throwable $e ) {
+			unset( $e );
+			wp_send_json_error( array( 'message' => __( 'AI is not available on this site.', 'rf-agent-role' ) ) );
+		}
 		if ( is_wp_error( $text ) ) {
 			wp_send_json_error( array( 'message' => $text->get_error_message() ) );
 		}
@@ -934,7 +931,7 @@ class Agent_Role_Admin {
 	}
 
 	/**
-	 * Put the PHP hint for the current switches in the textarea. Update Agent stores it.
+	 * Put this persona's default instructions in the textarea. Update Agent stores them.
 	 */
 	public static function handle_reset_instructions() {
 		check_ajax_referer( 'agent_role_reset_instructions', 'nonce' );
@@ -943,19 +940,28 @@ class Agent_Role_Admin {
 			wp_send_json_error( array( 'message' => $user->get_error_message() ), (int) $user->get_error_data() );
 		}
 
-		list( $caps, $abilities ) = self::posted_maps();
+		$persona = isset( $_POST['agent_role_persona'] ) ? sanitize_key( wp_unslash( $_POST['agent_role_persona'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce checked above.
+		$shapes  = self::personas();
+		if ( isset( $shapes[ $persona ] ) ) {
+			$shape = self::site_persona_shape( $persona );
+			$text  = $shape['instructions'];
+		} else {
+			$text = Agent_Role::compose_instructions( $user );
+		}
+
 		wp_send_json_success(
 			array(
-				'text' => Agent_Role::compose_instructions( $user, $caps, $abilities ),
+				'text' => $text,
 			)
 		);
 	}
 
 	/**
-	 * Save one agent's capabilities and abilities.
+	 * Save one agent's capabilities, abilities, and instructions.
 	 *
-	 * An untouched instructions box is rewritten from the new switches.
-	 * A box changed by Generate, Reset, or typing is stored as written.
+	 * Permissions and instructions stay independent. An untouched instruction
+	 * box is not rewritten from the ability list. Picking a persona fills the
+	 * box with that persona's default unless the box was already edited.
 	 */
 	public static function handle_save_agent() {
 		self::require_manage_options();
@@ -982,16 +988,19 @@ class Agent_Role_Admin {
 		if ( '' === $persona_action && ! isset( $_POST['agent_role_abilities'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce checked above.
 			$abilities = is_array( $before_abilities ) ? $before_abilities : array();
 		}
-		$persona  = isset( $_POST['agent_role_persona'] ) ? sanitize_key( wp_unslash( $_POST['agent_role_persona'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce checked above.
-		$actions  = self::posted_actions();
-		$shapes   = self::personas();
-		$stripped = false;
+		$persona          = isset( $_POST['agent_role_persona'] ) ? sanitize_key( wp_unslash( $_POST['agent_role_persona'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce checked above.
+		$previous_persona = (string) get_user_meta( $user_id, self::PERSONA_META, true );
+		$actions          = self::posted_actions();
+		$shapes           = self::personas();
+		$stripped         = false;
+		$persona_shape    = null;
 		if ( isset( $shapes[ $persona ] ) ) {
-			$applied   = self::apply_persona_post( $user_id, $persona, $persona_action, $caps, $actions, $abilities );
-			$caps      = $applied['caps'];
-			$actions   = $applied['actions'];
-			$abilities = $applied['abilities'];
-			$stripped  = ! empty( $applied['stripped'] );
+			$applied       = self::apply_persona_post( $user_id, $persona, $persona_action, $caps, $actions, $abilities, $posted );
+			$caps          = $applied['caps'];
+			$actions       = $applied['actions'];
+			$abilities     = $applied['abilities'];
+			$stripped      = ! empty( $applied['stripped'] );
+			$persona_shape = self::site_persona_shape( $persona );
 			update_user_meta( $user_id, self::PERSONA_META, $persona );
 			update_user_meta( $user_id, self::PERSONA_CUSTOM_META, $applied['custom'] ? '1' : '' );
 			update_user_meta( $user_id, self::ACTIONS_META, $actions );
@@ -1000,22 +1009,19 @@ class Agent_Role_Admin {
 		Agent_Role::apply_cap_map( $user_id, $caps );
 		update_user_meta( $user_id, Agent_Role::ABILITIES_META, $abilities );
 
-		if ( self::normalize_instructions( $posted ) === self::normalize_instructions( $previous ) ) {
-			Agent_Role::store_instructions( $user_id );
-		} else {
-			update_user_meta( $user_id, Agent_Role::INSTRUCTIONS_META, self::normalize_instructions( $posted ) );
-		}
+		$note = self::instructions_to_store( $posted, $previous, $persona_action, $persona_shape, $persona, $previous_persona );
+		update_user_meta( $user_id, Agent_Role::INSTRUCTIONS_META, $note );
 
-		$after_note = metadata_exists( 'user', $user_id, Agent_Role::INSTRUCTIONS_META ) ? (string) get_user_meta( $user_id, Agent_Role::INSTRUCTIONS_META, true ) : '';
+		$after_note = $note;
 		if ( $before_caps !== $caps || $before_abilities !== $abilities ) {
 			Agent_Role_Log::record( $user_id, 'admin', 'Switches saved', 'switches', 'changed' );
 		}
 		if ( self::normalize_instructions( $before_note ) !== self::normalize_instructions( $after_note ) ) {
-			$rewritten = self::normalize_instructions( $after_note ) === self::normalize_instructions( Agent_Role::compose_instructions( $user ) );
+			$from_persona = $persona_shape && self::normalize_instructions( $after_note ) === self::normalize_instructions( $persona_shape['instructions'] );
 			Agent_Role_Log::record(
 				$user_id,
 				'admin',
-				$rewritten ? 'Instructions rewritten' : 'Instructions saved from the box',
+				$from_persona ? 'Instructions set from the persona' : 'Instructions saved from the box',
 				'instructions',
 				'changed'
 			);
@@ -1092,6 +1098,42 @@ class Agent_Role_Admin {
 		}
 
 		return array( $caps, $abilities );
+	}
+
+	/**
+	 * Choose the note to store. Permissions never rewrite this box.
+	 *
+	 * @param string $posted           Posted textarea.
+	 * @param string $previous         Stored note before save.
+	 * @param string $persona_action   save_default, reset, factory, or empty.
+	 * @param array<string,mixed>|null $persona_shape Site shape for the posted persona.
+	 * @param string $persona          Posted persona slug.
+	 * @param string $previous_persona Persona stored on the agent.
+	 */
+	private static function instructions_to_store( $posted, $previous, $persona_action, $persona_shape, $persona, $previous_persona ) {
+		$posted   = self::normalize_instructions( $posted );
+		$previous = self::normalize_instructions( $previous );
+		$default  = ( is_array( $persona_shape ) && isset( $persona_shape['instructions'] ) )
+			? self::normalize_instructions( $persona_shape['instructions'] )
+			: '';
+
+		if ( in_array( $persona_action, array( 'reset', 'factory' ), true ) && '' !== $default ) {
+			return $default;
+		}
+
+		if ( 'save_default' === $persona_action ) {
+			return $posted;
+		}
+
+		if ( $posted !== $previous ) {
+			return $posted;
+		}
+
+		if ( $persona && $persona !== $previous_persona && '' !== $default ) {
+			return $default;
+		}
+
+		return $previous;
 	}
 
 	/**
@@ -1321,6 +1363,11 @@ class Agent_Role_Admin {
 	const ACTIONS_META = '_agent_role_actions';
 
 	/**
+	 * Persona assigned to a newly created Agent.
+	 */
+	const DEFAULT_PERSONA = 'analyst';
+
+	/**
 	 * Stop the request when the current user cannot manage these settings.
 	 *
 	 * @param bool $ajax True when the response must be JSON.
@@ -1355,7 +1402,8 @@ class Agent_Role_Admin {
 				'soft'    => '#e6e2da',
 				/* translators: WP Rollback is a plugin name. */
 				'text'    => __( 'Editor, plus they can update plugins. Roll those updates back with WP Rollback.', 'rf-agent-role' ),
-				'note'    => '',
+				/* translators: WP Rollback is a plugin name. */
+				'note'    => __( 'You are the Web Dev for this WordPress site. Keep the site working. Update plugins when that is the job, and roll a bad update back with WP Rollback. Write and edit content when the site needs it. Do not change settings you were not asked to change.', 'rf-agent-role' ),
 				'caps'    => $writer_caps,
 				'actions' => array( 'read_others', 'edit_others', 'update_plugins' ),
 			),
@@ -1366,7 +1414,7 @@ class Agent_Role_Admin {
 				'color'   => '#d4844e',
 				'soft'    => '#f0d5c0',
 				'text'    => __( 'Writer, plus they can edit and publish a post or page other users wrote.', 'rf-agent-role' ),
-				'note'    => '',
+				'note'    => __( 'You are the Editor for this WordPress site. Write when you need to, and edit and publish posts and pages other people wrote. Keep the site’s voice. Do not update plugins or change site settings.', 'rf-agent-role' ),
 				'caps'    => $writer_caps,
 				'actions' => array( 'read_others', 'edit_others' ),
 			),
@@ -1377,7 +1425,7 @@ class Agent_Role_Admin {
 				'color'   => '#62744d',
 				'soft'    => '#e4eadc',
 				'text'    => __( 'Creates, edits, and publishes their own posts and pages, and can upload files.', 'rf-agent-role' ),
-				'note'    => '',
+				'note'    => __( 'You are the Writer for this WordPress site. Write and publish this site’s own posts and pages, and upload the files those pieces need. Stay in your own work. Do not take over a post someone else wrote. Do not update plugins or change site settings.', 'rf-agent-role' ),
 				'caps'    => $writer_caps,
 				'actions' => array(),
 			),
@@ -1388,7 +1436,7 @@ class Agent_Role_Admin {
 				'color'   => '#8c5a3c',
 				'soft'    => '#f3e0d2',
 				'text'    => __( 'An expert in reading and exporting data related to your website.', 'rf-agent-role' ),
-				'note'    => '',
+				'note'    => __( 'You are the Analyst for this WordPress site. Read published content and export data about this site. Report what you find. Do not create, edit, or delete content. Do not update plugins or change site settings.', 'rf-agent-role' ),
 				'caps'    => array(),
 				'actions' => array( 'read_others', 'export' ),
 			),
@@ -1501,7 +1549,7 @@ class Agent_Role_Admin {
 	 * Plugin-shipped starting set for a shape.
 	 *
 	 * @param string $persona Persona slug.
-	 * @return array{caps:array<string,bool>,actions:string[],abilities:array<string,bool>}
+	 * @return array{caps:array<string,bool>,actions:string[],abilities:array<string,bool>,instructions:string}
 	 */
 	public static function factory_persona_shape( $persona ) {
 		$personas = self::personas();
@@ -1512,9 +1560,40 @@ class Agent_Role_Admin {
 		}
 
 		return array(
-			'caps'      => $caps,
-			'actions'   => isset( $personas[ $persona ] ) ? array_values( $personas[ $persona ]['actions'] ) : array(),
-			'abilities' => self::core_read_abilities(),
+			'caps'         => $caps,
+			'actions'      => isset( $personas[ $persona ] ) ? array_values( $personas[ $persona ]['actions'] ) : array(),
+			'abilities'    => self::core_read_abilities(),
+			'instructions' => self::factory_persona_instructions( $persona ),
+		);
+	}
+
+	/**
+	 * Purpose text plus the shared MCP suffix for a shape.
+	 *
+	 * @param string $persona Persona slug.
+	 */
+	public static function factory_persona_instructions( $persona ) {
+		$personas = self::personas();
+		$purpose  = isset( $personas[ $persona ]['note'] ) ? trim( (string) $personas[ $persona ]['note'] ) : '';
+		$suffix   = self::instructions_suffix();
+		if ( '' === $purpose ) {
+			return $suffix;
+		}
+
+		return $purpose . "\n\n" . $suffix;
+	}
+
+	/**
+	 * How to call tools. Shared across personas. Not a list of abilities.
+	 */
+	private static function instructions_suffix() {
+		return implode(
+			"\n\n",
+			array(
+				'Call mcp-adapter-discover-abilities or mcp-adapter-get-ability-info before mcp-adapter-execute-ability when the ability name or its parameters are not already known. Pass only parameters that ability\'s schema lists.',
+				'If an ability returns permission denied, say it is off for this agent and stop.',
+				'When you report back, lead with the result and use the values the ability returned.',
+			)
 		);
 	}
 
@@ -1522,7 +1601,7 @@ class Agent_Role_Admin {
 	 * Starting set for a shape on this site.
 	 *
 	 * @param string $persona Persona slug.
-	 * @return array{caps:array<string,bool>,actions:string[],abilities:array<string,bool>}
+	 * @return array{caps:array<string,bool>,actions:string[],abilities:array<string,bool>,instructions:string}
 	 */
 	public static function site_persona_shape( $persona ) {
 		$stored = get_option( Agent_Role::PERSONA_DEFAULTS_OPTION, array() );
@@ -1547,7 +1626,7 @@ class Agent_Role_Admin {
 	 * Store a site default for one shape.
 	 *
 	 * @param string                                                          $persona Persona slug.
-	 * @param array{caps:array<string,bool>,actions:string[],abilities:array<string,bool>} $shape Shape to store.
+	 * @param array{caps:array<string,bool>,actions:string[],abilities:array<string,bool>,instructions?:string} $shape Shape to store.
 	 */
 	public static function write_site_persona_default( $persona, array $shape ) {
 		$personas = self::personas();
@@ -1588,7 +1667,7 @@ class Agent_Role_Admin {
 	 *
 	 * @param string               $persona Persona slug.
 	 * @param array<string,mixed>  $shape   Raw shape.
-	 * @return array{caps:array<string,bool>,actions:string[],abilities:array<string,bool>}
+	 * @return array{caps:array<string,bool>,actions:string[],abilities:array<string,bool>,instructions:string}
 	 */
 	public static function sanitize_persona_shape( $persona, array $shape ) {
 		$factory = self::factory_persona_shape( $persona );
@@ -1618,10 +1697,16 @@ class Agent_Role_Admin {
 			}
 		}
 
+		$instructions = $factory['instructions'];
+		if ( isset( $shape['instructions'] ) && is_string( $shape['instructions'] ) ) {
+			$instructions = sanitize_textarea_field( $shape['instructions'] );
+		}
+
 		return array(
-			'caps'      => $caps,
-			'actions'   => array_values( array_unique( $have ) ),
-			'abilities' => $abilities,
+			'caps'         => $caps,
+			'actions'      => array_values( array_unique( $have ) ),
+			'abilities'    => $abilities,
+			'instructions' => $instructions,
 		);
 	}
 
@@ -1669,9 +1754,10 @@ class Agent_Role_Admin {
 	 * @param array<string,bool> $caps    Posted publishing switches.
 	 * @param string[]           $actions Posted extra rows.
 	 * @param array<string,bool> $abilities Posted ability map.
+	 * @param string             $instructions Posted instruction text.
 	 * @return array{caps:array<string,bool>,actions:string[],abilities:array<string,bool>,custom:bool,stripped:bool}
 	 */
-	private static function apply_persona_post( $user_id, $persona, $action, array $caps, array $actions, array $abilities ) {
+	private static function apply_persona_post( $user_id, $persona, $action, array $caps, array $actions, array $abilities, $instructions = '' ) {
 		$stripped = false;
 		$custom   = false;
 
@@ -1695,20 +1781,23 @@ class Agent_Role_Admin {
 			self::write_site_persona_default(
 				$persona,
 				array(
-					'caps'      => $caps,
-					'actions'   => $actions,
-					'abilities' => $abilities,
+					'caps'         => $caps,
+					'actions'      => $actions,
+					'abilities'    => $abilities,
+					'instructions' => $instructions,
 				)
 			);
 		} else {
 			$custom = ! empty( $_POST['agent_role_persona_custom'] ); // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Caller checks the nonce.
+			if ( ! $custom ) {
+				$custom = self::persona_is_custom( $persona, $caps, $actions, $abilities, $instructions );
+			}
 			if ( ! $custom ) {
 				$shape     = self::site_persona_shape( $persona );
 				$caps      = $shape['caps'];
 				$actions   = $shape['actions'];
 				$abilities = $shape['abilities'];
 			}
-			$custom = self::persona_is_custom( $persona, $caps, $actions, $abilities );
 		}
 
 		return array(
@@ -1722,6 +1811,9 @@ class Agent_Role_Admin {
 
 	/**
 	 * Drop listed abilities that this agent cannot run even with the switch on.
+	 *
+	 * Only tools that can answer with no extra input are stripped. A tool that
+	 * needs a post ID or other argument is left as the owner set it.
 	 *
 	 * @param int                $user_id   Agent user ID.
 	 * @param array<string,bool> $abilities Ability map.
@@ -1740,61 +1832,35 @@ class Agent_Role_Admin {
 		$previous = get_current_user_id();
 		wp_set_current_user( $user_id );
 		remove_filter( 'wp_ability_permission_result', array( 'Agent_Role', 'filter_ability_permission' ), 10 );
-		foreach ( wp_get_abilities() as $ability ) {
-			if ( ! Agent_Role::is_listed_ability( $ability ) ) {
-				continue;
+		try {
+			foreach ( wp_get_abilities() as $ability ) {
+				try {
+					if ( ! Agent_Role::is_listed_ability( $ability ) ) {
+						continue;
+					}
+					$name = $ability->get_name();
+					if ( empty( $abilities[ $name ] ) ) {
+						continue;
+					}
+					$probe = Agent_Role::probe_ability_permission( $ability );
+					if ( false === $probe ) {
+						$stripped = true;
+						continue;
+					}
+					$kept[ $name ] = true;
+				} catch ( \Throwable $e ) {
+					unset( $e );
+				}
 			}
-			$name = $ability->get_name();
-			if ( empty( $abilities[ $name ] ) ) {
-				continue;
-			}
-			$ok = false;
-			try {
-				$ok = true === $ability->check_permissions( array() );
-			} catch ( \Throwable $e ) {
-				unset( $e );
-				$ok = false;
-			}
-			if ( $ok ) {
-				$kept[ $name ] = true;
-			} else {
-				$stripped = true;
-			}
+		} finally {
+			add_filter( 'wp_ability_permission_result', array( 'Agent_Role', 'filter_ability_permission' ), 10, 4 );
+			wp_set_current_user( $previous );
 		}
-		add_filter( 'wp_ability_permission_result', array( 'Agent_Role', 'filter_ability_permission' ), 10, 4 );
-		wp_set_current_user( $previous );
 
 		return array(
 			'abilities' => $kept,
 			'stripped'  => $stripped,
 		);
-	}
-
-	/**
-	 * Whether this agent's own permission check would admit the ability.
-	 *
-	 * @param int   $user_id Agent user ID.
-	 * @param mixed $ability Ability instance.
-	 */
-	public static function ability_has_permission( $user_id, $ability ) {
-		if ( ! is_object( $ability ) || ! method_exists( $ability, 'check_permissions' ) ) {
-			return false;
-		}
-
-		$previous = get_current_user_id();
-		wp_set_current_user( $user_id );
-		remove_filter( 'wp_ability_permission_result', array( 'Agent_Role', 'filter_ability_permission' ), 10 );
-		$ok = false;
-		try {
-			$ok = true === $ability->check_permissions( array() );
-		} catch ( \Throwable $e ) {
-			unset( $e );
-			$ok = false;
-		}
-		add_filter( 'wp_ability_permission_result', array( 'Agent_Role', 'filter_ability_permission' ), 10, 4 );
-		wp_set_current_user( $previous );
-
-		return $ok;
 	}
 
 	/**
@@ -1805,7 +1871,7 @@ class Agent_Role_Admin {
 	 * @param string[]           $actions   Extra rows that are on.
 	 * @param array<string,bool> $abilities Ability map.
 	 */
-	private static function persona_is_custom( $persona, array $caps, array $actions, array $abilities ) {
+	private static function persona_is_custom( $persona, array $caps, array $actions, array $abilities, $instructions = null ) {
 		$defaults = self::site_persona_shape( $persona );
 		foreach ( Agent_Role::cap_slugs() as $cap ) {
 			if ( ! empty( $caps[ $cap ] ) !== ! empty( $defaults['caps'][ $cap ] ) ) {
@@ -1821,6 +1887,13 @@ class Agent_Role_Admin {
 		}
 		foreach ( self::listed_ability_names() as $name ) {
 			if ( ! empty( $abilities[ $name ] ) !== ! empty( $defaults['abilities'][ $name ] ) ) {
+				return true;
+			}
+		}
+
+		if ( null !== $instructions ) {
+			$default_note = isset( $defaults['instructions'] ) ? self::normalize_instructions( $defaults['instructions'] ) : '';
+			if ( self::normalize_instructions( $instructions ) !== $default_note ) {
 				return true;
 			}
 		}
@@ -1918,6 +1991,48 @@ class Agent_Role_Admin {
 	}
 
 	/**
+	 * Put this agent on a persona's current site default.
+	 *
+	 * @param int    $user_id Agent user ID.
+	 * @param string $persona Persona slug.
+	 */
+	public static function assign_persona( $user_id, $persona ) {
+		$personas = self::personas();
+		if ( ! isset( $personas[ $persona ] ) ) {
+			return;
+		}
+
+		$shape = self::site_persona_shape( $persona );
+		update_user_meta( $user_id, self::PERSONA_META, $persona );
+		update_user_meta( $user_id, self::PERSONA_CUSTOM_META, '' );
+		update_user_meta( $user_id, self::ACTIONS_META, $shape['actions'] );
+		self::apply_persona_caps( $user_id, $shape['actions'] );
+		Agent_Role::apply_cap_map( $user_id, $shape['caps'] );
+		update_user_meta( $user_id, Agent_Role::ABILITIES_META, $shape['abilities'] );
+		update_user_meta( $user_id, Agent_Role::INSTRUCTIONS_META, $shape['instructions'] );
+	}
+
+	/**
+	 * Saved persona for the header and cards.
+	 *
+	 * @param WP_User $agent Agent account.
+	 * @return array{slug:string,custom:bool,label:string,color:string}
+	 */
+	private static function persona_state( $agent ) {
+		$personas = self::personas();
+		$saved    = get_user_meta( $agent->ID, self::PERSONA_META, true );
+		$slug     = is_string( $saved ) && isset( $personas[ $saved ] ) ? $saved : '';
+		$custom   = $slug && '1' === (string) get_user_meta( $agent->ID, self::PERSONA_CUSTOM_META, true );
+
+		return array(
+			'slug'   => $slug,
+			'custom' => $custom,
+			'label'  => $slug ? $personas[ $slug ]['label'] : '',
+			'color'  => $slug ? $personas[ $slug ]['color'] : '',
+		);
+	}
+
+	/**
 	 * Persona cards and the customize groups.
 	 *
 	 * @param WP_User            $agent Agent account.
@@ -1939,46 +2054,89 @@ class Agent_Role_Admin {
 			$abilities = $shape['abilities'];
 		}
 
-		$open = $persona && ( $custom || isset( $_GET['customize'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only screen flag.
+		$open              = $persona && ( $custom || isset( $_GET['customize'] ) || isset( $_GET['instructions'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only screen flags.
+		$instructions      = Agent_Role::instructions_for( $agent );
+		$instructions_open = isset( $_GET['instructions'] ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only screen flag.
+		$accent            = ( $persona && isset( $personas[ $persona ] ) ) ? $personas[ $persona ]['color'] : '';
 
-		echo '<fieldset class="ar-rf-section">';
+		echo '<fieldset class="ar-rf-section ar-rf-section--persona"' . ( $accent ? ' style="--ar-persona:' . esc_attr( $accent ) . '"' : '' ) . '>';
 		echo '<legend>' . esc_html__( 'What this agent is for', 'rf-agent-role' ) . '</legend>';
-		echo '<p class="ar-rf-lede">' . esc_html__( 'Pick an Agent persona and Customize its permissions as needed.', 'rf-agent-role' ) . '</p>';
+		echo '<p class="ar-rf-lede">' . esc_html__( 'Pick an Agent persona. Permissions and instructions start from that persona.', 'rf-agent-role' ) . '</p>';
+		$slugs     = array_keys( $personas );
+		$tab_first = $persona && ( $slugs[0] ?? '' ) === $persona;
+		$tab_last  = $persona && ( array_key_last( $personas ) ?? '' ) === $persona;
+		$stage_mod = ( $open ? ' is-open' : '' ) . ( $tab_first ? ' is-tab-first' : '' ) . ( $tab_last ? ' is-tab-last' : '' );
+		echo '<div class="ar-persona-stage' . esc_attr( $stage_mod ) . '" id="ar-persona-stage">';
 		echo '<div class="ar-persona-grid">';
 		foreach ( $personas as $slug => $shape ) {
 			$selected = $persona === $slug;
 			$site     = self::site_persona_shape( $slug );
 			$factory  = self::factory_persona_shape( $slug );
-			echo '<label class="ar-persona' . ( $selected ? ' is-selected' : '' ) . '" style="--ar-persona:' . esc_attr( $shape['color'] ) . ';--ar-persona-soft:' . esc_attr( $shape['soft'] ) . '">';
-			echo '<input class="ar-persona__input" type="radio" name="agent_role_persona" value="' . esc_attr( $slug ) . '"';
+			$input_id = 'ar-persona-' . $slug;
+			echo '<div class="ar-persona' . ( $selected ? ' is-selected' : '' ) . '" style="--ar-persona:' . esc_attr( $shape['color'] ) . ';--ar-persona-soft:' . esc_attr( $shape['soft'] ) . '">';
+			echo '<input class="ar-persona__input" type="radio" name="agent_role_persona" id="' . esc_attr( $input_id ) . '" value="' . esc_attr( $slug ) . '"';
+			echo ' data-label="' . esc_attr( $shape['label'] ) . '"';
 			echo ' data-caps="' . esc_attr( wp_json_encode( $site['caps'] ) ) . '"';
 			echo ' data-actions="' . esc_attr( wp_json_encode( $site['actions'] ) ) . '"';
 			echo ' data-abilities="' . esc_attr( wp_json_encode( $site['abilities'] ) ) . '"';
+			echo ' data-instructions="' . esc_attr( wp_json_encode( $site['instructions'] ) ) . '"';
 			echo ' data-factory-caps="' . esc_attr( wp_json_encode( $factory['caps'] ) ) . '"';
 			echo ' data-factory-actions="' . esc_attr( wp_json_encode( $factory['actions'] ) ) . '"';
 			echo ' data-factory-abilities="' . esc_attr( wp_json_encode( $factory['abilities'] ) ) . '"';
+			echo ' data-factory-instructions="' . esc_attr( wp_json_encode( $factory['instructions'] ) ) . '"';
 			echo ' ' . checked( $selected, true, false ) . ' />';
+			echo '<label class="ar-persona__face" for="' . esc_attr( $input_id ) . '">';
 			echo '<span class="ar-persona__avatar" aria-hidden="true">' . esc_html( $shape['letters'] ) . '</span>';
-			echo '<span class="ar-persona__name">' . esc_html( $shape['label'] );
-			echo '<span class="ar-persona__flag"' . ( $selected && $custom ? '' : ' hidden' ) . '>' . esc_html__( '(Customized)', 'rf-agent-role' ) . '</span>';
-			echo '</span>';
+			echo '<span class="ar-persona__name">' . esc_html( $shape['label'] ) . '</span>';
 			echo '<span class="ar-persona__text">' . esc_html( $shape['text'] ) . '</span>';
 			echo '</label>';
+			echo '<button type="button" class="button ar-persona__select"' . ( $selected ? ' hidden' : '' ) . '>';
+			echo esc_html(
+				sprintf(
+					/* translators: %s is the persona name, such as Writer. */
+					__( 'Select %s Persona', 'rf-agent-role' ),
+					$shape['label']
+				)
+			);
+			echo '</button>';
+			echo '<button type="button" class="button ar-persona__customize" aria-controls="ar-persona-adjust" aria-expanded="' . ( $open && $selected ? 'true' : 'false' ) . '"' . ( $selected ? '' : ' hidden' ) . '>';
+			echo esc_html__( 'Customize this Agent', 'rf-agent-role' );
+			echo '</button>';
+			echo '</div>';
 		}
 		echo '</div>';
-
-		echo '<p class="ar-rf-section__tools">';
-		echo '<button type="button" class="button ar-persona__customize" id="ar-persona-customize" aria-expanded="' . ( $open ? 'true' : 'false' ) . '" aria-controls="ar-persona-adjust"' . disabled( ! $persona, true, false ) . '>';
-		echo esc_html__( 'Customize this Agent', 'rf-agent-role' );
-		echo '</button></p>';
 		echo '<input type="hidden" name="agent_role_persona_custom" id="ar-persona-custom-flag" value="' . esc_attr( $custom ? '1' : '0' ) . '" />';
 
 		echo '<div class="ar-persona-adjust" id="ar-persona-adjust"' . ( $open ? '' : ' hidden' ) . '>';
 		self::render_persona_groups( $agent, $caps, $actions, $abilities );
+		echo '<div class="ar-persona-instructions">';
+		echo '<button type="button" class="ar-persona-instructions__toggle" id="ar-instructions-toggle" aria-expanded="' . ( $instructions_open ? 'true' : 'false' ) . '" aria-controls="ar-instructions-panel">';
+		echo esc_html__( 'Customize instructions', 'rf-agent-role' );
+		echo '</button>';
+		echo '<div class="ar-rf-instructions-panel" id="ar-instructions-panel"' . ( $instructions_open ? '' : ' hidden' ) . '>';
+		echo '<p class="ar-rf-lede">' . esc_html__(
+			/* translators: Quoted words are button labels on this screen: Reset, Generate, and Update Agent. */
+			'Sent when this agent connects over MCP. These start from the persona’s job, not from the ability list. "Reset Instructions" puts the box back to this persona’s default. "Generate" drafts a version with AI via your Connector. Changing permissions does not rewrite this box.',
+			'rf-agent-role'
+		) . '</p>';
+		echo '<textarea class="ar-rf-instructions" id="agent_role_instructions" name="agent_role_instructions" rows="14">';
+		echo esc_textarea( $instructions );
+		echo '</textarea>';
+		echo '<p class="ar-rf-draft">';
+		if ( current_user_can( 'manage_options' ) && class_exists( 'Agent_Role_Brief', false ) && Agent_Role_Brief::can_draft() ) {
+			echo '<button type="button" class="button" id="ar-draft-instructions" data-user="' . esc_attr( (string) $agent->ID ) . '">';
+			echo esc_html__( 'Generate Instructions based on your website', 'rf-agent-role' );
+			echo '</button>';
+		}
+		echo '<button type="button" class="button" id="ar-reset-instructions" data-user="' . esc_attr( (string) $agent->ID ) . '">';
+		echo esc_html__( 'Reset Instructions', 'rf-agent-role' );
+		echo '</button></p>';
+		echo '<p class="ar-rf-draft__status" id="ar-draft-instructions-status" aria-live="polite"></p>';
+		echo '</div></div>';
 		echo '<div class="ar-persona-defaults">';
 		echo '<p class="ar-rf-lede">' . esc_html__(
 			/* translators: "Save as Default", "Reset", and "Factory Reset" are button labels on this screen. */
-			'Save as Default becomes the starting permissions for this Agent persona. Reset puts this agent on your saved default. Factory Reset puts the persona back to the plugin default. Agents you already customized stay as they are.',
+			'Save as Default becomes the starting permissions and instructions for this Agent persona. Reset puts this agent on your saved default. Factory Reset puts the persona back to the plugin default. Agents you already customized stay as they are.',
 			'rf-agent-role'
 		) . '</p>';
 		echo '<p class="ar-persona-defaults__actions">';
@@ -1986,6 +2144,7 @@ class Agent_Role_Admin {
 		echo '<button type="submit" class="button" name="agent_role_persona_action" value="reset" id="ar-persona-reset-default"' . disabled( ! $persona, true, false ) . '>' . esc_html__( 'Reset to Default', 'rf-agent-role' ) . '</button> ';
 		echo '<button type="submit" class="button" name="agent_role_persona_action" value="factory" id="ar-persona-factory-default"' . disabled( ! $persona, true, false ) . '>' . esc_html__( 'Factory Reset', 'rf-agent-role' ) . '</button>';
 		echo '</p></div>';
+		echo '</div>';
 		echo '</div>';
 		echo '</fieldset>';
 	}
@@ -2027,7 +2186,7 @@ class Agent_Role_Admin {
 			$mapped[ $row['group'] ][] = $row;
 		}
 
-		$catalog = self::catalog_ability_rows( $agent->ID );
+		$catalog = self::catalog_ability_rows();
 		foreach ( array( 'create', 'read', 'undo', 'delete', 'other' ) as $group ) {
 			$jobs  = isset( $mapped[ $group ] ) ? $mapped[ $group ] : array();
 			$extra = isset( $catalog[ $group ] ) ? $catalog[ $group ] : array();
@@ -2038,40 +2197,28 @@ class Agent_Role_Admin {
 			echo '<fieldset class="ar-persona-group' . ( 'other' === $group ? ' ar-persona-group--other' : '' ) . '">';
 			echo '<legend class="ar-persona-group__title">' . esc_html( $groups[ $group ]['label'] ) . '</legend>';
 			echo '<p class="ar-rf-lede">' . esc_html( $groups[ $group ]['lede'] ) . '</p>';
-			if ( $jobs ) {
-				echo '<div class="ar-persona-jobs">';
-				foreach ( $jobs as $row ) {
-					if ( 'ability' === $row['kind'] ) {
-						$checked = ! empty( $abilities[ $row['id'] ] );
-						$name    = 'agent_role_abilities[]';
-						if ( function_exists( 'wp_get_ability' ) ) {
-							$ability = wp_get_ability( $row['id'] );
-							if ( $ability && ! self::ability_has_permission( $agent->ID, $ability ) && '' === $row['hint'] ) {
-								$row['hint'] = __( 'This tool needs a permission this agent does not have.', 'rf-agent-role' );
-							}
-						}
-					} elseif ( 'cap' === $row['kind'] ) {
-						$checked = ! empty( $caps[ $row['id'] ] );
-						$name    = 'agent_role_caps[]';
-					} else {
-						$checked = in_array( $row['id'], $actions, true );
-						$name    = 'agent_role_actions[]';
-					}
-					self::render_persona_row( $row, $name, $checked, false );
+			echo '<div class="ar-persona-jobs">';
+			foreach ( $jobs as $row ) {
+				if ( 'ability' === $row['kind'] ) {
+					$checked = ! empty( $abilities[ $row['id'] ] );
+					$name    = 'agent_role_abilities[]';
+				} elseif ( 'cap' === $row['kind'] ) {
+					$checked = ! empty( $caps[ $row['id'] ] );
+					$name    = 'agent_role_caps[]';
+				} else {
+					$checked = in_array( $row['id'], $actions, true );
+					$name    = 'agent_role_actions[]';
 				}
-				echo '</div>';
+				self::render_persona_row( $row, $name, $checked );
 			}
 			foreach ( $extra as $source => $rows ) {
-				echo '<fieldset class="ar-persona-also">';
-				echo '<legend class="ar-persona-also__title">' . esc_html( $source ) . '</legend>';
-				echo '<div class="ar-persona-jobs">';
 				foreach ( $rows as $row ) {
-					$checked = ! empty( $abilities[ $row['id'] ] );
-					self::render_persona_row( $row, 'agent_role_abilities[]', $checked, true );
+					$row['source'] = $source;
+					$checked       = ! empty( $abilities[ $row['id'] ] );
+					self::render_persona_row( $row, 'agent_role_abilities[]', $checked );
 				}
-				echo '</div>';
-				echo '</fieldset>';
 			}
+			echo '</div>';
 			echo '</fieldset>';
 		}
 	}
@@ -2079,10 +2226,9 @@ class Agent_Role_Admin {
 	/**
 	 * Listed abilities this site registered, filed by annotation and grouped by plugin.
 	 *
-	 * @param int $user_id Agent user ID.
 	 * @return array<string,array<string,array<int,array{id:string,group:string,label:string,hint:string,kind:string}>>>
 	 */
-	private static function catalog_ability_rows( $user_id ) {
+	private static function catalog_ability_rows() {
 		$catalog = array();
 		if ( ! function_exists( 'wp_get_abilities' ) ) {
 			return $catalog;
@@ -2090,26 +2236,27 @@ class Agent_Role_Admin {
 
 		$mapped = array_fill_keys( self::mapped_ability_ids(), true );
 		foreach ( wp_get_abilities() as $ability ) {
-			if ( ! Agent_Role::is_listed_ability( $ability ) ) {
-				continue;
+			try {
+				if ( ! Agent_Role::is_listed_ability( $ability ) ) {
+					continue;
+				}
+				$name = $ability->get_name();
+				if ( isset( $mapped[ $name ] ) ) {
+					continue;
+				}
+				$group  = self::file_ability_group( $ability );
+				$source = self::ability_source_label( $ability );
+
+				$catalog[ $group ][ $source ][] = array(
+					'id'    => $name,
+					'group' => $group,
+					'label' => wp_strip_all_tags( $ability->get_label() ),
+					'hint'  => '',
+					'kind'  => 'ability',
+				);
+			} catch ( \Throwable $e ) {
+				unset( $e );
 			}
-			$name = $ability->get_name();
-			if ( isset( $mapped[ $name ] ) ) {
-				continue;
-			}
-			$group  = self::file_ability_group( $ability );
-			$source = self::ability_source_label( $ability );
-			$hint   = '';
-			if ( ! self::ability_has_permission( $user_id, $ability ) ) {
-				$hint = __( 'This tool needs a permission this agent does not have.', 'rf-agent-role' );
-			}
-			$catalog[ $group ][ $source ][] = array(
-				'id'    => $name,
-				'group' => $group,
-				'label' => wp_strip_all_tags( $ability->get_label() ),
-				'hint'  => $hint,
-				'kind'  => 'ability',
-			);
 		}
 
 		foreach ( $catalog as $group => $sources ) {
@@ -2149,17 +2296,23 @@ class Agent_Role_Admin {
 	/**
 	 * One Customize row: the label wraps the control.
 	 *
-	 * @param array{id:string,label:string,hint:string} $row     Row copy.
-	 * @param string                                    $name    Input name.
-	 * @param bool                                      $checked Whether the switch is on.
-	 * @param bool                                      $also    True for quieter catalog rows.
+	 * @param array{id:string,label:string,hint:string,source?:string} $row     Row copy.
+	 * @param string                                                   $name    Input name.
+	 * @param bool                                                     $checked Whether the switch is on.
 	 */
-	private static function render_persona_row( array $row, $name, $checked, $also ) {
+	private static function render_persona_row( array $row, $name, $checked ) {
 		$safe_id = sanitize_html_class( str_replace( '/', '-', $row['id'] ) );
 		$hint_id = $row['hint'] ? 'agent-role-hint-' . $safe_id : '';
-		echo '<label class="ar-persona-row' . ( $also ? ' ar-persona-row--also' : '' ) . '">';
+		$source  = isset( $row['source'] ) ? $row['source'] : '';
+		echo '<label class="ar-persona-row">';
 		echo '<span class="ar-persona-row__copy">';
 		echo esc_html( $row['label'] );
+		if ( '' !== $source ) {
+			echo '<span class="ar-persona-source">';
+			echo self::plugin_badge_icon(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- SVG is escaped in plugin_badge_icon().
+			echo esc_html( $source );
+			echo '</span>';
+		}
 		if ( $row['hint'] ) {
 			echo '<small id="' . esc_attr( $hint_id ) . '" aria-hidden="true">' . esc_html( $row['hint'] ) . '</small>';
 		}

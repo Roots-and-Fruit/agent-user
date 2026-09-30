@@ -225,6 +225,10 @@
 		checkedValues(form, 'agent_role_abilities[]').forEach(function (value) {
 			body.append('agent_role_abilities[]', value);
 		});
+		var selectedPersona = form.querySelector('.ar-persona__input:checked');
+		if (selectedPersona) {
+			body.append('agent_role_persona', selectedPersona.value);
+		}
 		window.fetch(agentRoleAdmin.ajaxUrl, { method: 'POST', body: body, credentials: 'same-origin' })
 			.then(function (response) { return response.json(); })
 			.then(function (payload) {
@@ -336,9 +340,15 @@
 
 	var personaGrid = document.querySelector('.ar-persona-grid');
 	if (personaGrid) {
+		var stage = document.getElementById('ar-persona-stage');
 		var adjust = document.getElementById('ar-persona-adjust');
-		var customize = document.getElementById('ar-persona-customize');
 		var customFlag = document.getElementById('ar-persona-custom-flag');
+		var profile = document.querySelector('.ar-rf-profile');
+		var profileLine = document.getElementById('ar-profile-persona-line');
+		var profileName = document.getElementById('ar-profile-persona-name');
+		var profileBadge = document.getElementById('ar-profile-custom-badge');
+
+		var applying = false;
 
 		function setChecked(name, value, on) {
 			personaGrid.closest('form').querySelectorAll('input[name="' + name + '"]').forEach(function (input) {
@@ -353,6 +363,28 @@
 			return personaGrid.querySelector('.ar-persona__input:checked');
 		}
 
+		function panelOpen() {
+			return !!(adjust && !adjust.hasAttribute('hidden'));
+		}
+
+		function setPanelOpen(open) {
+			if (!adjust || !stage) {
+				return;
+			}
+			if (open) {
+				adjust.removeAttribute('hidden');
+				stage.classList.add('is-open');
+			} else {
+				adjust.setAttribute('hidden', '');
+				stage.classList.remove('is-open');
+			}
+			personaGrid.querySelectorAll('.ar-persona__customize').forEach(function (button) {
+				var card = button.closest('.ar-persona');
+				var selected = card && card.classList.contains('is-selected');
+				button.setAttribute('aria-expanded', open && selected ? 'true' : 'false');
+			});
+		}
+
 		function setDefaultButtons() {
 			var hasPersona = !!selectedInput();
 			['ar-persona-save-default', 'ar-persona-reset-default', 'ar-persona-factory-default'].forEach(function (id) {
@@ -361,12 +393,8 @@
 					button.disabled = !hasPersona;
 				}
 			});
-			if (customize) {
-				customize.disabled = !hasPersona;
-				if (!hasPersona && adjust) {
-					adjust.setAttribute('hidden', '');
-					customize.setAttribute('aria-expanded', 'false');
-				}
+			if (!hasPersona) {
+				setPanelOpen(false);
 			}
 		}
 
@@ -378,15 +406,62 @@
 		}
 
 		function paintCards() {
-			personaGrid.querySelectorAll('.ar-persona').forEach(function (card) {
+			var section = personaGrid.closest('.ar-rf-section--persona');
+			var selected = selectedInput();
+			var cards = personaGrid.querySelectorAll('.ar-persona');
+			var selectedIndex = -1;
+			var color = '';
+			var label = '';
+			cards.forEach(function (card, index) {
 				var input = card.querySelector('.ar-persona__input');
-				var flag = card.querySelector('.ar-persona__flag');
-				var selected = input && input.checked;
-				card.classList.toggle('is-selected', selected);
-				if (flag) {
-					flag.hidden = !(selected && customFlag && customFlag.value === '1');
+				var isSelected = !!(input && input.checked);
+				var selectButton = card.querySelector('.ar-persona__select');
+				var customizeButton = card.querySelector('.ar-persona__customize');
+				card.classList.toggle('is-selected', isSelected);
+				if (selectButton) {
+					selectButton.hidden = isSelected;
+				}
+				if (customizeButton) {
+					customizeButton.hidden = !isSelected;
+					customizeButton.setAttribute('aria-expanded', isSelected && panelOpen() ? 'true' : 'false');
+				}
+				if (isSelected && input) {
+					selectedIndex = index;
+					color = card.style.getPropertyValue('--ar-persona');
+					label = input.getAttribute('data-label') || '';
 				}
 			});
+			if (stage) {
+				stage.classList.toggle('is-tab-first', selectedIndex === 0);
+				stage.classList.toggle('is-tab-last', selectedIndex === cards.length - 1 && selectedIndex >= 0);
+			}
+			if (selected && section) {
+				section.style.setProperty('--ar-persona', color);
+			}
+			if (profile) {
+				if (color) {
+					profile.style.setProperty('--ar-persona', color);
+				} else {
+					profile.style.removeProperty('--ar-persona');
+				}
+			}
+			if (profileLine) {
+				if (selected) {
+					profileLine.removeAttribute('hidden');
+				} else {
+					profileLine.setAttribute('hidden', '');
+				}
+			}
+			if (profileName) {
+				profileName.textContent = label;
+			}
+			if (profileBadge) {
+				if (customFlag && customFlag.value === '1') {
+					profileBadge.removeAttribute('hidden');
+				} else {
+					profileBadge.setAttribute('hidden', '');
+				}
+			}
 			setDefaultButtons();
 		}
 
@@ -394,17 +469,22 @@
 			var caps = {};
 			var actions = [];
 			var abilities = {};
+			var instructions = '';
 			var capAttr = factory ? 'data-factory-caps' : 'data-caps';
 			var actionAttr = factory ? 'data-factory-actions' : 'data-actions';
 			var abilityAttr = factory ? 'data-factory-abilities' : 'data-abilities';
+			var instructionAttr = factory ? 'data-factory-instructions' : 'data-instructions';
+			applying = true;
 			try {
 				caps = JSON.parse(input.getAttribute(capAttr) || '{}');
 				actions = JSON.parse(input.getAttribute(actionAttr) || '[]');
 				abilities = JSON.parse(input.getAttribute(abilityAttr) || '{}');
+				instructions = JSON.parse(input.getAttribute(instructionAttr) || '""');
 			} catch (error) {
 				caps = {};
 				actions = [];
 				abilities = {};
+				instructions = '';
 			}
 			Object.keys(caps).forEach(function (cap) {
 				setChecked('agent_role_caps[]', cap, !!caps[cap]);
@@ -414,9 +494,14 @@
 				box.dispatchEvent(new Event('change', { bubbles: true }));
 			});
 			applyAbilityMap(abilities);
+			var box = document.getElementById('agent_role_instructions');
+			if (box && typeof instructions === 'string') {
+				box.value = instructions;
+			}
 			if (customFlag) {
 				customFlag.value = '0';
 			}
+			applying = false;
 			paintCards();
 		}
 
@@ -428,24 +513,45 @@
 			});
 		});
 
-		if (customize && adjust) {
-			customize.addEventListener('click', function () {
-				if (customize.disabled || !selectedInput()) {
+		personaGrid.addEventListener('click', function (event) {
+			var selectButton = event.target.closest('.ar-persona__select');
+			if (selectButton) {
+				var card = selectButton.closest('.ar-persona');
+				var input = card ? card.querySelector('.ar-persona__input') : null;
+				if (input && !input.checked) {
+					input.checked = true;
+					input.dispatchEvent(new Event('change', { bubbles: true }));
+				}
+				return;
+			}
+			var customizeButton = event.target.closest('.ar-persona__customize');
+			if (customizeButton) {
+				if (!selectedInput()) {
 					return;
 				}
-				var open = adjust.hasAttribute('hidden');
-				if (open) {
-					adjust.removeAttribute('hidden');
-					customize.setAttribute('aria-expanded', 'true');
-				} else {
-					adjust.setAttribute('hidden', '');
-					customize.setAttribute('aria-expanded', 'false');
-				}
-			});
+				setPanelOpen(!panelOpen());
+				paintCards();
+			}
+		});
+
+		if (adjust) {
 			adjust.addEventListener('change', function (event) {
+				if (applying) {
+					return;
+				}
 				if (!event.target || event.target.type !== 'checkbox') {
 					return;
 				}
+				if (customFlag) {
+					customFlag.value = '1';
+				}
+				paintCards();
+			});
+		}
+
+		var instructionBox = document.getElementById('agent_role_instructions');
+		if (instructionBox) {
+			instructionBox.addEventListener('input', function () {
 				if (customFlag) {
 					customFlag.value = '1';
 				}
