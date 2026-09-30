@@ -2,13 +2,14 @@
 /**
  * Plugin Name: Agent Role
  * Description: Registers an Agent role and creates accounts that cannot log in with a password. Each account gets one application password for REST API access.
- * Version: 1.4.0
+ * Version: 1.5.0
  * Requires at least: 6.0
  * Requires PHP: 7.4
  * Author: Roots & Fruit
  * License: GPL-2.0-or-later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
- * Text Domain: agent-role
+ * Text Domain: rf-agent-role
+ * Domain Path: /languages
  *
  * @package Agent_Role
  */
@@ -17,7 +18,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'AGENT_ROLE_VERSION', '1.4.0' );
+define( 'AGENT_ROLE_VERSION', '1.5.0' );
 define( 'AGENT_ROLE_FILE', __FILE__ );
 define( 'AGENT_ROLE_DIR', plugin_dir_path( __FILE__ ) );
 

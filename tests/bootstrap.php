@@ -50,6 +50,7 @@ if ( ! has_action( 'admin_menu', array( 'Agent_Role_Admin', 'menu' ) ) ) {
 $agent_role_plugin_basename = plugin_basename( $agent_role_plugin_file );
 $agent_role_was_active      = is_plugin_active( $agent_role_plugin_basename );
 $agent_role_mcp_option      = get_option( Agent_Role_Mcp::OPTION, null );
+$agent_role_persona_defaults = get_option( Agent_Role::PERSONA_DEFAULTS_OPTION, null );
 $agent_role_existing_role   = get_role( Agent_Role::SLUG );
 $agent_role_saved_role      = null;
 if ( $agent_role_existing_role ) {
@@ -97,7 +98,7 @@ foreach ( $agent_role_cap_ids as $agent_role_cap_id ) {
 }
 
 register_shutdown_function(
-	static function () use ( $agent_role_saved_role, $agent_role_was_active, $agent_role_plugin_basename, $agent_role_mcp_option, $agent_role_saved_passwords, $agent_role_caps_migrated, $agent_role_saved_cap_users ) {
+	static function () use ( $agent_role_saved_role, $agent_role_was_active, $agent_role_plugin_basename, $agent_role_mcp_option, $agent_role_persona_defaults, $agent_role_saved_passwords, $agent_role_caps_migrated, $agent_role_saved_cap_users ) {
 		remove_role( Agent_Role::SLUG );
 
 		if ( null !== $agent_role_saved_role ) {
@@ -124,6 +125,12 @@ register_shutdown_function(
 			delete_option( Agent_Role_Mcp::OPTION );
 		} else {
 			update_option( Agent_Role_Mcp::OPTION, $agent_role_mcp_option );
+		}
+
+		if ( null === $agent_role_persona_defaults ) {
+			delete_option( Agent_Role::PERSONA_DEFAULTS_OPTION );
+		} else {
+			update_option( Agent_Role::PERSONA_DEFAULTS_OPTION, $agent_role_persona_defaults, false );
 		}
 
 		foreach ( $agent_role_saved_cap_users as $user_id => $saved ) {

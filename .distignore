@@ -2,6 +2,7 @@
 /.distignore
 /.phpcs.cache
 /.phpunit.cache
+/.playwright-cli
 .git/
 .github/
 /composer.json

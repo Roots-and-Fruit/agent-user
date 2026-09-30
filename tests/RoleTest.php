@@ -87,10 +87,23 @@ class RoleTest extends TestCase {
 		$this->assertIsInt( $user_id );
 		$this->user_ids[] = $user_id;
 
+		update_option(
+			Agent_Role::PERSONA_DEFAULTS_OPTION,
+			array(
+				'writer' => array(
+					'caps'      => array( 'edit_posts' => true ),
+					'actions'   => array(),
+					'abilities' => array(),
+				),
+			),
+			false
+		);
+
 		$this->run_uninstall();
 
 		$this->assertNull( get_role( Agent_Role::SLUG ) );
 		$this->assertInstanceOf( WP_User::class, get_userdata( $user_id ) );
+		$this->assertFalse( get_option( Agent_Role::PERSONA_DEFAULTS_OPTION ) );
 	}
 
 	public function test_existing_role_is_not_overwritten(): void {

@@ -104,7 +104,7 @@ class RoleSwitchTest extends TestCase {
 		$this->assertSame( array( 'editor' ), array_values( get_userdata( $user_id )->roles ) );
 	}
 
-	public function test_profile_note_points_at_add_agent(): void {
+	public function test_profile_note_points_at_agents(): void {
 		$admin = $this->make_user( 'administrator' );
 		wp_set_current_user( $admin );
 
@@ -112,14 +112,14 @@ class RoleSwitchTest extends TestCase {
 		Agent_Role_Admin::role_note( get_userdata( $admin ) );
 		$html = ob_get_clean();
 
-		$this->assertStringContainsString( 'Users → Add Agent', $html );
+		$this->assertStringContainsString( 'Users → Agents', $html );
 
 		$editor = $this->make_user( 'editor' );
 		wp_set_current_user( $editor );
 		ob_start();
 		Agent_Role_Admin::role_note( get_userdata( $editor ) );
 		$editor_html = ob_get_clean();
-		$this->assertStringNotContainsString( 'Users → Add Agent', $editor_html );
+		$this->assertStringNotContainsString( 'Users → Agents', $editor_html );
 	}
 
 	private function make_user( string $role ): int {

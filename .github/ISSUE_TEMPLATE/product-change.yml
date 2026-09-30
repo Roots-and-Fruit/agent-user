@@ -8,7 +8,7 @@ body:
       value: |
         Write this as a product change, not a dump of files to edit. Open with the elevator pitch: currently vs after this issue. The next four sections describe the site owner or the agent account. The last section should be detailed enough that a developer or agent can start in the right layer without a second discovery pass.
 
-        This plugin registers an Agent role for accounts that cannot log in as people. Each account gets one application password. The WordPress MCP Adapter integration is optional. Humans stay on the Users screen. Agents stay on Users → Add Agent.
+        This plugin registers an Agent role for accounts that cannot log in as people. Each account gets one application password. The WordPress MCP Adapter integration is optional. Humans stay on the Users screen. Agents stay on Users → Agents.
 
   - type: textarea
     id: tldr
@@ -34,7 +34,7 @@ body:
     attributes:
       label: How this impacts the product experience
       description: What changes in wp-admin or in the agent connection once this ships. A screen, a notice, a checkbox, a list, a password that remains. Be specific enough that two people would picture the same screen. If the impact is only "safer uninstall" with no visible result, say what the site owner still has afterward.
-      placeholder: Users → Add Agent still creates the account. Deleting the plugin leaves a pre-existing agent_role role and a person's own application password named Agent Role in place.
+      placeholder: Users → Agents still creates the account. Deleting the plugin leaves a pre-existing agent_role role and a person's own application password named Agent Role in place.
     validations:
       required: true
 

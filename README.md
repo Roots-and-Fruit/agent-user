@@ -13,7 +13,7 @@ You keep your own login. If you stop trusting the connection, you revoke one pas
 ## What you get
 
 - A user role named **Agent**, with the same publishing power as an Author.
-- A screen at **Users → Add Agent** that creates the account for you.
+- A screen at **Users → Agents** that creates the account for you.
 - One application password, shown once, in a window with a Copy button on the site address, the username, the password, and the connection details.
 - A page for each agent where you choose what that account can do, which abilities it may run, and the note it receives when it connects.
 - A normal Users screen that does not offer the Agent role. People stay people. Agents stay agents.
@@ -24,7 +24,7 @@ An Agent can create, edit, publish, and delete its own posts, and it can upload 
 ## Connect an AI
 
 1. Install and activate Agent Role.
-2. Open **Users → Add Agent**.
+2. Open **Users → Agents**.
 3. Enter a username and a display name. Create the account.
 4. Copy the password from the window. WordPress will not show it again.
 5. Paste it into the tool that needs access to your site.
@@ -42,6 +42,10 @@ Deleting the plugin removes the Agent role and the passwords this plugin created
 ## Requirements
 
 WordPress 6.0 or newer. PHP 7.4 or newer. The site must use HTTPS, because WordPress only offers application passwords on a secure site.
+
+## Changelog
+
+Notable changes are in [CHANGELOG.md](CHANGELOG.md). GitHub release notes are copied from that file.
 
 ## License
 

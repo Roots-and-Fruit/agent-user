@@ -18,6 +18,11 @@ class Agent_Role {
 
 	const NAME = 'Agent';
 
+	/**
+	 * Gettext domain. Distinct from the plugin slug so another agent-role plugin cannot collide.
+	 */
+	const TEXT_DOMAIN = 'rf-agent-role';
+
 	const CAPS_META = '_agent_role_caps';
 
 	const MIGRATED_OPTION = 'agent_role_caps_migrated';
@@ -29,6 +34,8 @@ class Agent_Role {
 	const INSTRUCTIONS_REV_OPTION = 'agent_role_instructions_rev';
 
 	const INSTRUCTIONS_REV = 1;
+
+	const PERSONA_DEFAULTS_OPTION = 'agent_role_persona_defaults';
 
 	/**
 	 * Author primitive capabilities. add_role() will not update this list later.
@@ -69,27 +76,27 @@ class Agent_Role {
 	public static function cap_choices() {
 		return array(
 			'edit_posts'             => array(
-				'label'       => __( 'Create and edit posts', 'agent-role' ),
+				'label'       => __( 'Create and edit posts', 'rf-agent-role' ),
 				'destructive' => false,
 			),
 			'edit_published_posts'   => array(
-				'label'       => __( 'Edit posts after they are published', 'agent-role' ),
+				'label'       => __( 'Edit posts after they are published', 'rf-agent-role' ),
 				'destructive' => false,
 			),
 			'publish_posts'          => array(
-				'label'       => __( 'Publish posts', 'agent-role' ),
+				'label'       => __( 'Publish posts', 'rf-agent-role' ),
 				'destructive' => false,
 			),
 			'upload_files'           => array(
-				'label'       => __( 'Upload files', 'agent-role' ),
+				'label'       => __( 'Upload files', 'rf-agent-role' ),
 				'destructive' => false,
 			),
 			'delete_posts'           => array(
-				'label'       => __( 'Delete their own posts', 'agent-role' ),
+				'label'       => __( 'Delete their own posts', 'rf-agent-role' ),
 				'destructive' => true,
 			),
 			'delete_published_posts' => array(
-				'label'       => __( 'Delete published posts', 'agent-role' ),
+				'label'       => __( 'Delete published posts', 'rf-agent-role' ),
 				'destructive' => true,
 			),
 		);
@@ -194,6 +201,7 @@ class Agent_Role {
 		Agent_Role_Account::delete_credentials();
 		delete_option( Agent_Role_Mcp::OPTION );
 		delete_option( self::MIGRATED_OPTION );
+		delete_option( self::PERSONA_DEFAULTS_OPTION );
 		if ( class_exists( 'Agent_Role_Log' ) ) {
 			delete_option( Agent_Role_Log::OPTION_DAYS );
 			delete_option( Agent_Role_Log::OPTION_CAP );
@@ -271,9 +279,90 @@ class Agent_Role {
 	 */
 	public static function register() {
 		self::register_meta_keys();
+		add_action( 'init', array( __CLASS__, 'load_textdomain' ), 0 );
+		add_filter( 'load_textdomain_mofile', array( __CLASS__, 'map_directory_mofile' ), 10, 2 );
+		add_filter( 'load_translation_file', array( __CLASS__, 'map_directory_translation_file' ), 10, 3 );
 		add_action( 'init', array( __CLASS__, 'maybe_migrate_caps' ) );
 		add_filter( 'wp_ability_permission_result', array( __CLASS__, 'filter_ability_permission' ), 10, 4 );
 		add_action( 'wp_abilities_api_init', array( __CLASS__, 'maybe_refresh_instructions' ), 100 );
+	}
+
+	/**
+	 * Load bundled translations from /languages.
+	 *
+	 * WordPress.org packs for the plugin directory still attach through map_directory_mofile().
+	 */
+	public static function load_textdomain() {
+		load_plugin_textdomain(
+			self::TEXT_DOMAIN,
+			false,
+			dirname( plugin_basename( AGENT_ROLE_FILE ) ) . '/languages'
+		);
+	}
+
+	/**
+	 * WordPress.org language packs are named after the plugin directory, not the text domain.
+	 *
+	 * @param string $mofile Path WordPress tried first.
+	 * @param string $domain Text domain.
+	 * @return string
+	 */
+	public static function map_directory_mofile( $mofile, $domain ) {
+		if ( self::TEXT_DOMAIN !== $domain || is_readable( $mofile ) ) {
+			return $mofile;
+		}
+
+		$alt = self::directory_language_file( $mofile );
+		return $alt ? $alt : $mofile;
+	}
+
+	/**
+	 * Same remap for .l10n.php packs (WordPress 6.5+).
+	 *
+	 * @param string $file   Path WordPress tried first.
+	 * @param string $domain Text domain.
+	 * @param string $locale Locale.
+	 * @return string
+	 */
+	public static function map_directory_translation_file( $file, $domain, $locale ) {
+		unset( $locale );
+		if ( self::TEXT_DOMAIN !== $domain || ( $file && is_readable( $file ) ) ) {
+			return $file;
+		}
+
+		$alt = self::directory_language_file( $file );
+		return $alt ? $alt : $file;
+	}
+
+	/**
+	 * Swap the text domain prefix for the plugin folder name in a language filename.
+	 *
+	 * @param string $file Original path.
+	 * @return string|false Readable alternate path, or false.
+	 */
+	private static function directory_language_file( $file ) {
+		if ( ! is_string( $file ) || '' === $file ) {
+			return false;
+		}
+
+		$slug     = dirname( plugin_basename( AGENT_ROLE_FILE ) );
+		$base     = basename( $file );
+		$alt_base = preg_replace( '/^' . preg_quote( self::TEXT_DOMAIN, '/' ) . '-/', $slug . '-', $base, 1 );
+		if ( ! is_string( $alt_base ) || $alt_base === $base ) {
+			return false;
+		}
+
+		$candidates = array(
+			dirname( $file ) . '/' . $alt_base,
+			WP_LANG_DIR . '/plugins/' . $alt_base,
+		);
+		foreach ( $candidates as $candidate ) {
+			if ( is_readable( $candidate ) ) {
+				return $candidate;
+			}
+		}
+
+		return false;
 	}
 
 	/**
@@ -425,7 +514,7 @@ class Agent_Role {
 
 		return new WP_Error(
 			'agent_role_ability_off',
-			__( 'This ability is off for this agent.', 'agent-role' )
+			__( 'This ability is off for this agent.', 'rf-agent-role' )
 		);
 	}
 

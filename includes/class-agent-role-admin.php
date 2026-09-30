@@ -1,6 +1,6 @@
 <?php
 /**
- * Users → Add Agent screen.
+ * Users → Agents screen.
  *
  * @package Agent_Role
  */
@@ -43,7 +43,11 @@ class Agent_Role_Admin {
 			return;
 		}
 
-		echo '<p>' . esc_html__( 'To give an agent access to this site, create an Agent under Users → Add Agent.', 'agent-role' ) . '</p>';
+		echo '<p>' . esc_html__(
+			/* translators: "Users" and "Agents" are WordPress admin menu labels. */
+			'To give an agent access to this site, create an Agent under Users → Agents.',
+			'rf-agent-role'
+		) . '</p>';
 	}
 
 	/**
@@ -51,8 +55,8 @@ class Agent_Role_Admin {
 	 */
 	public static function menu() {
 		add_users_page(
-			__( 'Add Agent', 'agent-role' ),
-			__( 'Add Agent', 'agent-role' ),
+			__( 'Agent Role', 'rf-agent-role' ),
+			__( 'Agents', 'rf-agent-role' ),
 			'manage_options',
 			'agent-role',
 			array( __CLASS__, 'render' )
@@ -60,7 +64,7 @@ class Agent_Role_Admin {
 	}
 
 	/**
-	 * Load the settings styles and copy buttons on Add Agent only.
+	 * Load the settings styles and copy buttons on the Agents screen only.
 	 *
 	 * @param string $hook Current admin page hook.
 	 */
@@ -94,15 +98,18 @@ class Agent_Role_Admin {
 			'agent-role-admin',
 			'agentRoleAdmin',
 			array(
-				'copied'     => __( 'Copied', 'agent-role' ),
+				/* translators: Shown on a Copy button after the value is copied. */
+				'copied'     => __( 'Copied', 'rf-agent-role' ),
 				'ajaxUrl'    => admin_url( 'admin-ajax.php' ),
 				'nonce'      => wp_create_nonce( 'agent_role_add_agent' ),
 				'draftNonce' => wp_create_nonce( 'agent_role_draft_instructions' ),
 				'resetNonce' => wp_create_nonce( 'agent_role_reset_instructions' ),
-				'drafting'   => __( 'Writing instructions…', 'agent-role' ),
-				'draftDone'  => __( 'Draft is in the box. Update Agent saves it.', 'agent-role' ),
-				'resetting'  => __( 'Writing the built-in hint…', 'agent-role' ),
-				'resetDone'  => __( 'Built-in hint is in the box. Update Agent saves it.', 'agent-role' ),
+				'drafting'   => __( 'Writing instructions…', 'rf-agent-role' ),
+				/* translators: "Update Agent" is the primary submit button on this screen. */
+				'draftDone'  => __( 'Draft is in the box. Click "Update Agent" to save it.', 'rf-agent-role' ),
+				'resetting'  => __( 'Writing the built-in hint…', 'rf-agent-role' ),
+				/* translators: "Update Agent" is the primary submit button on this screen. */
+				'resetDone'  => __( 'Built-in hint is in the box. Click "Update Agent" to save it.', 'rf-agent-role' ),
 				'logDates'   => Agent_Role_Log::logged_dates(),
 			)
 		);
@@ -130,9 +137,9 @@ class Agent_Role_Admin {
 		echo '<header class="ar-rf-settings__header">';
 		echo '<h1 class="ar-rf-settings__title">';
 		echo '<img class="ar-rf-settings__mark" src="' . esc_url( plugins_url( 'admin/images/rf-logo.svg', AGENT_ROLE_FILE ) ) . '" alt="" width="88" height="36" />';
-		echo esc_html__( 'Agent Role', 'agent-role' );
+		echo esc_html__( 'Agent Role', 'rf-agent-role' );
 		echo '</h1>';
-		echo '<p class="ar-rf-settings__lede">' . esc_html__( 'An Agent cannot sign in as a person.', 'agent-role' ) . '</p>';
+		echo '<p class="ar-rf-settings__lede">' . esc_html__( 'A dedicated Agent role for your AI tools to interact with your website based on the rules you set.', 'rf-agent-role' ) . '</p>';
 		echo '</header>';
 		// WordPress moves .notice elements to after this marker, under the heading.
 		echo '<hr class="wp-header-end" />';
@@ -147,7 +154,7 @@ class Agent_Role_Admin {
 			self::render_agent_screen( $detail );
 		} else {
 			if ( false === $detail ) {
-				echo '<div class="notice notice-error"><p>' . esc_html__( 'That account is not an Agent.', 'agent-role' ) . '</p></div>';
+				echo '<div class="notice notice-error"><p>' . esc_html__( 'That user is not an Agent.', 'rf-agent-role' ) . '</p></div>';
 			}
 			$tab = self::current_tab();
 			echo '<div class="rf-tabs">';
@@ -186,10 +193,10 @@ class Agent_Role_Admin {
 	 */
 	private static function render_tabs() {
 		$current = self::current_tab();
-		echo '<nav class="rf-tabs__list" aria-label="' . esc_attr__( 'Agent Role', 'agent-role' ) . '">';
-		self::render_tab_link( 'agents', __( 'Agents', 'agent-role' ), $current );
-		self::render_tab_link( 'settings', __( 'Settings', 'agent-role' ), $current );
-		self::render_tab_link( 'activity', __( 'Activity', 'agent-role' ), $current );
+		echo '<nav class="rf-tabs__list" aria-label="' . esc_attr__( 'Agent Role', 'rf-agent-role' ) . '">';
+		self::render_tab_link( 'agents', __( 'Agents', 'rf-agent-role' ), $current );
+		self::render_tab_link( 'settings', __( 'Settings', 'rf-agent-role' ), $current );
+		self::render_tab_link( 'activity', __( 'Activity', 'rf-agent-role' ), $current );
 		echo '</nav>';
 	}
 
@@ -292,27 +299,27 @@ class Agent_Role_Admin {
 		);
 		$rows     = Agent_Role_Log::query( $agent_filter, $event_filter, $from_sql, $to_sql );
 		$labels   = array(
-			'ability' => __( 'Ability Calls', 'agent-role' ),
-			'rest'    => __( 'REST API', 'agent-role' ),
-			'admin'   => __( 'Admin Changes', 'agent-role' ),
+			'ability' => __( 'Ability Calls', 'rf-agent-role' ),
+			'rest'    => __( 'REST API', 'rf-agent-role' ),
+			'admin'   => __( 'Admin Changes', 'rf-agent-role' ),
 		);
 		$outcomes = array(
-			'success' => __( 'Success', 'agent-role' ),
-			'denied'  => __( 'Denied', 'agent-role' ),
-			'changed' => __( 'Changed', 'agent-role' ),
-			'error'   => __( 'Error', 'agent-role' ),
+			'success' => __( 'Success', 'rf-agent-role' ),
+			'denied'  => __( 'Denied', 'rf-agent-role' ),
+			'changed' => __( 'Changed', 'rf-agent-role' ),
+			'error'   => __( 'Error', 'rf-agent-role' ),
 		);
 
 		echo '<div class="ar-rf-panel">';
 		echo '<div class="ar-rf-toolbar">';
 		echo '<div>';
-		echo '<h2>' . esc_html__( 'Activity', 'agent-role' ) . '</h2>';
-		echo '<p class="description">' . esc_html__( 'A record of agent actions and access changes.', 'agent-role' ) . '</p>';
+		echo '<h2>' . esc_html__( 'Activity', 'rf-agent-role' ) . '</h2>';
+		echo '<p class="description">' . esc_html__( 'A record of agent actions and access changes.', 'rf-agent-role' ) . '</p>';
 		echo '</div>';
 		echo '<p class="ar-rf-activity__note">' . esc_html(
 			sprintf(
 				/* translators: 1: days to keep events, 2: maximum events per agent. */
-				__( 'Retained for %1$d days (capped at %2$d events per agent)', 'agent-role' ),
+				__( 'Retained for %1$d days (capped at %2$d events per agent)', 'rf-agent-role' ),
 				Agent_Role_Log::days(),
 				Agent_Role_Log::cap()
 			)
@@ -322,50 +329,50 @@ class Agent_Role_Admin {
 		echo '<form method="get" class="ar-rf-activity__filters">';
 		echo '<input type="hidden" name="page" value="agent-role" />';
 		echo '<input type="hidden" name="tab" value="activity" />';
-		echo '<label class="ar-rf-field"><span class="ar-rf-field__label">' . esc_html__( 'Agent', 'agent-role' ) . '</span>';
+		echo '<label class="ar-rf-field"><span class="ar-rf-field__label">' . esc_html__( 'Agent', 'rf-agent-role' ) . '</span>';
 		echo '<select class="ar-rf-select" name="agent">';
-		echo '<option value="">' . esc_html__( 'All Agents', 'agent-role' ) . '</option>';
+		echo '<option value="">' . esc_html__( 'All Agents', 'rf-agent-role' ) . '</option>';
 		foreach ( $agents as $agent_user ) {
 			echo '<option value="' . esc_attr( (string) $agent_user->ID ) . '" ' . selected( $agent_filter, (int) $agent_user->ID, false ) . '>' . esc_html( $agent_user->display_name ) . '</option>';
 		}
 		echo '</select></label>';
-		echo '<label class="ar-rf-field"><span class="ar-rf-field__label">' . esc_html__( 'Event type', 'agent-role' ) . '</span>';
+		echo '<label class="ar-rf-field"><span class="ar-rf-field__label">' . esc_html__( 'Event type', 'rf-agent-role' ) . '</span>';
 		echo '<select class="ar-rf-select" name="event">';
-		echo '<option value="">' . esc_html__( 'All Events', 'agent-role' ) . '</option>';
+		echo '<option value="">' . esc_html__( 'All Events', 'rf-agent-role' ) . '</option>';
 		foreach ( $labels as $type => $label ) {
 			echo '<option value="' . esc_attr( $type ) . '" ' . selected( $event_filter, $type, false ) . '>' . esc_html( $label ) . '</option>';
 		}
 		echo '</select></label>';
-		echo '<label class="ar-rf-field"><span class="ar-rf-field__label">' . esc_html__( 'From', 'agent-role' ) . '</span>';
+		echo '<label class="ar-rf-field"><span class="ar-rf-field__label">' . esc_html_x( 'From', 'activity log start date', 'rf-agent-role' ) . '</span>';
 		echo '<input class="ar-rf-select ar-rf-date ar-rf-date--from" type="text" name="from" value="' . esc_attr( self::activity_input_value( $from_sql ) ) . '" autocomplete="off" />';
 		echo '</label>';
-		echo '<label class="ar-rf-field"><span class="ar-rf-field__label">' . esc_html__( 'To', 'agent-role' ) . '</span>';
+		echo '<label class="ar-rf-field"><span class="ar-rf-field__label">' . esc_html_x( 'To', 'activity log end date', 'rf-agent-role' ) . '</span>';
 		echo '<input class="ar-rf-select ar-rf-date ar-rf-date--to" type="text" name="to" value="' . esc_attr( self::activity_input_value( $to_sql ) ) . '" autocomplete="off" />';
 		echo '</label>';
 		echo '<span class="ar-rf-field ar-rf-field--action">';
 		echo '<span class="ar-rf-field__label" aria-hidden="true">&#160;</span>';
-		echo '<button type="submit" class="button ar-rf-filter">' . esc_html__( 'Filter', 'agent-role' ) . '</button>';
+		echo '<button type="submit" class="button ar-rf-filter">' . esc_html__( 'Filter', 'rf-agent-role' ) . '</button>';
 		echo '</span>';
 		$count = sprintf(
 			/* translators: %d: number of visible activity rows. */
-			_n( '%d event', '%d events', count( $rows ), 'agent-role' ),
+			_n( '%d event', '%d events', count( $rows ), 'rf-agent-role' ),
 			count( $rows )
 		);
 		echo '<p class="ar-rf-activity__count">' . esc_html( $count ) . '</p>';
 		echo '</form>';
 
 		if ( ! $rows ) {
-			echo '<p>' . esc_html__( 'No agent activity yet.', 'agent-role' ) . '</p>';
+			echo '<p>' . esc_html__( 'No agent activity yet.', 'rf-agent-role' ) . '</p>';
 			echo '</div>';
 			return;
 		}
 
 		echo '<table class="widefat ar-rf-table"><thead><tr>';
-		echo '<th>' . esc_html__( 'Time', 'agent-role' ) . '</th>';
-		echo '<th>' . esc_html__( 'Agent', 'agent-role' ) . '</th>';
-		echo '<th>' . esc_html__( 'Event type', 'agent-role' ) . '</th>';
-		echo '<th>' . esc_html__( 'Details', 'agent-role' ) . '</th>';
-		echo '<th>' . esc_html__( 'Outcome', 'agent-role' ) . '</th>';
+		echo '<th>' . esc_html__( 'Time', 'rf-agent-role' ) . '</th>';
+		echo '<th>' . esc_html__( 'Agent', 'rf-agent-role' ) . '</th>';
+		echo '<th>' . esc_html__( 'Event type', 'rf-agent-role' ) . '</th>';
+		echo '<th>' . esc_html__( 'Details', 'rf-agent-role' ) . '</th>';
+		echo '<th>' . esc_html__( 'Outcome', 'rf-agent-role' ) . '</th>';
 		echo '</tr></thead><tbody>';
 		$deleted_at = Agent_Role_Log::deleted_at( array_column( $rows, 'user_id' ) );
 		foreach ( $rows as $row ) {
@@ -413,11 +420,11 @@ class Agent_Role_Admin {
 		if ( '' !== $deleted_at ) {
 			$text = sprintf(
 				/* translators: %s: date and time the agent account was deleted. */
-				__( 'This agent account was deleted on %s.', 'agent-role' ),
+				__( 'This agent account was deleted on %s.', 'rf-agent-role' ),
 				Agent_Role_Log::format_timestamp( $deleted_at )
 			);
 		} else {
-			$text = __( 'This agent account was deleted.', 'agent-role' );
+			$text = __( 'This agent account was deleted.', 'rf-agent-role' );
 		}
 
 		return '<span class="ar-rf-deleted">'
@@ -432,10 +439,10 @@ class Agent_Role_Admin {
 	private static function render_agents_tab() {
 		echo '<div class="ar-rf-panel">';
 		echo '<div class="ar-rf-toolbar">';
-		echo '<h2>' . esc_html__( 'Agents', 'agent-role' ) . '</h2>';
+		echo '<h2>' . esc_html__( 'Agents', 'rf-agent-role' ) . '</h2>';
 		echo '<button type="button" class="button button-primary" id="ar-new-agent">';
 		echo self::plus_icon(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- SVG is escaped in plus_icon().
-		echo esc_html__( 'New Agent', 'agent-role' );
+		echo esc_html__( 'New Agent', 'rf-agent-role' );
 		echo '</button></div>';
 
 		$agents = get_users(
@@ -447,9 +454,9 @@ class Agent_Role_Admin {
 
 		if ( $agents ) {
 			echo '<table class="widefat ar-rf-table"><thead><tr>';
-			echo '<th>' . esc_html__( 'User', 'agent-role' ) . '</th>';
-			echo '<th>' . esc_html__( 'Application password', 'agent-role' ) . '</th>';
-			echo '<th>' . esc_html__( 'MCP info', 'agent-role' ) . '</th>';
+			echo '<th>' . esc_html__( 'User', 'rf-agent-role' ) . '</th>';
+			echo '<th>' . esc_html__( 'Application password', 'rf-agent-role' ) . '</th>';
+			echo '<th>' . esc_html__( 'MCP info', 'rf-agent-role' ) . '</th>';
 			echo '</tr></thead><tbody>';
 			foreach ( $agents as $agent_user ) {
 				$has_password = (bool) Agent_Role_Account::managed_password( $agent_user->ID );
@@ -467,7 +474,7 @@ class Agent_Role_Admin {
 					wp_nonce_field( 'agent_role_revoke_' . (int) $agent_user->ID );
 					echo '<input type="hidden" name="action" value="agent_role_revoke" />';
 					echo '<input type="hidden" name="user_id" value="' . esc_attr( (string) $agent_user->ID ) . '" />';
-					echo '<button type="submit" class="button-link">' . esc_html__( 'Revoke', 'agent-role' ) . '</button>';
+					echo '<button type="submit" class="button-link">' . esc_html__( 'Revoke', 'rf-agent-role' ) . '</button>';
 					echo '</form>';
 				} else {
 					$reissue_url = wp_nonce_url(
@@ -480,18 +487,18 @@ class Agent_Role_Admin {
 						),
 						'agent_role_reissue_' . (int) $agent_user->ID
 					);
-					echo '<a href="' . esc_url( $reissue_url ) . '">' . esc_html__( 'Create password', 'agent-role' ) . '</a>';
+					echo '<a href="' . esc_url( $reissue_url ) . '">' . esc_html__( 'Create password', 'rf-agent-role' ) . '</a>';
 				}
 				echo '</td><td>';
 				if ( ! Agent_Role_Mcp::is_available() ) {
 					echo '<p class="ar-rf-mcp-notice" role="note">';
 					echo self::info_icon(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- SVG is escaped in info_icon().
-					echo '<span>' . esc_html__( 'No MCP is currently present.', 'agent-role' ) . '</span>';
+					echo '<span>' . esc_html__( 'No MCP is currently present.', 'rf-agent-role' ) . '</span>';
 					echo '</p>';
 				} elseif ( ! $has_password ) {
 					echo '<p class="ar-rf-mcp-notice" role="note">';
 					echo self::info_icon(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- SVG is escaped in info_icon().
-					echo '<span>' . esc_html__( 'Generate App Password for MCP access', 'agent-role' ) . '</span>';
+					echo '<span>' . esc_html__( 'Generate App Password for MCP access', 'rf-agent-role' ) . '</span>';
 					echo '</p>';
 				} else {
 					$template_id = 'ar-mcp-' . (int) $agent_user->ID;
@@ -500,8 +507,8 @@ class Agent_Role_Admin {
 						JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES
 					);
 					echo '<span class="ar-rf-mcp-actions">';
-					echo '<button type="button" class="ar-rf-mcp-view" data-template="' . esc_attr( $template_id ) . '">' . esc_html__( 'View', 'agent-role' ) . '</button>';
-					echo '<button type="button" class="ar-rf-mcp-copy" data-copy="' . esc_attr( $mcp_json ) . '" aria-label="' . esc_attr__( 'Copy MCP info', 'agent-role' ) . '">';
+					echo '<button type="button" class="ar-rf-mcp-view" data-template="' . esc_attr( $template_id ) . '">' . esc_html__( 'View', 'rf-agent-role' ) . '</button>';
+					echo '<button type="button" class="ar-rf-mcp-copy" data-copy="' . esc_attr( $mcp_json ) . '" aria-label="' . esc_attr__( 'Copy MCP info', 'rf-agent-role' ) . '">';
 					echo self::clipboard_icon(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- SVG is escaped in clipboard_icon().
 					echo '<span class="ar-rf-mcp-copy__status" aria-live="polite"></span>';
 					echo '</button></span>';
@@ -513,7 +520,7 @@ class Agent_Role_Admin {
 			}
 			echo '</tbody></table>';
 		} else {
-			echo '<p class="description">' . esc_html__( 'No agents yet. Create one when you are ready to connect a tool.', 'agent-role' ) . '</p>';
+			echo '<p class="description">' . esc_html__( 'No agents yet. Create one when you are ready to connect a tool.', 'rf-agent-role' ) . '</p>';
 		}
 		echo '</div>';
 	}
@@ -530,16 +537,16 @@ class Agent_Role_Admin {
 		echo '<dialog class="ar-rf-modal" id="ar-agent-modal">';
 		echo '<form method="dialog" class="ar-rf-modal__panel" id="ar-agent-form">';
 		echo '<div class="ar-rf-modal__step" id="ar-agent-step-create"' . ( $show_result ? ' hidden' : '' ) . '>';
-		echo '<h2>' . esc_html__( 'New Agent', 'agent-role' ) . '</h2>';
-		echo '<p>' . esc_html__( 'This account cannot sign in as a person.', 'agent-role' ) . '</p>';
-		echo '<p><label for="agent_role_username">' . esc_html__( 'Username', 'agent-role' ) . '</label><br />';
+		echo '<h2>' . esc_html__( 'New Agent', 'rf-agent-role' ) . '</h2>';
+		echo '<p>' . esc_html__( 'This account cannot sign in as a person.', 'rf-agent-role' ) . '</p>';
+		echo '<p><label for="agent_role_username">' . esc_html__( 'Username', 'rf-agent-role' ) . '</label><br />';
 		echo '<input name="agent_role_username" id="agent_role_username" type="text" class="regular-text" required /></p>';
-		echo '<p><label for="agent_role_display_name">' . esc_html__( 'Display name', 'agent-role' ) . '</label><br />';
+		echo '<p><label for="agent_role_display_name">' . esc_html__( 'Display name', 'rf-agent-role' ) . '</label><br />';
 		echo '<input name="agent_role_display_name" id="agent_role_display_name" type="text" class="regular-text" /></p>';
 		echo '<p class="ar-rf-modal__error" id="ar-agent-error" hidden></p>';
 		echo '<p class="ar-rf-modal__actions">';
-		echo '<button type="button" class="button" id="ar-agent-cancel">' . esc_html__( 'Cancel', 'agent-role' ) . '</button> ';
-		echo '<button type="button" class="button button-primary" id="ar-agent-create">' . esc_html__( 'Create Agent', 'agent-role' ) . '</button>';
+		echo '<button type="button" class="button" id="ar-agent-cancel">' . esc_html__( 'Cancel', 'rf-agent-role' ) . '</button> ';
+		echo '<button type="button" class="button button-primary" id="ar-agent-create">' . esc_html__( 'Create Agent', 'rf-agent-role' ) . '</button>';
 		echo '</p></div>';
 		echo '<div class="ar-rf-modal__step" id="ar-agent-step-result"' . ( $show_result ? '' : ' hidden' ) . '>';
 		if ( $show_result ) {
@@ -560,14 +567,14 @@ class Agent_Role_Admin {
 	 * @param string  $json  Client config that uses a password placeholder.
 	 */
 	private static function render_mcp_preview( $agent, $json ) {
-		echo '<h2>' . esc_html__( 'MCP info', 'agent-role' ) . '</h2>';
-		echo '<p>' . esc_html__( 'The application password is not stored. Replace the placeholder with the password you saved when this agent was created.', 'agent-role' ) . '</p>';
-		self::render_copy_row( __( 'Site URL', 'agent-role' ), home_url( '/' ) );
-		self::render_copy_row( __( 'Username', 'agent-role' ), $agent->user_login );
-		self::render_copy_row( __( 'Application password', 'agent-role' ), Agent_Role_Mcp::PASSWORD_PLACEHOLDER );
-		self::render_copy_row( __( 'MCP endpoint', 'agent-role' ), Agent_Role_Mcp::endpoint() );
-		self::render_code_block( __( 'Client config', 'agent-role' ), $json );
-		echo '<p class="ar-rf-modal__actions"><button type="submit" class="button button-primary" value="close">' . esc_html__( 'Close', 'agent-role' ) . '</button></p>';
+		echo '<h2>' . esc_html__( 'MCP info', 'rf-agent-role' ) . '</h2>';
+		echo '<p>' . esc_html__( 'The application password is not stored. Replace the placeholder with the password you saved when this agent was created.', 'rf-agent-role' ) . '</p>';
+		self::render_copy_row( __( 'Site URL', 'rf-agent-role' ), home_url( '/' ) );
+		self::render_copy_row( __( 'Username', 'rf-agent-role' ), $agent->user_login );
+		self::render_copy_row( __( 'Application password', 'rf-agent-role' ), Agent_Role_Mcp::PASSWORD_PLACEHOLDER );
+		self::render_copy_row( __( 'MCP endpoint', 'rf-agent-role' ), Agent_Role_Mcp::endpoint() );
+		self::render_code_block( __( 'Client config', 'rf-agent-role' ), $json );
+		echo '<p class="ar-rf-modal__actions"><button type="submit" class="button button-primary" value="close">' . esc_html__( 'Close', 'rf-agent-role' ) . '</button></p>';
 	}
 
 	/**
@@ -729,102 +736,71 @@ class Agent_Role_Admin {
 		$list_url = admin_url( 'users.php?page=agent-role&tab=agents' );
 		echo '<p class="ar-rf-back"><a href="' . esc_url( $list_url ) . '">';
 		echo self::back_arrow(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- SVG is escaped in back_arrow().
-		echo esc_html__( 'Agents', 'agent-role' );
+		echo esc_html__( 'Back to Agents', 'rf-agent-role' );
 		echo '</a></p>';
 
 		// The flag only chooses the notice. Saving is checked in handle_save_agent().
 		if ( isset( $_GET['updated'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-			echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'Agent updated.', 'agent-role' ) . '</p></div>';
+			$persona_notice = isset( $_GET['persona_notice'] ) ? sanitize_key( wp_unslash( $_GET['persona_notice'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			$messages       = array(
+				'save_default' => __( 'Saved as the default for this Agent persona.', 'rf-agent-role' ),
+				'reset'        => __( 'This agent now matches the saved default for this persona.', 'rf-agent-role' ),
+				'factory'      => __( 'This persona is reset to the plugin default. Other customized agent personas remain unchanged.', 'rf-agent-role' ),
+			);
+			$message        = isset( $messages[ $persona_notice ] ) ? $messages[ $persona_notice ] : __( 'Agent updated.', 'rf-agent-role' );
+			echo '<div class="notice notice-success is-dismissible"><p>' . esc_html( $message ) . '</p></div>';
+			if ( isset( $_GET['stripped'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+				echo '<div class="notice notice-warning is-dismissible"><p>' . esc_html__( 'Some tools were not saved as default because they need a permission this agent does not have.', 'rf-agent-role' ) . '</p></div>';
+			}
 		}
 
 		$caps = Agent_Role::cap_map( $agent );
-
-		$saved_abilities = get_user_meta( $agent->ID, Agent_Role::ABILITIES_META, true );
-		$abilities       = is_array( $saved_abilities ) ? $saved_abilities : Agent_Role::abilities_allowed_now( $agent->ID );
 
 		echo '<form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '">';
 		wp_nonce_field( 'agent_role_save_agent_' . $agent->ID, 'agent_role_agent_nonce' );
 		echo '<input type="hidden" name="action" value="agent_role_save_agent" />';
 		echo '<input type="hidden" name="user_id" value="' . esc_attr( (string) $agent->ID ) . '" />';
 
-		echo '<div class="ar-rf-panel">';
+		echo '<div class="ar-rf-panel ar-rf-agent">';
 		echo '<div class="ar-rf-profile">';
 		echo self::agent_mark(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- SVG is escaped in agent_mark().
 		echo '<div class="ar-rf-profile__text">';
-		echo '<p class="ar-rf-profile__name">' . esc_html( $agent->display_name ) . '</p>';
+		echo '<h2 class="ar-rf-profile__name">' . esc_html( $agent->display_name ) . '</h2>';
 		echo '<p class="ar-rf-profile__login">' . esc_html( $agent->user_login ) . '</p>';
 		echo '</div></div>';
 
-		echo '<h3>' . esc_html__( 'What an Agent can do', 'agent-role' ) . '</h3>';
-		echo '<p class="description">' . esc_html__( 'Read stays on. These switches apply to this agent only. Delete is the destructive pair.', 'agent-role' ) . '</p>';
-		echo '<table class="form-table" role="presentation"><tbody>';
-		foreach ( Agent_Role::cap_choices() as $cap => $choice ) {
-			$label_id = 'agent-role-cap-' . $agent->ID . '-' . $cap;
-			$hint_id  = $label_id . '-note';
-			echo '<tr><th scope="row">';
-			echo '<span class="ar-rf-setting__label" id="' . esc_attr( $label_id ) . '">' . esc_html( $choice['label'] ) . '</span>';
-			if ( $choice['destructive'] ) {
-				echo '<span class="ar-rf-setting__hint" id="' . esc_attr( $hint_id ) . '">' . esc_html__( 'This can delete content.', 'agent-role' ) . '</span>';
-			}
-			echo '</th><td>';
-			self::render_toggle(
-				array(
-					'name'        => 'agent_role_caps[]',
-					'value'       => $cap,
-					'checked'     => ! empty( $caps[ $cap ] ),
-					'labelledby'  => $label_id,
-					'describedby' => $choice['destructive'] ? $hint_id : '',
-				)
-			);
-			echo '</td></tr>';
-		}
-		echo '</tbody></table>';
-
-		echo '<h3>' . esc_html__( 'Abilities', 'agent-role' ) . '</h3>';
-		if ( ! function_exists( 'wp_get_abilities' ) ) {
-			echo '<p class="description">' . esc_html__( 'This site does not have the Abilities API.', 'agent-role' ) . '</p>';
-		} else {
-			echo '<p class="description">' . esc_html__( 'Turn an ability on to let this agent run it. These switches apply to this agent only.', 'agent-role' ) . '</p>';
-			echo '<ul class="ar-rf-abilities">';
-			foreach ( wp_get_abilities() as $ability ) {
-				if ( ! Agent_Role::is_listed_ability( $ability ) ) {
-					continue;
-				}
-				$name     = $ability->get_name();
-				$label_id = 'agent-role-ability-' . $agent->ID . '-' . sanitize_html_class( str_replace( '/', '-', $name ) );
-				echo '<li class="ar-rf-ability">';
-				echo '<span class="ar-rf-ability__name" id="' . esc_attr( $label_id ) . '">' . esc_html( $ability->get_label() ) . '</span>';
-				self::render_toggle(
-					array(
-						'name'       => 'agent_role_abilities[]',
-						'value'      => $name,
-						'checked'    => ! empty( $abilities[ $name ] ),
-						'labelledby' => $label_id,
-					)
-				);
-				echo '</li>';
-			}
-			echo '</ul>';
-		}
+		self::render_personas( $agent, $caps );
 
 		$instructions = Agent_Role::instructions_for( $agent );
-		echo '<h3 id="agent-role-instructions">' . esc_html__( 'Instructions', 'agent-role' ) . '</h3>';
-		echo '<p class="description">' . esc_html__( 'Sent when this agent connects over MCP. Reset fills this box from the switches. Generate drafts a version with AI. Update Agent saves the box. If you change the switches and leave this box untouched, the hint is rewritten from the switches.', 'agent-role' ) . '</p>';
-		echo '<textarea class="ar-rf-instructions" id="agent_role_instructions" name="agent_role_instructions" rows="14" aria-labelledby="agent-role-instructions">';
+		echo '<fieldset class="ar-rf-section">';
+		echo '<legend>' . esc_html__( 'Instructions', 'rf-agent-role' ) . '</legend>';
+		echo '<p class="ar-rf-section__tools">';
+		echo '<button type="button" class="button" id="ar-instructions-toggle" aria-expanded="false" aria-controls="ar-instructions-panel">';
+		echo esc_html__( 'Customize instructions', 'rf-agent-role' );
+		echo '</button></p>';
+		echo '<div class="ar-rf-instructions-panel" id="ar-instructions-panel" hidden>';
+		echo '<p class="ar-rf-lede">' . esc_html__(
+			/* translators: Quoted words are button labels on this screen: Reset, Generate, and Update Agent. */
+			'Sent when this agent connects over MCP. "Reset" sets this back to the plugin default instructions. "Generate" drafts a version with AI via your Connector. "Update Agent" saves the instructions. If you change the Agent persona capabilities and leave this box untouched, the hint is rewritten from the persona.',
+			'rf-agent-role'
+		) . '</p>';
+		echo '<textarea class="ar-rf-instructions" id="agent_role_instructions" name="agent_role_instructions" rows="14">';
 		echo esc_textarea( $instructions );
 		echo '</textarea>';
 		echo '<p class="ar-rf-draft">';
 		if ( current_user_can( 'manage_options' ) ) {
 			echo '<button type="button" class="button" id="ar-draft-instructions" data-user="' . esc_attr( (string) $agent->ID ) . '">';
-			echo esc_html__( 'Generate Instructions based on your website', 'agent-role' );
+			echo esc_html__( 'Generate Instructions based on your website', 'rf-agent-role' );
 			echo '</button>';
 		}
 		echo '<button type="button" class="button" id="ar-reset-instructions" data-user="' . esc_attr( (string) $agent->ID ) . '">';
-		echo esc_html__( 'Reset Instructions', 'agent-role' );
+		echo esc_html__( 'Reset Instructions', 'rf-agent-role' );
 		echo '</button></p>';
 		echo '<p class="ar-rf-draft__status" id="ar-draft-instructions-status" aria-live="polite"></p>';
+		echo '</div>';
+		echo '</fieldset>';
 
-		submit_button( __( 'Update Agent', 'agent-role' ) );
+		submit_button( __( 'Update Agent', 'rf-agent-role' ) );
 		echo '</div></form>';
 	}
 
@@ -837,10 +813,24 @@ class Agent_Role_Admin {
 		if ( Agent_Role_Mcp::is_available() ) {
 			self::render_mcp_setting();
 		} else {
-			echo '<p class="description">' . esc_html__( 'The MCP Adapter is not active.', 'agent-role' ) . '</p>';
+			echo '<p class="description">' . esc_html__( 'The MCP Adapter is not active.', 'rf-agent-role' ) . '</p>';
 		}
 
 		self::render_log_setting();
+	}
+
+	/**
+	 * On and off labels for a switch.
+	 *
+	 * @return array{enabled:string,disabled:string}
+	 */
+	private static function toggle_labels() {
+		return array(
+			/* translators: Visible state of an on/off switch. */
+			'enabled'  => _x( 'Enabled', 'toggle state', 'rf-agent-role' ),
+			/* translators: Visible state of an on/off switch. */
+			'disabled' => _x( 'Disabled', 'toggle state', 'rf-agent-role' ),
+		);
 	}
 
 	/**
@@ -873,8 +863,9 @@ class Agent_Role_Admin {
 		}
 		echo ' ' . checked( $checked, true, false ) . ' />';
 		echo '<span class="ar-rf-toggle__track" aria-hidden="true"></span>';
-		echo '<span class="ar-rf-toggle__state" id="' . esc_attr( $state_id ) . '" data-enabled="' . esc_attr__( 'Enabled', 'agent-role' ) . '" data-disabled="' . esc_attr__( 'Disabled', 'agent-role' ) . '">';
-		echo esc_html( $checked ? __( 'Enabled', 'agent-role' ) : __( 'Disabled', 'agent-role' ) );
+		$toggle = self::toggle_labels();
+		echo '<span class="ar-rf-toggle__state" id="' . esc_attr( $state_id ) . '" data-enabled="' . esc_attr( $toggle['enabled'] ) . '" data-disabled="' . esc_attr( $toggle['disabled'] ) . '">';
+		echo esc_html( $checked ? $toggle['enabled'] : $toggle['disabled'] );
 		echo '</span>';
 		if ( $note ) {
 			echo '<span class="ar-rf-toggle__note" id="' . esc_attr( $note_id ) . '">' . esc_html( $note ) . '</span>';
@@ -889,13 +880,13 @@ class Agent_Role_Admin {
 	 * @param string  $password Application password.
 	 */
 	private static function render_credentials_body( $agent, $password ) {
-		echo '<h2>' . esc_html__( 'Agent connected', 'agent-role' ) . '</h2>';
-		echo '<p>' . esc_html__( 'Copy these now. They will not be shown again.', 'agent-role' ) . '</p>';
-		self::render_copy_row( __( 'Site URL', 'agent-role' ), home_url( '/' ) );
-		self::render_copy_row( __( 'Username', 'agent-role' ), $agent->user_login );
-		self::render_copy_row( __( 'Application password', 'agent-role' ), $password );
+		echo '<h2>' . esc_html__( 'Agent connected', 'rf-agent-role' ) . '</h2>';
+		echo '<p>' . esc_html__( 'Copy these now. They will not be shown again.', 'rf-agent-role' ) . '</p>';
+		self::render_copy_row( __( 'Site URL', 'rf-agent-role' ), home_url( '/' ) );
+		self::render_copy_row( __( 'Username', 'rf-agent-role' ), $agent->user_login );
+		self::render_copy_row( __( 'Application password', 'rf-agent-role' ), $password );
 		self::render_mcp_config( $agent->user_login, $password );
-		echo '<p class="ar-rf-modal__actions"><button type="submit" class="button button-primary" value="close">' . esc_html__( 'Close', 'agent-role' ) . '</button></p>';
+		echo '<p class="ar-rf-modal__actions"><button type="submit" class="button button-primary" value="close">' . esc_html__( 'Close', 'rf-agent-role' ) . '</button></p>';
 	}
 
 	/**
@@ -915,7 +906,7 @@ class Agent_Role_Admin {
 		$agent    = get_userdata( $result['user_id'] );
 		$password = Agent_Role_Account::take_password( get_current_user_id(), $result['user_id'] );
 		if ( ! $agent instanceof WP_User || '' === $password ) {
-			wp_send_json_error( array( 'message' => __( 'The account was created, but the password could not be shown.', 'agent-role' ) ) );
+			wp_send_json_error( array( 'message' => __( 'The account was created, but the password could not be shown.', 'rf-agent-role' ) ) );
 		}
 
 		ob_start();
@@ -974,7 +965,7 @@ class Agent_Role_Admin {
 
 		$user = get_userdata( $user_id );
 		if ( ! $user instanceof WP_User || ! Agent_Role::is_agent( $user ) ) {
-			wp_die( esc_html__( 'That account is not an Agent.', 'agent-role' ), '', array( 'response' => 400 ) );
+			wp_die( esc_html__( 'That user is not an Agent.', 'rf-agent-role' ), '', array( 'response' => 400 ) );
 		}
 
 		$previous         = Agent_Role::instructions_for( $user );
@@ -984,6 +975,28 @@ class Agent_Role_Admin {
 		$before_note      = metadata_exists( 'user', $user_id, Agent_Role::INSTRUCTIONS_META ) ? (string) get_user_meta( $user_id, Agent_Role::INSTRUCTIONS_META, true ) : '';
 
 		list( $caps, $abilities ) = self::posted_maps();
+		$persona_action           = isset( $_POST['agent_role_persona_action'] ) ? sanitize_key( wp_unslash( $_POST['agent_role_persona_action'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce checked above.
+		if ( ! in_array( $persona_action, array( 'save_default', 'reset', 'factory' ), true ) ) {
+			$persona_action = '';
+		}
+		if ( '' === $persona_action && ! isset( $_POST['agent_role_abilities'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce checked above.
+			$abilities = is_array( $before_abilities ) ? $before_abilities : array();
+		}
+		$persona  = isset( $_POST['agent_role_persona'] ) ? sanitize_key( wp_unslash( $_POST['agent_role_persona'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce checked above.
+		$actions  = self::posted_actions();
+		$shapes   = self::personas();
+		$stripped = false;
+		if ( isset( $shapes[ $persona ] ) ) {
+			$applied   = self::apply_persona_post( $user_id, $persona, $persona_action, $caps, $actions, $abilities );
+			$caps      = $applied['caps'];
+			$actions   = $applied['actions'];
+			$abilities = $applied['abilities'];
+			$stripped  = ! empty( $applied['stripped'] );
+			update_user_meta( $user_id, self::PERSONA_META, $persona );
+			update_user_meta( $user_id, self::PERSONA_CUSTOM_META, $applied['custom'] ? '1' : '' );
+			update_user_meta( $user_id, self::ACTIONS_META, $actions );
+			self::apply_persona_caps( $user_id, $actions );
+		}
 		Agent_Role::apply_cap_map( $user_id, $caps );
 		update_user_meta( $user_id, Agent_Role::ABILITIES_META, $abilities );
 
@@ -1008,16 +1021,19 @@ class Agent_Role_Admin {
 			);
 		}
 
-		wp_safe_redirect(
-			add_query_arg(
-				array(
-					'page'    => 'agent-role',
-					'user_id' => $user_id,
-					'updated' => '1',
-				),
-				admin_url( 'users.php' )
-			)
+		$redirect = array(
+			'page'    => 'agent-role',
+			'user_id' => $user_id,
+			'updated' => '1',
 		);
+		if ( '' !== $persona_action ) {
+			$redirect['persona_notice'] = $persona_action;
+			$redirect['customize']      = '1';
+		}
+		if ( $stripped ) {
+			$redirect['stripped'] = '1';
+		}
+		wp_safe_redirect( add_query_arg( $redirect, admin_url( 'users.php' ) ) );
 		exit;
 	}
 
@@ -1030,7 +1046,7 @@ class Agent_Role_Admin {
 		if ( ! current_user_can( 'manage_options' ) ) {
 			return new WP_Error(
 				'agent_role_forbidden',
-				__( 'You do not have permission to change this setting.', 'agent-role' ),
+				__( 'You do not have permission to change this setting.', 'rf-agent-role' ),
 				403
 			);
 		}
@@ -1040,7 +1056,7 @@ class Agent_Role_Admin {
 		if ( ! $user instanceof WP_User || ! Agent_Role::is_agent( $user ) ) {
 			return new WP_Error(
 				'agent_role_not_agent',
-				__( 'That account is not an Agent.', 'agent-role' ),
+				__( 'That user is not an Agent.', 'rf-agent-role' ),
 				400
 			);
 		}
@@ -1098,13 +1114,13 @@ class Agent_Role_Admin {
 		echo '<div class="rf-code">';
 		echo '<div class="rf-code__chrome">';
 		echo '<div class="rf-code__dots" aria-hidden="true"><span></span><span></span><span></span></div>';
-		echo '<button type="button" class="rf-code__copy" aria-label="' . esc_attr__( 'Copy client config', 'agent-role' ) . '">';
+		echo '<button type="button" class="rf-code__copy" aria-label="' . esc_attr__( 'Copy client config', 'rf-agent-role' ) . '">';
 		echo self::kses_icon( // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- SVG is escaped in kses_icon().
 			'<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true" focusable="false"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 8.25V6A2.25 2.25 0 0014.25 3.75H6A2.25 2.25 0 003.75 6v8.25A2.25 2.25 0 006 16.5h2.25m8.25-8.25H18A2.25 2.25 0 0120.25 10.5V18A2.25 2.25 0 0118 20.25h-7.5A2.25 2.25 0 018.25 18v-1.5m8.25-8.25h-6A2.25 2.25 0 008.25 10.5v6"/></svg>'
 		);
 		echo '</button></div>';
 		echo '<pre class="rf-code__body"><code>' . esc_html( $code ) . '</code></pre>';
-		echo '<span class="rf-code__lang">' . esc_html__( 'JSON', 'agent-role' ) . '</span>';
+		echo '<span class="rf-code__lang">' . esc_html__( 'JSON', 'rf-agent-role' ) . '</span>';
 		echo '</div>';
 	}
 
@@ -1118,7 +1134,7 @@ class Agent_Role_Admin {
 		echo '<div class="ar-rf-copy">';
 		echo '<span class="ar-rf-copy__label">' . esc_html( $label ) . '</span>';
 		echo '<code class="ar-rf-copy__value">' . esc_html( $value ) . '</code>';
-		echo '<button type="button" class="button ar-rf-copy__button">' . esc_html__( 'Copy', 'agent-role' ) . '</button>';
+		echo '<button type="button" class="button ar-rf-copy__button">' . esc_html__( 'Copy', 'rf-agent-role' ) . '</button>';
 		echo '</div>';
 	}
 
@@ -1135,8 +1151,8 @@ class Agent_Role_Admin {
 
 		$json = wp_json_encode( Agent_Role_Mcp::client_config( $username, $password ), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES );
 
-		self::render_copy_row( __( 'MCP endpoint', 'agent-role' ), Agent_Role_Mcp::endpoint() );
-		self::render_code_block( __( 'Client config', 'agent-role' ), (string) $json );
+		self::render_copy_row( __( 'MCP endpoint', 'rf-agent-role' ), Agent_Role_Mcp::endpoint() );
+		self::render_code_block( __( 'Client config', 'rf-agent-role' ), (string) $json );
 	}
 
 	/**
@@ -1147,7 +1163,7 @@ class Agent_Role_Admin {
 			return;
 		}
 
-		echo '<h2>' . esc_html__( 'MCP Adapter', 'agent-role' ) . '</h2>';
+		echo '<h2>' . esc_html__( 'MCP Adapter', 'rf-agent-role' ) . '</h2>';
 		echo '<form method="post" action="' . esc_url( admin_url( 'options.php' ) ) . '">';
 		settings_fields( Agent_Role_Mcp::GROUP );
 		echo '<p>';
@@ -1157,13 +1173,13 @@ class Agent_Role_Admin {
 				'value'         => '1',
 				'checked'       => Agent_Role_Mcp::agents_only(),
 				'labelledby'    => 'agent-role-mcp-label',
-				'note'          => __( 'Only Agent accounts may use the MCP server.', 'agent-role' ),
+				'note'          => __( 'Only Agent accounts may use the MCP server.', 'rf-agent-role' ),
 				'note_is_label' => true,
 			)
 		);
 		echo '</p>';
-		echo '<p class="description">' . esc_html__( 'When off, the MCP Adapter accepts any logged-in user, as it ships.', 'agent-role' ) . '</p>';
-		submit_button( __( 'Save MCP Setting', 'agent-role' ) );
+		echo '<p class="description">' . esc_html__( 'When off, the MCP Adapter accepts any logged-in user, as it ships.', 'rf-agent-role' ) . '</p>';
+		submit_button( __( 'Save MCP Setting', 'rf-agent-role' ) );
 		echo '</form>';
 	}
 
@@ -1175,17 +1191,17 @@ class Agent_Role_Admin {
 			return;
 		}
 
-		echo '<h2>' . esc_html__( 'Activity log', 'agent-role' ) . '</h2>';
+		echo '<h2>' . esc_html__( 'Activity log', 'rf-agent-role' ) . '</h2>';
 		echo '<form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '" class="ar-rf-log-settings">';
 		wp_nonce_field( 'agent_role_log_setting', 'agent_role_log_nonce' );
 		echo '<input type="hidden" name="action" value="agent_role_log_setting" />';
-		echo '<p class="ar-rf-log-settings__field"><label for="agent_role_log_days">' . esc_html__( 'Keep records for', 'agent-role' ) . '</label> ';
+		echo '<p class="ar-rf-log-settings__field"><label for="agent_role_log_days">' . esc_html__( 'Keep records for', 'rf-agent-role' ) . '</label> ';
 		echo '<input type="number" class="small-text" id="agent_role_log_days" name="agent_role_log_days" min="1" max="' . esc_attr( (string) Agent_Role_Log::MAX_DAYS ) . '" value="' . esc_attr( (string) Agent_Role_Log::days() ) . '" required /> ';
-		echo '<span>' . esc_html__( 'days', 'agent-role' ) . '</span></p>';
-		echo '<p class="ar-rf-log-settings__field"><label for="agent_role_log_cap">' . esc_html__( 'Events per agent', 'agent-role' ) . '</label> ';
+		echo '<span>' . esc_html__( 'days', 'rf-agent-role' ) . '</span></p>';
+		echo '<p class="ar-rf-log-settings__field"><label for="agent_role_log_cap">' . esc_html__( 'Events per agent', 'rf-agent-role' ) . '</label> ';
 		echo '<input type="number" class="small-text" id="agent_role_log_cap" name="agent_role_log_cap" min="1" max="' . esc_attr( (string) Agent_Role_Log::MAX_CAP ) . '" value="' . esc_attr( (string) Agent_Role_Log::cap() ) . '" required /></p>';
-		echo '<p class="description">' . esc_html__( 'A longer window or a higher cap stores more of what agents tried, including ability names and REST routes, and the Activity screen has to load all of it. The log does not store passwords or request contents. The limit is 365 days and 5,000 events per agent. Saving a smaller number deletes the older rows.', 'agent-role' ) . '</p>';
-		submit_button( __( 'Save log settings', 'agent-role' ) );
+		echo '<p class="description">' . esc_html__( 'A longer window or a higher cap stores more of what agents tried, including ability names and REST routes, and the Activity screen has to load all of it. The log does not store passwords or request contents. The limit is 365 days and 5,000 events per agent. Saving a smaller number deletes the older rows.', 'rf-agent-role' ) . '</p>';
+		submit_button( __( 'Save log settings', 'rf-agent-role' ) );
 		echo '</form>';
 	}
 
@@ -1298,6 +1314,12 @@ class Agent_Role_Admin {
 		return $created;
 	}
 
+	const PERSONA_META = '_agent_role_persona';
+
+	const PERSONA_CUSTOM_META = '_agent_role_persona_custom';
+
+	const ACTIONS_META = '_agent_role_actions';
+
 	/**
 	 * Stop the request when the current user cannot manage these settings.
 	 *
@@ -1308,11 +1330,852 @@ class Agent_Role_Admin {
 			return;
 		}
 
-		$message = __( 'You do not have permission to manage these settings.', 'agent-role' );
+		$message = __( 'You do not have permission to manage these settings.', 'rf-agent-role' );
 		if ( $ajax ) {
 			wp_send_json_error( array( 'message' => $message ), 403 );
 		}
 
 		wp_die( esc_html( $message ), '', array( 'response' => 403 ) );
+	}
+
+	/**
+	 * Starting shapes. Caps are the six publishing switches. Actions are the extra rows.
+	 *
+	 * @return array<string,array{label:string,letters:string,color:string,soft:string,text:string,note:string,caps:string[],actions:string[]}>
+	 */
+	private static function personas() {
+		$writer_caps = array( 'edit_posts', 'edit_published_posts', 'publish_posts', 'upload_files' );
+
+		return array(
+			'webdev'  => array(
+				'label'   => __( 'Web Dev', 'rf-agent-role' ),
+				/* translators: Two-letter initials on the Web Dev persona card. */
+				'letters' => _x( 'WD', 'persona initials', 'rf-agent-role' ),
+				'color'   => '#2c2922',
+				'soft'    => '#e6e2da',
+				/* translators: WP Rollback is a plugin name. */
+				'text'    => __( 'Editor, plus they can update plugins. Roll those updates back with WP Rollback.', 'rf-agent-role' ),
+				'note'    => '',
+				'caps'    => $writer_caps,
+				'actions' => array( 'read_others', 'edit_others', 'update_plugins' ),
+			),
+			'editor'  => array(
+				'label'   => __( 'Editor', 'rf-agent-role' ),
+				/* translators: Two-letter initials on the Editor persona card. */
+				'letters' => _x( 'ED', 'persona initials', 'rf-agent-role' ),
+				'color'   => '#d4844e',
+				'soft'    => '#f0d5c0',
+				'text'    => __( 'Writer, plus they can edit and publish a post or page other users wrote.', 'rf-agent-role' ),
+				'note'    => '',
+				'caps'    => $writer_caps,
+				'actions' => array( 'read_others', 'edit_others' ),
+			),
+			'writer'  => array(
+				'label'   => __( 'Writer', 'rf-agent-role' ),
+				/* translators: Two-letter initials on the Writer persona card. */
+				'letters' => _x( 'WR', 'persona initials', 'rf-agent-role' ),
+				'color'   => '#62744d',
+				'soft'    => '#e4eadc',
+				'text'    => __( 'Creates, edits, and publishes their own posts and pages, and can upload files.', 'rf-agent-role' ),
+				'note'    => '',
+				'caps'    => $writer_caps,
+				'actions' => array(),
+			),
+			'analyst' => array(
+				'label'   => __( 'Analyst', 'rf-agent-role' ),
+				/* translators: Two-letter initials on the Analyst persona card. */
+				'letters' => _x( 'AN', 'persona initials', 'rf-agent-role' ),
+				'color'   => '#8c5a3c',
+				'soft'    => '#f3e0d2',
+				'text'    => __( 'An expert in reading and exporting data related to your website.', 'rf-agent-role' ),
+				'note'    => '',
+				'caps'    => array(),
+				'actions' => array( 'read_others', 'export' ),
+			),
+		);
+	}
+
+	/**
+	 * Rows in Customize, in group order.
+	 *
+	 * @return array<int,array{id:string,group:string,label:string,hint:string,kind:string}>
+	 */
+	private static function persona_rows() {
+		return array(
+			array(
+				'id'    => 'edit_posts',
+				'group' => 'create',
+				'label' => __( 'Create their own posts and pages', 'rf-agent-role' ),
+				'hint'  => '',
+				'kind'  => 'cap',
+			),
+			array(
+				'id'    => 'upload_files',
+				'group' => 'create',
+				'label' => __( 'Upload files', 'rf-agent-role' ),
+				'hint'  => '',
+				'kind'  => 'cap',
+			),
+			array(
+				'id'    => 'core/get-site-info',
+				'group' => 'read',
+				'label' => __( 'Read this site’s name, URL, and description', 'rf-agent-role' ),
+				'hint'  => '',
+				'kind'  => 'ability',
+			),
+			array(
+				'id'    => 'core/get-user-info',
+				'group' => 'read',
+				'label' => __( 'Read the connected user', 'rf-agent-role' ),
+				'hint'  => '',
+				'kind'  => 'ability',
+			),
+			array(
+				'id'    => 'core/get-environment-info',
+				'group' => 'read',
+				'label' => __( 'Read the WordPress version and environment', 'rf-agent-role' ),
+				'hint'  => '',
+				'kind'  => 'ability',
+			),
+			array(
+				'id'    => 'read_others',
+				'group' => 'read',
+				'label' => __( 'Read other people’s published posts and pages', 'rf-agent-role' ),
+				'hint'  => '',
+				'kind'  => 'action',
+			),
+			array(
+				'id'    => 'export',
+				'group' => 'read',
+				'label' => __( 'Export SEO or website data', 'rf-agent-role' ),
+				'hint'  => '',
+				'kind'  => 'action',
+			),
+			array(
+				'id'    => 'edit_published_posts',
+				'group' => 'undo',
+				'label' => __( 'Edit their own posts and pages after they are published', 'rf-agent-role' ),
+				'hint'  => '',
+				'kind'  => 'cap',
+			),
+			array(
+				'id'    => 'publish_posts',
+				'group' => 'undo',
+				'label' => __( 'Publish their own posts and pages', 'rf-agent-role' ),
+				'hint'  => '',
+				'kind'  => 'cap',
+			),
+			array(
+				'id'    => 'edit_others',
+				'group' => 'undo',
+				'label' => __( 'Edit and publish a post or page a person wrote', 'rf-agent-role' ),
+				'hint'  => '',
+				'kind'  => 'action',
+			),
+			array(
+				'id'    => 'update_plugins',
+				'group' => 'undo',
+				'label' => __( 'Update plugins', 'rf-agent-role' ),
+				/* translators: WP Rollback is a plugin name. */
+				'hint'  => __( 'Roll a plugin update back with WP Rollback.', 'rf-agent-role' ),
+				'kind'  => 'action',
+			),
+			array(
+				'id'    => 'delete_posts',
+				'group' => 'delete',
+				'label' => __( 'Delete their own drafts', 'rf-agent-role' ),
+				'hint'  => __( 'This can delete content.', 'rf-agent-role' ),
+				'kind'  => 'cap',
+			),
+			array(
+				'id'    => 'delete_published_posts',
+				'group' => 'delete',
+				'label' => __( 'Delete their own published posts and pages', 'rf-agent-role' ),
+				'hint'  => __( 'This can delete content.', 'rf-agent-role' ),
+				'kind'  => 'cap',
+			),
+		);
+	}
+
+	/**
+	 * Plugin-shipped starting set for a shape.
+	 *
+	 * @param string $persona Persona slug.
+	 * @return array{caps:array<string,bool>,actions:string[],abilities:array<string,bool>}
+	 */
+	public static function factory_persona_shape( $persona ) {
+		$personas = self::personas();
+		$enabled  = isset( $personas[ $persona ] ) ? $personas[ $persona ]['caps'] : array();
+		$caps     = array();
+		foreach ( Agent_Role::cap_slugs() as $cap ) {
+			$caps[ $cap ] = in_array( $cap, $enabled, true );
+		}
+
+		return array(
+			'caps'      => $caps,
+			'actions'   => isset( $personas[ $persona ] ) ? array_values( $personas[ $persona ]['actions'] ) : array(),
+			'abilities' => self::core_read_abilities(),
+		);
+	}
+
+	/**
+	 * Starting set for a shape on this site.
+	 *
+	 * @param string $persona Persona slug.
+	 * @return array{caps:array<string,bool>,actions:string[],abilities:array<string,bool>}
+	 */
+	public static function site_persona_shape( $persona ) {
+		$stored = get_option( Agent_Role::PERSONA_DEFAULTS_OPTION, array() );
+		if ( ! is_array( $stored ) || ! isset( $stored[ $persona ] ) || ! is_array( $stored[ $persona ] ) ) {
+			return self::factory_persona_shape( $persona );
+		}
+
+		return self::sanitize_persona_shape( $persona, $stored[ $persona ] );
+	}
+
+	/**
+	 * Whether this site has a saved default for the shape.
+	 *
+	 * @param string $persona Persona slug.
+	 */
+	public static function has_site_persona_default( $persona ) {
+		$stored = get_option( Agent_Role::PERSONA_DEFAULTS_OPTION, array() );
+		return is_array( $stored ) && isset( $stored[ $persona ] ) && is_array( $stored[ $persona ] );
+	}
+
+	/**
+	 * Store a site default for one shape.
+	 *
+	 * @param string                                                          $persona Persona slug.
+	 * @param array{caps:array<string,bool>,actions:string[],abilities:array<string,bool>} $shape Shape to store.
+	 */
+	public static function write_site_persona_default( $persona, array $shape ) {
+		$personas = self::personas();
+		if ( ! isset( $personas[ $persona ] ) ) {
+			return;
+		}
+
+		$stored = get_option( Agent_Role::PERSONA_DEFAULTS_OPTION, array() );
+		if ( ! is_array( $stored ) ) {
+			$stored = array();
+		}
+		$stored[ $persona ] = self::sanitize_persona_shape( $persona, $shape );
+		update_option( Agent_Role::PERSONA_DEFAULTS_OPTION, $stored, false );
+	}
+
+	/**
+	 * Forget a saved site default so the shape uses the plugin set again.
+	 *
+	 * @param string $persona Persona slug.
+	 */
+	public static function clear_site_persona_default( $persona ) {
+		$stored = get_option( Agent_Role::PERSONA_DEFAULTS_OPTION, array() );
+		if ( ! is_array( $stored ) || ! isset( $stored[ $persona ] ) ) {
+			return;
+		}
+
+		unset( $stored[ $persona ] );
+		if ( $stored ) {
+			update_option( Agent_Role::PERSONA_DEFAULTS_OPTION, $stored, false );
+			return;
+		}
+
+		delete_option( Agent_Role::PERSONA_DEFAULTS_OPTION );
+	}
+
+	/**
+	 * Keep only known caps, extra rows, and listed abilities.
+	 *
+	 * @param string               $persona Persona slug.
+	 * @param array<string,mixed>  $shape   Raw shape.
+	 * @return array{caps:array<string,bool>,actions:string[],abilities:array<string,bool>}
+	 */
+	public static function sanitize_persona_shape( $persona, array $shape ) {
+		$factory = self::factory_persona_shape( $persona );
+		$caps    = $factory['caps'];
+		if ( isset( $shape['caps'] ) && is_array( $shape['caps'] ) ) {
+			foreach ( Agent_Role::cap_slugs() as $cap ) {
+				$caps[ $cap ] = ! empty( $shape['caps'][ $cap ] );
+			}
+		}
+
+		$known = self::action_slugs();
+		$have  = array();
+		if ( isset( $shape['actions'] ) && is_array( $shape['actions'] ) ) {
+			foreach ( $shape['actions'] as $action ) {
+				if ( is_string( $action ) && in_array( $action, $known, true ) ) {
+					$have[] = $action;
+				}
+			}
+		}
+
+		$abilities = array();
+		if ( isset( $shape['abilities'] ) && is_array( $shape['abilities'] ) ) {
+			foreach ( self::listed_ability_names() as $name ) {
+				if ( ! empty( $shape['abilities'][ $name ] ) ) {
+					$abilities[ $name ] = true;
+				}
+			}
+		}
+
+		return array(
+			'caps'      => $caps,
+			'actions'   => array_values( array_unique( $have ) ),
+			'abilities' => $abilities,
+		);
+	}
+
+	/**
+	 * File a listed ability into Create, Read, Undo, Delete, or Other.
+	 *
+	 * Marks file the row. A missing mark is Other. Names are not used.
+	 *
+	 * @param mixed $ability Ability instance.
+	 * @return string
+	 */
+	public static function file_ability_group( $ability ) {
+		if ( ! is_object( $ability ) || ! method_exists( $ability, 'get_meta' ) ) {
+			return 'other';
+		}
+
+		$meta        = $ability->get_meta();
+		$annotations = isset( $meta['annotations'] ) && is_array( $meta['annotations'] ) ? $meta['annotations'] : array();
+		$readonly    = array_key_exists( 'readonly', $annotations ) ? $annotations['readonly'] : null;
+		$destructive = array_key_exists( 'destructive', $annotations ) ? $annotations['destructive'] : null;
+		$idempotent  = array_key_exists( 'idempotent', $annotations ) ? $annotations['idempotent'] : null;
+
+		if ( true === $readonly ) {
+			return 'read';
+		}
+		if ( true === $destructive ) {
+			return 'delete';
+		}
+		if ( false === $readonly && false === $idempotent ) {
+			return 'create';
+		}
+		if ( false === $readonly ) {
+			return 'undo';
+		}
+
+		return 'other';
+	}
+
+	/**
+	 * Apply a persona save, including site-default buttons.
+	 *
+	 * @param int                $user_id Agent user ID.
+	 * @param string             $persona Persona slug.
+	 * @param string             $action  save_default, reset, factory, or empty.
+	 * @param array<string,bool> $caps    Posted publishing switches.
+	 * @param string[]           $actions Posted extra rows.
+	 * @param array<string,bool> $abilities Posted ability map.
+	 * @return array{caps:array<string,bool>,actions:string[],abilities:array<string,bool>,custom:bool,stripped:bool}
+	 */
+	private static function apply_persona_post( $user_id, $persona, $action, array $caps, array $actions, array $abilities ) {
+		$stripped = false;
+		$custom   = false;
+
+		if ( 'reset' === $action ) {
+			$shape     = self::site_persona_shape( $persona );
+			$caps      = $shape['caps'];
+			$actions   = $shape['actions'];
+			$abilities = $shape['abilities'];
+		} elseif ( 'factory' === $action ) {
+			self::clear_site_persona_default( $persona );
+			$shape     = self::factory_persona_shape( $persona );
+			$caps      = $shape['caps'];
+			$actions   = $shape['actions'];
+			$abilities = $shape['abilities'];
+		} elseif ( 'save_default' === $action ) {
+			Agent_Role::apply_cap_map( $user_id, $caps );
+			self::apply_persona_caps( $user_id, $actions );
+			$kept      = self::keep_runnable_abilities( $user_id, $abilities );
+			$stripped  = $kept['stripped'];
+			$abilities = $kept['abilities'];
+			self::write_site_persona_default(
+				$persona,
+				array(
+					'caps'      => $caps,
+					'actions'   => $actions,
+					'abilities' => $abilities,
+				)
+			);
+		} else {
+			$custom = ! empty( $_POST['agent_role_persona_custom'] ); // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Caller checks the nonce.
+			if ( ! $custom ) {
+				$shape     = self::site_persona_shape( $persona );
+				$caps      = $shape['caps'];
+				$actions   = $shape['actions'];
+				$abilities = $shape['abilities'];
+			}
+			$custom = self::persona_is_custom( $persona, $caps, $actions, $abilities );
+		}
+
+		return array(
+			'caps'      => $caps,
+			'actions'   => $actions,
+			'abilities' => $abilities,
+			'custom'    => $custom,
+			'stripped'  => $stripped,
+		);
+	}
+
+	/**
+	 * Drop listed abilities that this agent cannot run even with the switch on.
+	 *
+	 * @param int                $user_id   Agent user ID.
+	 * @param array<string,bool> $abilities Ability map.
+	 * @return array{abilities:array<string,bool>,stripped:bool}
+	 */
+	public static function keep_runnable_abilities( $user_id, array $abilities ) {
+		$stripped = false;
+		$kept     = array();
+		if ( ! function_exists( 'wp_get_abilities' ) ) {
+			return array(
+				'abilities' => array(),
+				'stripped'  => false,
+			);
+		}
+
+		$previous = get_current_user_id();
+		wp_set_current_user( $user_id );
+		remove_filter( 'wp_ability_permission_result', array( 'Agent_Role', 'filter_ability_permission' ), 10 );
+		foreach ( wp_get_abilities() as $ability ) {
+			if ( ! Agent_Role::is_listed_ability( $ability ) ) {
+				continue;
+			}
+			$name = $ability->get_name();
+			if ( empty( $abilities[ $name ] ) ) {
+				continue;
+			}
+			$ok = false;
+			try {
+				$ok = true === $ability->check_permissions( array() );
+			} catch ( \Throwable $e ) {
+				unset( $e );
+				$ok = false;
+			}
+			if ( $ok ) {
+				$kept[ $name ] = true;
+			} else {
+				$stripped = true;
+			}
+		}
+		add_filter( 'wp_ability_permission_result', array( 'Agent_Role', 'filter_ability_permission' ), 10, 4 );
+		wp_set_current_user( $previous );
+
+		return array(
+			'abilities' => $kept,
+			'stripped'  => $stripped,
+		);
+	}
+
+	/**
+	 * Whether this agent's own permission check would admit the ability.
+	 *
+	 * @param int   $user_id Agent user ID.
+	 * @param mixed $ability Ability instance.
+	 */
+	public static function ability_has_permission( $user_id, $ability ) {
+		if ( ! is_object( $ability ) || ! method_exists( $ability, 'check_permissions' ) ) {
+			return false;
+		}
+
+		$previous = get_current_user_id();
+		wp_set_current_user( $user_id );
+		remove_filter( 'wp_ability_permission_result', array( 'Agent_Role', 'filter_ability_permission' ), 10 );
+		$ok = false;
+		try {
+			$ok = true === $ability->check_permissions( array() );
+		} catch ( \Throwable $e ) {
+			unset( $e );
+			$ok = false;
+		}
+		add_filter( 'wp_ability_permission_result', array( 'Agent_Role', 'filter_ability_permission' ), 10, 4 );
+		wp_set_current_user( $previous );
+
+		return $ok;
+	}
+
+	/**
+	 * Whether the saved rows differ from this site's default for the shape.
+	 *
+	 * @param string             $persona   Persona slug.
+	 * @param array<string,bool> $caps      Publishing switches.
+	 * @param string[]           $actions   Extra rows that are on.
+	 * @param array<string,bool> $abilities Ability map.
+	 */
+	private static function persona_is_custom( $persona, array $caps, array $actions, array $abilities ) {
+		$defaults = self::site_persona_shape( $persona );
+		foreach ( Agent_Role::cap_slugs() as $cap ) {
+			if ( ! empty( $caps[ $cap ] ) !== ! empty( $defaults['caps'][ $cap ] ) ) {
+				return true;
+			}
+		}
+		$wanted = $defaults['actions'];
+		sort( $wanted );
+		$have = array_values( $actions );
+		sort( $have );
+		if ( $wanted !== $have ) {
+			return true;
+		}
+		foreach ( self::listed_ability_names() as $name ) {
+			if ( ! empty( $abilities[ $name ] ) !== ! empty( $defaults['abilities'][ $name ] ) ) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * Extra rows posted from Customize.
+	 *
+	 * @return string[]
+	 */
+	private static function posted_actions() {
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Caller checks the nonce.
+		$chosen = isset( $_POST['agent_role_actions'] ) ? array_map( 'sanitize_key', (array) wp_unslash( $_POST['agent_role_actions'] ) ) : array();
+		return array_values( array_intersect( self::action_slugs(), $chosen ) );
+	}
+
+	/**
+	 * Core read tools every shape starts with.
+	 *
+	 * @return array<string,bool>
+	 */
+	private static function core_read_abilities() {
+		$on = array();
+		foreach ( self::mapped_ability_ids() as $name ) {
+			$on[ $name ] = true;
+		}
+		return $on;
+	}
+
+	/**
+	 * Ability names we treat as named jobs, not catalog leftovers.
+	 *
+	 * @return string[]
+	 */
+	private static function mapped_ability_ids() {
+		$ids = array();
+		foreach ( self::persona_rows() as $row ) {
+			if ( 'ability' === $row['kind'] ) {
+				$ids[] = $row['id'];
+			}
+		}
+		return $ids;
+	}
+
+	/**
+	 * Extra row ids we know how to grant.
+	 *
+	 * @return string[]
+	 */
+	private static function action_slugs() {
+		$known = array();
+		foreach ( self::persona_rows() as $row ) {
+			if ( 'action' === $row['kind'] ) {
+				$known[] = $row['id'];
+			}
+		}
+		return $known;
+	}
+
+	/**
+	 * Names of abilities the agent screen can turn on or off.
+	 *
+	 * @return string[]
+	 */
+	private static function listed_ability_names() {
+		$names = array();
+		if ( ! function_exists( 'wp_get_abilities' ) ) {
+			return $names;
+		}
+		foreach ( wp_get_abilities() as $ability ) {
+			if ( Agent_Role::is_listed_ability( $ability ) ) {
+				$names[] = $ability->get_name();
+			}
+		}
+		return $names;
+	}
+
+	/**
+	 * Grant or deny the permissions behind the extra rows.
+	 *
+	 * @param int      $user_id Agent user ID.
+	 * @param string[] $actions Extra rows that are on.
+	 */
+	private static function apply_persona_caps( $user_id, array $actions ) {
+		$user = get_userdata( $user_id );
+		if ( ! $user instanceof WP_User ) {
+			return;
+		}
+		$on = array_fill_keys( $actions, true );
+		$user->add_cap( 'edit_others_posts', ! empty( $on['edit_others'] ) );
+		$user->add_cap( 'edit_others_pages', ! empty( $on['edit_others'] ) );
+		$user->add_cap( 'update_plugins', ! empty( $on['update_plugins'] ) );
+	}
+
+	/**
+	 * Persona cards and the customize groups.
+	 *
+	 * @param WP_User            $agent Agent account.
+	 * @param array<string,bool> $caps  Current publishing switches.
+	 */
+	private static function render_personas( $agent, array $caps ) {
+		$personas  = self::personas();
+		$saved     = get_user_meta( $agent->ID, self::PERSONA_META, true );
+		$persona   = is_string( $saved ) && isset( $personas[ $saved ] ) ? $saved : '';
+		$custom    = $persona && '1' === (string) get_user_meta( $agent->ID, self::PERSONA_CUSTOM_META, true );
+		$stored    = get_user_meta( $agent->ID, self::ACTIONS_META, true );
+		$actions   = is_array( $stored ) ? $stored : array();
+		$abilities = get_user_meta( $agent->ID, Agent_Role::ABILITIES_META, true );
+		$abilities = is_array( $abilities ) ? $abilities : array();
+		if ( $persona && ! $custom ) {
+			$shape     = self::site_persona_shape( $persona );
+			$caps      = $shape['caps'];
+			$actions   = $shape['actions'];
+			$abilities = $shape['abilities'];
+		}
+
+		$open = $persona && ( $custom || isset( $_GET['customize'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only screen flag.
+
+		echo '<fieldset class="ar-rf-section">';
+		echo '<legend>' . esc_html__( 'What this agent is for', 'rf-agent-role' ) . '</legend>';
+		echo '<p class="ar-rf-lede">' . esc_html__( 'Pick an Agent persona and Customize its permissions as needed.', 'rf-agent-role' ) . '</p>';
+		echo '<div class="ar-persona-grid">';
+		foreach ( $personas as $slug => $shape ) {
+			$selected = $persona === $slug;
+			$site     = self::site_persona_shape( $slug );
+			$factory  = self::factory_persona_shape( $slug );
+			echo '<label class="ar-persona' . ( $selected ? ' is-selected' : '' ) . '" style="--ar-persona:' . esc_attr( $shape['color'] ) . ';--ar-persona-soft:' . esc_attr( $shape['soft'] ) . '">';
+			echo '<input class="ar-persona__input" type="radio" name="agent_role_persona" value="' . esc_attr( $slug ) . '"';
+			echo ' data-caps="' . esc_attr( wp_json_encode( $site['caps'] ) ) . '"';
+			echo ' data-actions="' . esc_attr( wp_json_encode( $site['actions'] ) ) . '"';
+			echo ' data-abilities="' . esc_attr( wp_json_encode( $site['abilities'] ) ) . '"';
+			echo ' data-factory-caps="' . esc_attr( wp_json_encode( $factory['caps'] ) ) . '"';
+			echo ' data-factory-actions="' . esc_attr( wp_json_encode( $factory['actions'] ) ) . '"';
+			echo ' data-factory-abilities="' . esc_attr( wp_json_encode( $factory['abilities'] ) ) . '"';
+			echo ' ' . checked( $selected, true, false ) . ' />';
+			echo '<span class="ar-persona__avatar" aria-hidden="true">' . esc_html( $shape['letters'] ) . '</span>';
+			echo '<span class="ar-persona__name">' . esc_html( $shape['label'] );
+			echo '<span class="ar-persona__flag"' . ( $selected && $custom ? '' : ' hidden' ) . '>' . esc_html__( '(Customized)', 'rf-agent-role' ) . '</span>';
+			echo '</span>';
+			echo '<span class="ar-persona__text">' . esc_html( $shape['text'] ) . '</span>';
+			echo '</label>';
+		}
+		echo '</div>';
+
+		echo '<p class="ar-rf-section__tools">';
+		echo '<button type="button" class="button ar-persona__customize" id="ar-persona-customize" aria-expanded="' . ( $open ? 'true' : 'false' ) . '" aria-controls="ar-persona-adjust"' . disabled( ! $persona, true, false ) . '>';
+		echo esc_html__( 'Customize this Agent', 'rf-agent-role' );
+		echo '</button></p>';
+		echo '<input type="hidden" name="agent_role_persona_custom" id="ar-persona-custom-flag" value="' . esc_attr( $custom ? '1' : '0' ) . '" />';
+
+		echo '<div class="ar-persona-adjust" id="ar-persona-adjust"' . ( $open ? '' : ' hidden' ) . '>';
+		self::render_persona_groups( $agent, $caps, $actions, $abilities );
+		echo '<div class="ar-persona-defaults">';
+		echo '<p class="ar-rf-lede">' . esc_html__(
+			/* translators: "Save as Default", "Reset", and "Factory Reset" are button labels on this screen. */
+			'Save as Default becomes the starting permissions for this Agent persona. Reset puts this agent on your saved default. Factory Reset puts the persona back to the plugin default. Agents you already customized stay as they are.',
+			'rf-agent-role'
+		) . '</p>';
+		echo '<p class="ar-persona-defaults__actions">';
+		echo '<button type="submit" class="button" name="agent_role_persona_action" value="save_default" id="ar-persona-save-default"' . disabled( ! $persona, true, false ) . '>' . esc_html__( 'Save as Default', 'rf-agent-role' ) . '</button> ';
+		echo '<button type="submit" class="button" name="agent_role_persona_action" value="reset" id="ar-persona-reset-default"' . disabled( ! $persona, true, false ) . '>' . esc_html__( 'Reset to Default', 'rf-agent-role' ) . '</button> ';
+		echo '<button type="submit" class="button" name="agent_role_persona_action" value="factory" id="ar-persona-factory-default"' . disabled( ! $persona, true, false ) . '>' . esc_html__( 'Factory Reset', 'rf-agent-role' ) . '</button>';
+		echo '</p></div>';
+		echo '</div>';
+		echo '</fieldset>';
+	}
+
+	/**
+	 * Mapped jobs, then quieter catalog rows, then Other.
+	 *
+	 * @param WP_User            $agent     Agent account.
+	 * @param array<string,bool> $caps      Publishing switches.
+	 * @param string[]           $actions   Extra rows that are on.
+	 * @param array<string,bool> $abilities Ability map.
+	 */
+	private static function render_persona_groups( $agent, array $caps, array $actions, array $abilities ) {
+		$groups = array(
+			'create' => array(
+				'label' => _x( 'Create', 'ability group title', 'rf-agent-role' ),
+				'lede'  => __( 'Abilities related to creating new posts and post types and uploading files.', 'rf-agent-role' ),
+			),
+			'read'   => array(
+				'label' => _x( 'Read', 'ability group title', 'rf-agent-role' ),
+				'lede'  => __( 'Abilities related to reading your website information and content. Cannot make changes.', 'rf-agent-role' ),
+			),
+			'undo'   => array(
+				'label' => _x( 'Undo', 'ability group title', 'rf-agent-role' ),
+				'lede'  => __( 'Abilities related to changing things on your website that already exist.', 'rf-agent-role' ),
+			),
+			'delete' => array(
+				'label' => _x( 'Delete', 'ability group title', 'rf-agent-role' ),
+				'lede'  => __( 'Removes content.', 'rf-agent-role' ),
+			),
+			'other'  => array(
+				'label' => __( 'Other Abilities', 'rf-agent-role' ),
+				'lede'  => __( 'Abilities that cannot be easily classified and come from plugins or a theme you installed on this site.', 'rf-agent-role' ),
+			),
+		);
+
+		$mapped = array();
+		foreach ( self::persona_rows() as $row ) {
+			$mapped[ $row['group'] ][] = $row;
+		}
+
+		$catalog = self::catalog_ability_rows( $agent->ID );
+		foreach ( array( 'create', 'read', 'undo', 'delete', 'other' ) as $group ) {
+			$jobs  = isset( $mapped[ $group ] ) ? $mapped[ $group ] : array();
+			$extra = isset( $catalog[ $group ] ) ? $catalog[ $group ] : array();
+			if ( ! $jobs && ! $extra ) {
+				continue;
+			}
+
+			echo '<fieldset class="ar-persona-group' . ( 'other' === $group ? ' ar-persona-group--other' : '' ) . '">';
+			echo '<legend class="ar-persona-group__title">' . esc_html( $groups[ $group ]['label'] ) . '</legend>';
+			echo '<p class="ar-rf-lede">' . esc_html( $groups[ $group ]['lede'] ) . '</p>';
+			if ( $jobs ) {
+				echo '<div class="ar-persona-jobs">';
+				foreach ( $jobs as $row ) {
+					if ( 'ability' === $row['kind'] ) {
+						$checked = ! empty( $abilities[ $row['id'] ] );
+						$name    = 'agent_role_abilities[]';
+						if ( function_exists( 'wp_get_ability' ) ) {
+							$ability = wp_get_ability( $row['id'] );
+							if ( $ability && ! self::ability_has_permission( $agent->ID, $ability ) && '' === $row['hint'] ) {
+								$row['hint'] = __( 'This tool needs a permission this agent does not have.', 'rf-agent-role' );
+							}
+						}
+					} elseif ( 'cap' === $row['kind'] ) {
+						$checked = ! empty( $caps[ $row['id'] ] );
+						$name    = 'agent_role_caps[]';
+					} else {
+						$checked = in_array( $row['id'], $actions, true );
+						$name    = 'agent_role_actions[]';
+					}
+					self::render_persona_row( $row, $name, $checked, false );
+				}
+				echo '</div>';
+			}
+			foreach ( $extra as $source => $rows ) {
+				echo '<fieldset class="ar-persona-also">';
+				echo '<legend class="ar-persona-also__title">' . esc_html( $source ) . '</legend>';
+				echo '<div class="ar-persona-jobs">';
+				foreach ( $rows as $row ) {
+					$checked = ! empty( $abilities[ $row['id'] ] );
+					self::render_persona_row( $row, 'agent_role_abilities[]', $checked, true );
+				}
+				echo '</div>';
+				echo '</fieldset>';
+			}
+			echo '</fieldset>';
+		}
+	}
+
+	/**
+	 * Listed abilities this site registered, filed by annotation and grouped by plugin.
+	 *
+	 * @param int $user_id Agent user ID.
+	 * @return array<string,array<string,array<int,array{id:string,group:string,label:string,hint:string,kind:string}>>>
+	 */
+	private static function catalog_ability_rows( $user_id ) {
+		$catalog = array();
+		if ( ! function_exists( 'wp_get_abilities' ) ) {
+			return $catalog;
+		}
+
+		$mapped = array_fill_keys( self::mapped_ability_ids(), true );
+		foreach ( wp_get_abilities() as $ability ) {
+			if ( ! Agent_Role::is_listed_ability( $ability ) ) {
+				continue;
+			}
+			$name = $ability->get_name();
+			if ( isset( $mapped[ $name ] ) ) {
+				continue;
+			}
+			$group  = self::file_ability_group( $ability );
+			$source = self::ability_source_label( $ability );
+			$hint   = '';
+			if ( ! self::ability_has_permission( $user_id, $ability ) ) {
+				$hint = __( 'This tool needs a permission this agent does not have.', 'rf-agent-role' );
+			}
+			$catalog[ $group ][ $source ][] = array(
+				'id'    => $name,
+				'group' => $group,
+				'label' => wp_strip_all_tags( $ability->get_label() ),
+				'hint'  => $hint,
+				'kind'  => 'ability',
+			);
+		}
+
+		foreach ( $catalog as $group => $sources ) {
+			ksort( $catalog[ $group ] );
+			unset( $sources );
+		}
+
+		return $catalog;
+	}
+
+	/**
+	 * Plugin or category label for a listed ability.
+	 *
+	 * @param mixed $ability Ability instance.
+	 */
+	private static function ability_source_label( $ability ) {
+		$slug = method_exists( $ability, 'get_category' ) ? (string) $ability->get_category() : '';
+		if ( '' !== $slug && function_exists( 'wp_get_ability_category' ) ) {
+			$category = wp_get_ability_category( $slug );
+			if ( is_object( $category ) && method_exists( $category, 'get_label' ) ) {
+				$label = wp_strip_all_tags( $category->get_label() );
+				if ( '' !== $label ) {
+					return $label;
+				}
+			}
+		}
+
+		if ( '' !== $slug ) {
+			return $slug;
+		}
+
+		$name = method_exists( $ability, 'get_name' ) ? (string) $ability->get_name() : '';
+		$cut  = strpos( $name, '/' );
+		return false === $cut ? $name : substr( $name, 0, $cut );
+	}
+
+	/**
+	 * One Customize row: the label wraps the control.
+	 *
+	 * @param array{id:string,label:string,hint:string} $row     Row copy.
+	 * @param string                                    $name    Input name.
+	 * @param bool                                      $checked Whether the switch is on.
+	 * @param bool                                      $also    True for quieter catalog rows.
+	 */
+	private static function render_persona_row( array $row, $name, $checked, $also ) {
+		$safe_id = sanitize_html_class( str_replace( '/', '-', $row['id'] ) );
+		$hint_id = $row['hint'] ? 'agent-role-hint-' . $safe_id : '';
+		echo '<label class="ar-persona-row' . ( $also ? ' ar-persona-row--also' : '' ) . '">';
+		echo '<span class="ar-persona-row__copy">';
+		echo esc_html( $row['label'] );
+		if ( $row['hint'] ) {
+			echo '<small id="' . esc_attr( $hint_id ) . '" aria-hidden="true">' . esc_html( $row['hint'] ) . '</small>';
+		}
+		echo '</span>';
+		echo '<span class="ar-rf-toggle">';
+		echo '<input class="ar-rf-toggle__input" type="checkbox" name="' . esc_attr( $name ) . '" value="' . esc_attr( $row['id'] ) . '"';
+		if ( $hint_id ) {
+			echo ' aria-describedby="' . esc_attr( $hint_id ) . '"';
+		}
+		echo ' ' . checked( $checked, true, false ) . ' />';
+		echo '<span class="ar-rf-toggle__track" aria-hidden="true"></span>';
+		$toggle = self::toggle_labels();
+		echo '<span class="ar-rf-toggle__state" aria-hidden="true" data-enabled="' . esc_attr( $toggle['enabled'] ) . '" data-disabled="' . esc_attr( $toggle['disabled'] ) . '">';
+		echo esc_html( $checked ? $toggle['enabled'] : $toggle['disabled'] );
+		echo '</span>';
+		echo '</span>';
+		echo '</label>';
 	}
 }

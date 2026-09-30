@@ -263,6 +263,21 @@
 
 	bindCopy(document);
 
+	var instructionsToggle = document.getElementById('ar-instructions-toggle');
+	var instructionsPanel = document.getElementById('ar-instructions-panel');
+	if (instructionsToggle && instructionsPanel) {
+		instructionsToggle.addEventListener('click', function () {
+			var open = instructionsPanel.hasAttribute('hidden');
+			if (open) {
+				instructionsPanel.removeAttribute('hidden');
+				instructionsToggle.setAttribute('aria-expanded', 'true');
+			} else {
+				instructionsPanel.setAttribute('hidden', '');
+				instructionsToggle.setAttribute('aria-expanded', 'false');
+			}
+		});
+	}
+
 	if (window.jQuery && jQuery.fn.datepicker) {
 		var $from = jQuery('.ar-rf-date--from');
 		var $to = jQuery('.ar-rf-date--to');
@@ -317,5 +332,127 @@
 				$from.datepicker('option', 'maxDate', endDate);
 			}
 		}
+	}
+
+	var personaGrid = document.querySelector('.ar-persona-grid');
+	if (personaGrid) {
+		var adjust = document.getElementById('ar-persona-adjust');
+		var customize = document.getElementById('ar-persona-customize');
+		var customFlag = document.getElementById('ar-persona-custom-flag');
+
+		function setChecked(name, value, on) {
+			personaGrid.closest('form').querySelectorAll('input[name="' + name + '"]').forEach(function (input) {
+				if (input.value === value) {
+					input.checked = on;
+					input.dispatchEvent(new Event('change', { bubbles: true }));
+				}
+			});
+		}
+
+		function selectedInput() {
+			return personaGrid.querySelector('.ar-persona__input:checked');
+		}
+
+		function setDefaultButtons() {
+			var hasPersona = !!selectedInput();
+			['ar-persona-save-default', 'ar-persona-reset-default', 'ar-persona-factory-default'].forEach(function (id) {
+				var button = document.getElementById(id);
+				if (button) {
+					button.disabled = !hasPersona;
+				}
+			});
+			if (customize) {
+				customize.disabled = !hasPersona;
+				if (!hasPersona && adjust) {
+					adjust.setAttribute('hidden', '');
+					customize.setAttribute('aria-expanded', 'false');
+				}
+			}
+		}
+
+		function applyAbilityMap(abilities) {
+			adjust.querySelectorAll('input[name="agent_role_abilities[]"]').forEach(function (box) {
+				box.checked = !!(abilities && abilities[box.value]);
+				box.dispatchEvent(new Event('change', { bubbles: true }));
+			});
+		}
+
+		function paintCards() {
+			personaGrid.querySelectorAll('.ar-persona').forEach(function (card) {
+				var input = card.querySelector('.ar-persona__input');
+				var flag = card.querySelector('.ar-persona__flag');
+				var selected = input && input.checked;
+				card.classList.toggle('is-selected', selected);
+				if (flag) {
+					flag.hidden = !(selected && customFlag && customFlag.value === '1');
+				}
+			});
+			setDefaultButtons();
+		}
+
+		function applyShape(input, factory) {
+			var caps = {};
+			var actions = [];
+			var abilities = {};
+			var capAttr = factory ? 'data-factory-caps' : 'data-caps';
+			var actionAttr = factory ? 'data-factory-actions' : 'data-actions';
+			var abilityAttr = factory ? 'data-factory-abilities' : 'data-abilities';
+			try {
+				caps = JSON.parse(input.getAttribute(capAttr) || '{}');
+				actions = JSON.parse(input.getAttribute(actionAttr) || '[]');
+				abilities = JSON.parse(input.getAttribute(abilityAttr) || '{}');
+			} catch (error) {
+				caps = {};
+				actions = [];
+				abilities = {};
+			}
+			Object.keys(caps).forEach(function (cap) {
+				setChecked('agent_role_caps[]', cap, !!caps[cap]);
+			});
+			adjust.querySelectorAll('input[name="agent_role_actions[]"]').forEach(function (box) {
+				box.checked = actions.indexOf(box.value) !== -1;
+				box.dispatchEvent(new Event('change', { bubbles: true }));
+			});
+			applyAbilityMap(abilities);
+			if (customFlag) {
+				customFlag.value = '0';
+			}
+			paintCards();
+		}
+
+		personaGrid.querySelectorAll('.ar-persona__input').forEach(function (input) {
+			input.addEventListener('change', function () {
+				if (input.checked) {
+					applyShape(input);
+				}
+			});
+		});
+
+		if (customize && adjust) {
+			customize.addEventListener('click', function () {
+				if (customize.disabled || !selectedInput()) {
+					return;
+				}
+				var open = adjust.hasAttribute('hidden');
+				if (open) {
+					adjust.removeAttribute('hidden');
+					customize.setAttribute('aria-expanded', 'true');
+				} else {
+					adjust.setAttribute('hidden', '');
+					customize.setAttribute('aria-expanded', 'false');
+				}
+			});
+			adjust.addEventListener('change', function (event) {
+				if (!event.target || event.target.type !== 'checkbox') {
+					return;
+				}
+				if (customFlag) {
+					customFlag.value = '1';
+				}
+				paintCards();
+			});
+		}
+
+		paintCards();
 	}
 }());
