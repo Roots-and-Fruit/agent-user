@@ -171,7 +171,7 @@ class Agent_Role_Mcp {
 	public static function client_config( $username, $password ) {
 		return array(
 			'mcpServers' => array(
-				'wordpress' => array(
+				self::server_name( $username ) => array(
 					'command' => 'npx',
 					'args'    => array( '-y', '@automattic/mcp-wordpress-remote@latest' ),
 					'env'     => array(
@@ -183,5 +183,75 @@ class Agent_Role_Mcp {
 				),
 			),
 		);
+	}
+
+	/**
+	 * Server name for this site and agent. Safe in JSON and TOML.
+	 *
+	 * The host label and username are lowercased, and anything that is not a
+	 * letter or number becomes an underscore. www is dropped.
+	 *
+	 * @param string $username Agent username.
+	 */
+	public static function server_name( $username ) {
+		$host = wp_parse_url( home_url( '/' ), PHP_URL_HOST );
+		$host = is_string( $host ) ? strtolower( $host ) : '';
+		if ( 0 === strpos( $host, 'www.' ) ) {
+			$host = substr( $host, 4 );
+		}
+		$dot   = strpos( $host, '.' );
+		$label = false === $dot ? $host : substr( $host, 0, $dot );
+		$name  = self::server_token( $label ) . '_' . self::server_token( $username );
+		$name  = trim( $name, '_' );
+
+		return '' === $name ? 'site' : $name;
+	}
+
+	/**
+	 * Prompt a person pastes into their agent after creating an account.
+	 *
+	 * The password line stays a placeholder. The agent finds the config for
+	 * the app it is running in, then stops.
+	 *
+	 * @param string $username Agent username.
+	 */
+	public static function setup_prompt( $username ) {
+		return sprintf(
+			/* translators: 1: MCP server name for this site and agent, 2: MCP endpoint URL, 3: agent username. */
+			__(
+				'Add this WordPress site as an MCP server in the app you are running in now. Use that app\'s own MCP configuration. Merge this server into the existing file and keep every server that is already configured.
+
+Name the server %1$s.
+
+Use this local command and these values. Environment values are strings, so OAUTH_ENABLED is the text false. Write them in the form this app already uses for MCP servers:
+
+command: npx
+arguments: -y @automattic/mcp-wordpress-remote@latest
+WP_API_URL: %2$s
+WP_API_USERNAME: %3$s
+OAUTH_ENABLED: "false"
+WP_API_PASSWORD: PASTE_APPLICATION_PASSWORD_HERE
+
+Leave the password as the text PASTE_APPLICATION_PASSWORD_HERE. Do not replace it. Do not ask the user to paste the application password into the chat. Do not invent one. Do not repeat one if you see one. Do not open the config again after the user edits it. If the file you write is inside a repository, say so and tell the user not to commit it.
+
+After the file is saved, tell the user three things: which file you changed, that they should replace PASTE_APPLICATION_PASSWORD_HERE in that file with the application password shown in WordPress, and that they should save the file and restart the app. Stop there.',
+				'rf-agent-role'
+			),
+			self::server_name( $username ),
+			self::endpoint(),
+			$username
+		);
+	}
+
+	/**
+	 * Letters and numbers only, for a server name.
+	 *
+	 * @param string $value Raw host label or username.
+	 */
+	private static function server_token( $value ) {
+		$value = strtolower( (string) $value );
+		$value = preg_replace( '/[^a-z0-9]+/', '_', $value );
+
+		return trim( (string) $value, '_' );
 	}
 }

@@ -136,7 +136,7 @@ class Agent_Role_Admin {
 		echo '<div class="wrap ar-rf-settings">';
 		echo '<header class="ar-rf-settings__header">';
 		echo '<h1 class="ar-rf-settings__title">';
-		echo '<img class="ar-rf-settings__mark" src="' . esc_url( plugins_url( 'admin/images/rf-logo.svg', AGENT_ROLE_FILE ) ) . '" alt="" width="88" height="36" />';
+		echo '<img class="ar-rf-settings__mark" src="' . esc_url( plugins_url( 'admin/images/agent-mark.png', AGENT_ROLE_FILE ) ) . '" alt="" width="56" height="56" />';
 		echo esc_html__( 'Agent Role', 'rf-agent-role' );
 		echo '</h1>';
 		echo '<p class="ar-rf-settings__lede">' . esc_html__( 'A dedicated Agent role for your AI tools to interact with your website based on the rules you set.', 'rf-agent-role' ) . '</p>';
@@ -173,7 +173,44 @@ class Agent_Role_Admin {
 			}
 		}
 
-		echo '</div></div>';
+		echo '</div>';
+		self::render_footer();
+		echo '</div>';
+	}
+
+	/**
+	 * Sticky bar on every Agent Role screen. Link targets are placeholders.
+	 */
+	private static function render_footer() {
+		echo '<footer class="ar-rf-footer">';
+		echo '<a class="ar-rf-footer__rate" href="#">' . esc_html__( 'Like Agent Role? Give us a 5-★ Rating Here', 'rf-agent-role' ) . '</a>';
+		echo '<nav class="ar-rf-footer__links" aria-label="' . esc_attr__( 'Plugin links', 'rf-agent-role' ) . '">';
+		echo '<a href="#">' . esc_html__( 'Docs', 'rf-agent-role' ) . '</a>';
+		echo '<a href="#">' . esc_html__( 'Feedback', 'rf-agent-role' ) . '</a>';
+		echo '<a href="#">' . esc_html__( 'Support', 'rf-agent-role' ) . '</a>';
+		echo '</nav>';
+		echo '<button type="button" class="ar-rf-footer__brand" aria-expanded="false" aria-controls="ar-rf-about">';
+		echo '<img src="' . esc_url( plugins_url( 'admin/images/rf-logo.svg', AGENT_ROLE_FILE ) ) . '" alt="' . esc_attr__( 'Roots and Fruit', 'rf-agent-role' ) . '" width="120" height="53" />';
+		echo '</button>';
+		echo '</footer>';
+
+		echo '<aside id="ar-rf-about" class="ar-rf-about" hidden>';
+		echo '<p class="ar-rf-about__hello"><strong>' . esc_html__( 'Hi, I’m Matt!', 'rf-agent-role' ) . '</strong>';
+		echo '<span>' . esc_html__( 'But most folks call me Cromwell.', 'rf-agent-role' ) . '</span></p>';
+		echo '<p>' . esc_html__( 'Roots & Fruit is my digital product practice for solopreneurs and product teams: sustainable growth focused on CX and Marketing driven ROI.', 'rf-agent-role' ) . '</p>';
+		echo '<h2 class="ar-rf-about__heading">' . esc_html__( 'About Agent Role', 'rf-agent-role' ) . '</h2>';
+		echo '<p>' . esc_html__( 'Agent Role is a simple plugin designed to help you connect your agents to your WordPress website with just the right amount of abilities it needs and no more. It has three Core User Commitments:', 'rf-agent-role' ) . '</p>';
+		echo '<ol class="ar-rf-about__list">';
+		echo '<li>' . esc_html__( 'An Agent cannot sign in as a person.', 'rf-agent-role' ) . '</li>';
+		echo '<li>' . esc_html__( 'Permissions stay on that Agent’s account.', 'rf-agent-role' ) . '</li>';
+		echo '<li>' . esc_html__( 'The application password is shown once, and it is not stored.', 'rf-agent-role' ) . '</li>';
+		echo '</ol>';
+		echo '<p>' . esc_html__( 'I’m always available to chat.', 'rf-agent-role' ) . ' <a href="#">' . esc_html__( 'Here’s my comment form.', 'rf-agent-role' ) . '</a></p>';
+		echo '<div class="ar-rf-about__person">';
+		echo '<img class="ar-rf-about__photo" src="' . esc_url( plugins_url( 'admin/images/matt-cromwell.jpg', AGENT_ROLE_FILE ) ) . '" alt="" width="64" height="64" />';
+		echo '<p class="ar-rf-about__id"><strong>' . esc_html__( 'Matt Cromwell', 'rf-agent-role' ) . '</strong>';
+		echo '<span>' . esc_html__( 'Founder and CGO at Roots and Fruit', 'rf-agent-role' ) . '</span></p>';
+		echo '</div></aside>';
 	}
 
 	/**
@@ -311,11 +348,18 @@ class Agent_Role_Admin {
 		);
 
 		echo '<div class="ar-rf-panel">';
-		echo '<div class="ar-rf-toolbar">';
+		echo '<div class="ar-rf-toolbar ar-rf-activity__head">';
 		echo '<div>';
 		echo '<h2>' . esc_html__( 'Activity', 'rf-agent-role' ) . '</h2>';
 		echo '<p class="description">' . esc_html__( 'A record of agent actions and access changes.', 'rf-agent-role' ) . '</p>';
 		echo '</div>';
+		echo '</div>';
+		$count = sprintf(
+			/* translators: %d: number of visible activity rows. */
+			_n( '%d event', '%d events', count( $rows ), 'rf-agent-role' ),
+			count( $rows )
+		);
+		echo '<div class="ar-rf-activity__meta">';
 		echo '<p class="ar-rf-activity__note">' . esc_html(
 			sprintf(
 				/* translators: 1: days to keep events, 2: maximum events per agent. */
@@ -324,6 +368,7 @@ class Agent_Role_Admin {
 				Agent_Role_Log::cap()
 			)
 		) . '</p>';
+		echo '<p class="ar-rf-activity__count">' . esc_html( $count ) . '</p>';
 		echo '</div>';
 
 		echo '<form method="get" class="ar-rf-activity__filters">';
@@ -353,12 +398,6 @@ class Agent_Role_Admin {
 		echo '<span class="ar-rf-field__label" aria-hidden="true">&#160;</span>';
 		echo '<button type="submit" class="button ar-rf-filter">' . esc_html__( 'Filter', 'rf-agent-role' ) . '</button>';
 		echo '</span>';
-		$count = sprintf(
-			/* translators: %d: number of visible activity rows. */
-			_n( '%d event', '%d events', count( $rows ), 'rf-agent-role' ),
-			count( $rows )
-		);
-		echo '<p class="ar-rf-activity__count">' . esc_html( $count ) . '</p>';
 		echo '</form>';
 
 		if ( ! $rows ) {
@@ -454,7 +493,7 @@ class Agent_Role_Admin {
 
 		if ( $agents ) {
 			echo '<table class="widefat ar-rf-table"><thead><tr>';
-			echo '<th>' . esc_html__( 'User', 'rf-agent-role' ) . '</th>';
+			echo '<th>' . esc_html__( 'Agent', 'rf-agent-role' ) . '</th>';
 			echo '<th>' . esc_html__( 'Application password', 'rf-agent-role' ) . '</th>';
 			echo '<th>' . esc_html__( 'MCP info', 'rf-agent-role' ) . '</th>';
 			echo '</tr></thead><tbody>';
@@ -474,7 +513,10 @@ class Agent_Role_Admin {
 					wp_nonce_field( 'agent_role_revoke_' . (int) $agent_user->ID );
 					echo '<input type="hidden" name="action" value="agent_role_revoke" />';
 					echo '<input type="hidden" name="user_id" value="' . esc_attr( (string) $agent_user->ID ) . '" />';
-					echo '<button type="submit" class="button-link">' . esc_html__( 'Revoke', 'rf-agent-role' ) . '</button>';
+					echo '<button type="submit" class="button-link ar-rf-revoke">';
+					echo self::circle_x_icon(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- SVG is escaped in circle_x_icon().
+					echo esc_html__( 'Revoke', 'rf-agent-role' );
+					echo '</button>';
 					echo '</form>';
 				} else {
 					$reissue_url = wp_nonce_url(
@@ -502,18 +544,12 @@ class Agent_Role_Admin {
 					echo '</p>';
 				} else {
 					$template_id = 'ar-mcp-' . (int) $agent_user->ID;
-					$mcp_json    = (string) wp_json_encode(
-						Agent_Role_Mcp::client_config( $agent_user->user_login, Agent_Role_Mcp::PASSWORD_PLACEHOLDER ),
-						JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES
-					);
-					echo '<span class="ar-rf-mcp-actions">';
-					echo '<button type="button" class="ar-rf-mcp-view" data-template="' . esc_attr( $template_id ) . '">' . esc_html__( 'View', 'rf-agent-role' ) . '</button>';
-					echo '<button type="button" class="ar-rf-mcp-copy" data-copy="' . esc_attr( $mcp_json ) . '" aria-label="' . esc_attr__( 'Copy MCP info', 'rf-agent-role' ) . '">';
-					echo self::clipboard_icon(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- SVG is escaped in clipboard_icon().
-					echo '<span class="ar-rf-mcp-copy__status" aria-live="polite"></span>';
-					echo '</button></span>';
+					echo '<button type="button" class="ar-rf-mcp-view" data-template="' . esc_attr( $template_id ) . '">';
+					echo self::eye_icon(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- SVG is escaped in eye_icon().
+					echo esc_html__( 'View', 'rf-agent-role' );
+					echo '</button>';
 					echo '<template id="' . esc_attr( $template_id ) . '">';
-					self::render_mcp_preview( $agent_user, $mcp_json );
+					self::render_mcp_preview( $agent_user );
 					echo '</template>';
 				}
 				echo '</td></tr>';
@@ -561,19 +597,16 @@ class Agent_Role_Admin {
 	}
 
 	/**
-	 * MCP connection details without the stored application password.
+	 * Prompt for an agent that already exists. The password is not stored.
 	 *
 	 * @param WP_User $agent Agent account.
-	 * @param string  $json  Client config that uses a password placeholder.
 	 */
-	private static function render_mcp_preview( $agent, $json ) {
+	private static function render_mcp_preview( $agent ) {
 		echo '<h2>' . esc_html__( 'MCP info', 'rf-agent-role' ) . '</h2>';
-		echo '<p>' . esc_html__( 'The application password is not stored. Replace the placeholder with the password you saved when this agent was created.', 'rf-agent-role' ) . '</p>';
-		self::render_copy_row( __( 'Site URL', 'rf-agent-role' ), home_url( '/' ) );
-		self::render_copy_row( __( 'Username', 'rf-agent-role' ), $agent->user_login );
-		self::render_copy_row( __( 'Application password', 'rf-agent-role' ), Agent_Role_Mcp::PASSWORD_PLACEHOLDER );
-		self::render_copy_row( __( 'MCP endpoint', 'rf-agent-role' ), Agent_Role_Mcp::endpoint() );
-		self::render_code_block( __( 'Client config', 'rf-agent-role' ), $json );
+		echo '<p>' . esc_html__( 'Paste this prompt into your agent. It will add this site and leave a line for the password.', 'rf-agent-role' ) . '</p>';
+		self::render_agent_prompt( $agent->user_login );
+		echo '<p class="ar-rf-code-label">' . esc_html__( 'Application password', 'rf-agent-role' ) . '</p>';
+		echo '<p>' . esc_html__( 'You were provided the application password when you first created this agent. It is shown only that one time for security. If you no longer have that password, you\'ll need to revoke this one and create a new one. Save that password securely and ask your agent where it should be saved in your project.', 'rf-agent-role' ) . '</p>';
 		echo '<p class="ar-rf-modal__actions"><button type="submit" class="button button-primary" value="close">' . esc_html__( 'Close', 'rf-agent-role' ) . '</button></p>';
 	}
 
@@ -587,11 +620,20 @@ class Agent_Role_Admin {
 	}
 
 	/**
-	 * Clipboard icon for copying MCP info from the list.
+	 * Circle with an x, for revoking an application password.
 	 */
-	private static function clipboard_icon() {
+	private static function circle_x_icon() {
 		return self::kses_icon(
-			'<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="ar-rf-mcp-copy__icon" aria-hidden="true" focusable="false"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg>'
+			'<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="ar-rf-link-icon" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg>'
+		);
+	}
+
+	/**
+	 * Eye, for opening the MCP prompt.
+	 */
+	private static function eye_icon() {
+		return self::kses_icon(
+			'<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="ar-rf-link-icon" aria-hidden="true" focusable="false"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/></svg>'
 		);
 	}
 
@@ -872,11 +914,16 @@ class Agent_Role_Admin {
 	 */
 	private static function render_credentials_body( $agent, $password ) {
 		echo '<h2>' . esc_html__( 'Agent connected', 'rf-agent-role' ) . '</h2>';
-		echo '<p>' . esc_html__( 'Copy these now. They will not be shown again.', 'rf-agent-role' ) . '</p>';
-		self::render_copy_row( __( 'Site URL', 'rf-agent-role' ), home_url( '/' ) );
-		self::render_copy_row( __( 'Username', 'rf-agent-role' ), $agent->user_login );
-		self::render_copy_row( __( 'Application password', 'rf-agent-role' ), $password );
-		self::render_mcp_config( $agent->user_login, $password );
+		if ( Agent_Role_Mcp::is_available() ) {
+			echo '<p>' . esc_html__( 'Paste the prompt into your agent. It will set up MCP and tell you where to put this password. The password is shown once.', 'rf-agent-role' ) . '</p>';
+			self::render_agent_prompt( $agent->user_login );
+			self::render_copy_row( __( 'Application password', 'rf-agent-role' ), $password );
+		} else {
+			echo '<p>' . esc_html__( 'Copy these now. They will not be shown again.', 'rf-agent-role' ) . '</p>';
+			self::render_copy_row( __( 'Site URL', 'rf-agent-role' ), home_url( '/' ) );
+			self::render_copy_row( __( 'Username', 'rf-agent-role' ), $agent->user_login );
+			self::render_copy_row( __( 'Application password', 'rf-agent-role' ), $password );
+		}
 		echo '<p class="ar-rf-modal__actions"><button type="submit" class="button button-primary" value="close">' . esc_html__( 'Close', 'rf-agent-role' ) . '</button></p>';
 	}
 
@@ -1148,21 +1195,29 @@ class Agent_Role_Admin {
 	/**
 	 * Client config in the CDS code block.
 	 *
-	 * @param string $label Visible name.
-	 * @param string $code  Text to show and copy.
+	 * @param string $label      Visible name.
+	 * @param string $code       Text to show and copy.
+	 * @param string $lang       Language badge. Defaults to JSON.
+	 * @param string $copy_label Accessible name for the copy button.
 	 */
-	private static function render_code_block( $label, $code ) {
+	private static function render_code_block( $label, $code, $lang = '', $copy_label = '' ) {
+		if ( '' === $lang ) {
+			$lang = __( 'JSON', 'rf-agent-role' );
+		}
+		if ( '' === $copy_label ) {
+			$copy_label = __( 'Copy client config', 'rf-agent-role' );
+		}
 		echo '<p class="ar-rf-code-label">' . esc_html( $label ) . '</p>';
 		echo '<div class="rf-code">';
 		echo '<div class="rf-code__chrome">';
 		echo '<div class="rf-code__dots" aria-hidden="true"><span></span><span></span><span></span></div>';
-		echo '<button type="button" class="rf-code__copy" aria-label="' . esc_attr__( 'Copy client config', 'rf-agent-role' ) . '">';
+		echo '<button type="button" class="rf-code__copy" aria-label="' . esc_attr( $copy_label ) . '">';
 		echo self::kses_icon( // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- SVG is escaped in kses_icon().
 			'<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true" focusable="false"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 8.25V6A2.25 2.25 0 0014.25 3.75H6A2.25 2.25 0 003.75 6v8.25A2.25 2.25 0 006 16.5h2.25m8.25-8.25H18A2.25 2.25 0 0120.25 10.5V18A2.25 2.25 0 0118 20.25h-7.5A2.25 2.25 0 018.25 18v-1.5m8.25-8.25h-6A2.25 2.25 0 008.25 10.5v6"/></svg>'
 		);
 		echo '</button></div>';
 		echo '<pre class="rf-code__body"><code>' . esc_html( $code ) . '</code></pre>';
-		echo '<span class="rf-code__lang">' . esc_html__( 'JSON', 'rf-agent-role' ) . '</span>';
+		echo '<span class="rf-code__lang">' . esc_html( $lang ) . '</span>';
 		echo '</div>';
 	}
 
@@ -1181,20 +1236,17 @@ class Agent_Role_Admin {
 	}
 
 	/**
-	 * MCP endpoint and client config, shown only with the one-time password.
+	 * Copyable setup prompt for one agent username.
 	 *
 	 * @param string $username Agent username.
-	 * @param string $password Application password.
 	 */
-	private static function render_mcp_config( $username, $password ) {
-		if ( ! Agent_Role_Mcp::is_available() ) {
-			return;
-		}
-
-		$json = wp_json_encode( Agent_Role_Mcp::client_config( $username, $password ), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES );
-
-		self::render_copy_row( __( 'MCP endpoint', 'rf-agent-role' ), Agent_Role_Mcp::endpoint() );
-		self::render_code_block( __( 'Client config', 'rf-agent-role' ), (string) $json );
+	private static function render_agent_prompt( $username ) {
+		self::render_code_block(
+			__( 'Prompt for your Agent', 'rf-agent-role' ),
+			Agent_Role_Mcp::setup_prompt( $username ),
+			__( 'Text', 'rf-agent-role' ),
+			__( 'Copy prompt', 'rf-agent-role' )
+		);
 	}
 
 	/**

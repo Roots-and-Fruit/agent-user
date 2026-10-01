@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.7.0] - 2026-10-01
+
+### Changed
+
+- After you create an agent, the window shows a prompt to paste into that agent, and the application password beside it. The prompt adds this site as its own MCP server, named for the site and that username, and leaves a placeholder so the password stays out of the chat.
+- View on the Agents list opens that same prompt and explains that the password was shown only once, when the agent was created. The list no longer has its own copy button.
+- Agents, Settings, and Activity share a white header with the agent mark, and a footer with a rating link, Docs, Feedback, and Support. The Roots and Fruit logo opens a short note about the project and the limits on an Agent account.
+- Folder tabs leave room for the label. On the Agents list, links are underlined, the first column is Agent, Revoke is rust red, and View has an eye.
+- On Activity, the filters stay on one line. How long events are kept, and how many there are, sit together under the description.
+
 ## [1.6.0] - 2026-09-30
 
 ### Changed
@@ -87,7 +97,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - First release.
 
-[Unreleased]: https://github.com/Roots-and-Fruit/agent-user/compare/v1.6.0...HEAD
+[Unreleased]: https://github.com/Roots-and-Fruit/agent-user/compare/v1.7.0...HEAD
+[1.7.0]: https://github.com/Roots-and-Fruit/agent-user/compare/v1.6.0...v1.7.0
 [1.6.0]: https://github.com/Roots-and-Fruit/agent-user/compare/v1.5.0...v1.6.0
 [1.5.0]: https://github.com/Roots-and-Fruit/agent-user/compare/v1.4.0...v1.5.0
 [1.4.0]: https://github.com/Roots-and-Fruit/agent-user/compare/v1.3.0...v1.4.0

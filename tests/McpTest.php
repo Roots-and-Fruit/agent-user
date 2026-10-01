@@ -102,7 +102,7 @@ class McpTest extends TestCase {
 		$this->assertArrayNotHasKey( Agent_Role_Mcp::CAP, get_userdata( $agent )->caps );
 	}
 
-	public function test_client_config_is_shown_once_with_the_password(): void {
+	public function test_create_window_shows_a_prompt_and_the_password_once(): void {
 		$admin = $this->make_user( 'administrator' );
 		wp_set_current_user( $admin );
 
@@ -116,15 +116,25 @@ class McpTest extends TestCase {
 
 		$html = $this->render_created( $admin, $user->ID );
 
+		$this->assertStringContainsString( 'Prompt for your Agent', $html );
+		$this->assertStringContainsString( Agent_Role_Mcp::server_name( $user->user_login ), $html );
 		$this->assertStringContainsString( Agent_Role_Mcp::endpoint(), $html );
 		$this->assertStringContainsString( '@automattic/mcp-wordpress-remote@latest', $html );
-		$this->assertStringContainsString( '&quot;WP_API_USERNAME&quot;: &quot;' . $user->user_login . '&quot;', $html );
-		$this->assertStringContainsString( '&quot;WP_API_PASSWORD&quot;: &quot;' . $expected . '&quot;', $html );
-		$this->assertSame( 2, substr_count( $html, $expected ) );
+		$this->assertStringContainsString( 'PASTE_APPLICATION_PASSWORD_HERE', $html );
+		$this->assertStringContainsString( 'Merge this server into the existing file', $html );
+		$this->assertStringNotContainsString( 'claude_desktop_config.json', $html );
+		$this->assertStringNotContainsString( '.cursor/mcp.json', $html );
+		$this->assertStringNotContainsString( 'config.toml', $html );
+		$this->assertStringNotContainsString( $expected, Agent_Role_Mcp::setup_prompt( $user->user_login ) );
+		$this->assertSame( 1, substr_count( $html, $expected ) );
 
 		$again = $this->render_created( $admin, $user->ID );
 		$this->assertStringNotContainsString( $expected, $again );
-		$this->assertStringContainsString( Agent_Role_Mcp::PASSWORD_PLACEHOLDER, $again );
+		$this->assertStringContainsString( 'Prompt for your Agent', $again );
+		$this->assertStringContainsString( 'Save that password securely', $again );
+		$this->assertStringNotContainsString( Agent_Role_Mcp::PASSWORD_PLACEHOLDER, $again );
+		$this->assertStringNotContainsString( 'ar-rf-mcp-copy', $html );
+		$this->assertStringNotContainsString( 'Copy MCP info', $html );
 	}
 
 	public function test_the_mcp_option_is_a_registered_boolean_setting(): void {

@@ -158,34 +158,6 @@
 		});
 	});
 
-	document.querySelectorAll('.ar-rf-mcp-copy').forEach(function (button) {
-		button.addEventListener('click', function () {
-			var text = button.getAttribute('data-copy') || '';
-			var status = button.querySelector('.ar-rf-mcp-copy__status');
-			var done = function () {
-				if (status) {
-					status.textContent = (window.agentRoleAdmin && agentRoleAdmin.copied) || 'Copied';
-				}
-				window.setTimeout(function () {
-					if (status) {
-						status.textContent = '';
-					}
-				}, 1600);
-			};
-			if (navigator.clipboard && navigator.clipboard.writeText) {
-				navigator.clipboard.writeText(text).then(done);
-				return;
-			}
-			var area = document.createElement('textarea');
-			area.value = text;
-			document.body.appendChild(area);
-			area.select();
-			document.execCommand('copy');
-			document.body.removeChild(area);
-			done();
-		});
-	});
-
 	document.querySelectorAll('.ar-rf-toggle__input').forEach(function (input) {
 		var state = input.parentElement.querySelector('.ar-rf-toggle__state');
 		if (!state) {
@@ -560,5 +532,28 @@
 		}
 
 		paintCards();
+	}
+
+	var brand = document.querySelector('.ar-rf-footer__brand');
+	var about = document.getElementById('ar-rf-about');
+	if (brand && about) {
+		function setAbout(open) {
+			about.hidden = !open;
+			brand.setAttribute('aria-expanded', open ? 'true' : 'false');
+		}
+		brand.addEventListener('click', function () {
+			setAbout(about.hidden);
+		});
+		document.addEventListener('keydown', function (event) {
+			if (event.key === 'Escape' && !about.hidden) {
+				setAbout(false);
+				brand.focus();
+			}
+		});
+		document.querySelectorAll('.ar-rf-footer a[href="#"], .ar-rf-about a[href="#"]').forEach(function (link) {
+			link.addEventListener('click', function (event) {
+				event.preventDefault();
+			});
+		});
 	}
 }());

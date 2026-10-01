@@ -3,7 +3,7 @@ Contributors: webdevmattcrom
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.6.0
+Stable tag: 1.7.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 Tags: users, roles, rest-api
@@ -39,6 +39,17 @@ Yes, and the adapter is optional. When it is active, the agent list can show the
 The role stays, so existing Agent accounts keep their capabilities. The login blocks are removed with the plugin. Uninstalling the plugin removes the role, the application passwords it created, and the activity log. It does not delete the users.
 
 == Changelog ==
+
+= 1.7.0 =
+Released 2026-10-01.
+
+**Changed**
+
+* After you create an agent, the window shows a prompt to paste into that agent, and the application password beside it. The prompt adds this site as its own MCP server, named for the site and that username, and leaves a placeholder so the password stays out of the chat.
+* View on the Agents list opens that same prompt and explains that the password was shown only once, when the agent was created. The list no longer has its own copy button.
+* Agents, Settings, and Activity share a white header with the agent mark, and a footer with a rating link, Docs, Feedback, and Support. The Roots and Fruit logo opens a short note about the project and the limits on an Agent account.
+* Folder tabs leave room for the label. On the Agents list, links are underlined, the first column is Agent, Revoke is rust red, and View has an eye.
+* On Activity, the filters stay on one line. How long events are kept, and how many there are, sit together under the description.
 
 = 1.6.0 =
 Released 2026-09-30.
@@ -128,6 +139,9 @@ Released 2026-09-28.
 * First release.
 
 == Upgrade Notice ==
+
+= 1.7.0 =
+Creating an agent now gives you a prompt to paste into that agent, and the password once. A footer on each screen opens a short note about the project.
 
 = 1.6.0 =
 Each persona starts with its own connection instructions. The agent header shows a sparkle mark, the username, and the persona.
