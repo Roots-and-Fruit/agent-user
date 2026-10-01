@@ -421,6 +421,38 @@ class Agent_Role_Account {
 	}
 
 	/**
+	 * Delete a managed Agent account.
+	 *
+	 * @param int $user_id Agent user ID.
+	 * @return true|WP_Error
+	 */
+	public static function delete_agent( $user_id ) {
+		$user = get_userdata( $user_id );
+		if ( ! $user instanceof WP_User || ! Agent_Role::is_agent( $user ) ) {
+			return new WP_Error(
+				'agent_role_not_agent',
+				__( 'That user is not an Agent.', 'agent-role' )
+			);
+		}
+
+		if ( ! get_user_meta( $user_id, self::META, true ) ) {
+			return new WP_Error(
+				'agent_role_not_managed',
+				__( 'That agent account was not created by Agent Role.', 'agent-role' )
+			);
+		}
+
+		if ( ! wp_delete_user( $user_id ) ) {
+			return new WP_Error(
+				'agent_role_delete_failed',
+				__( 'That agent could not be deleted.', 'agent-role' )
+			);
+		}
+
+		return true;
+	}
+
+	/**
 	 * The application password this plugin created, if any.
 	 *
 	 * @param int $user_id Agent user ID.

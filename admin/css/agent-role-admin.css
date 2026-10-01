@@ -725,6 +725,7 @@
 }
 
 .ar-rf-settings table.widefat.ar-rf-table .ar-rf-revoke,
+.ar-rf-settings table.widefat.ar-rf-table .ar-rf-delete,
 .ar-rf-settings table.widefat.ar-rf-table .ar-rf-mcp-view {
 	display: inline-flex;
 	align-items: center;
@@ -734,6 +735,12 @@
 .ar-rf-settings table.widefat.ar-rf-table .ar-rf-revoke,
 .ar-rf-settings table.widefat.ar-rf-table .ar-rf-revoke:hover,
 .ar-rf-settings table.widefat.ar-rf-table .ar-rf-revoke:focus {
+	color: var(--rf-ink-muted);
+}
+
+.ar-rf-settings table.widefat.ar-rf-table .ar-rf-delete,
+.ar-rf-settings table.widefat.ar-rf-table .ar-rf-delete:hover,
+.ar-rf-settings table.widefat.ar-rf-table .ar-rf-delete:focus {
 	color: var(--rf-danger);
 }
 

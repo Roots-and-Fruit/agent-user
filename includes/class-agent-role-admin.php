@@ -21,6 +21,7 @@ class Agent_Role_Admin {
 		add_action( 'admin_menu', array( __CLASS__, 'menu' ) );
 		add_action( 'admin_post_agent_role_add_agent', array( __CLASS__, 'handle_add' ) );
 		add_action( 'admin_post_agent_role_revoke', array( __CLASS__, 'handle_revoke' ) );
+		add_action( 'admin_post_agent_role_delete', array( __CLASS__, 'handle_delete' ) );
 		add_action( 'admin_post_agent_role_reissue', array( __CLASS__, 'handle_reissue' ) );
 		add_action( 'admin_post_agent_role_log_setting', array( __CLASS__, 'handle_log_setting' ) );
 		add_action( 'admin_post_agent_role_save_agent', array( __CLASS__, 'handle_save_agent' ) );
@@ -496,6 +497,7 @@ class Agent_Role_Admin {
 			echo '<th>' . esc_html__( 'Agent', 'agent-role' ) . '</th>';
 			echo '<th>' . esc_html__( 'Application password', 'agent-role' ) . '</th>';
 			echo '<th>' . esc_html__( 'MCP info', 'agent-role' ) . '</th>';
+			echo '<th>' . esc_html__( 'Delete', 'agent-role' ) . '</th>';
 			echo '</tr></thead><tbody>';
 			foreach ( $agents as $agent_user ) {
 				$has_password = (bool) Agent_Role_Account::managed_password( $agent_user->ID );
@@ -514,7 +516,7 @@ class Agent_Role_Admin {
 					echo '<input type="hidden" name="action" value="agent_role_revoke" />';
 					echo '<input type="hidden" name="user_id" value="' . esc_attr( (string) $agent_user->ID ) . '" />';
 					echo '<button type="submit" class="button-link ar-rf-revoke">';
-					echo self::circle_x_icon(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- SVG is escaped in circle_x_icon().
+					echo self::undo_icon(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- SVG is escaped in undo_icon().
 					echo esc_html__( 'Revoke', 'agent-role' );
 					echo '</button>';
 					echo '</form>';
@@ -552,6 +554,21 @@ class Agent_Role_Admin {
 					self::render_mcp_preview( $agent_user );
 					echo '</template>';
 				}
+				echo '</td><td>';
+				$delete_prompt = sprintf(
+					/* translators: %s: agent display name. */
+					__( 'Delete the agent %s? This cannot be undone.', 'agent-role' ),
+					$agent_user->display_name
+				);
+				echo '<form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '" class="ar-rf-inline-form">';
+				wp_nonce_field( 'agent_role_delete_' . (int) $agent_user->ID );
+				echo '<input type="hidden" name="action" value="agent_role_delete" />';
+				echo '<input type="hidden" name="user_id" value="' . esc_attr( (string) $agent_user->ID ) . '" />';
+				echo '<button type="submit" class="button-link ar-rf-delete" onclick="return confirm(\'' . esc_js( $delete_prompt ) . '\');">';
+				echo self::circle_x_icon(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- SVG is escaped in circle_x_icon().
+				echo esc_html__( 'Delete', 'agent-role' );
+				echo '</button>';
+				echo '</form>';
 				echo '</td></tr>';
 			}
 			echo '</tbody></table>';
@@ -620,7 +637,16 @@ class Agent_Role_Admin {
 	}
 
 	/**
-	 * Circle with an x, for revoking an application password.
+	 * Undo arrow, for revoking an application password.
+	 */
+	private static function undo_icon() {
+		return self::kses_icon(
+			'<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="ar-rf-link-icon" aria-hidden="true" focusable="false"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/></svg>'
+		);
+	}
+
+	/**
+	 * Circle with an x, for deleting an agent account.
 	 */
 	private static function circle_x_icon() {
 		return self::kses_icon(
@@ -1345,6 +1371,23 @@ class Agent_Role_Admin {
 		check_admin_referer( 'agent_role_revoke_' . $user_id );
 
 		$result = Agent_Role_Account::revoke( $user_id );
+		if ( is_wp_error( $result ) ) {
+			set_transient( 'agent_role_notice_' . get_current_user_id(), $result->get_error_message(), 60 );
+		}
+
+		wp_safe_redirect( admin_url( 'users.php?page=agent-role' ) );
+		exit;
+	}
+
+	/**
+	 * Delete a managed Agent account.
+	 */
+	public static function handle_delete() {
+		self::require_manage_options();
+		$user_id = isset( $_REQUEST['user_id'] ) ? absint( wp_unslash( $_REQUEST['user_id'] ) ) : 0;
+		check_admin_referer( 'agent_role_delete_' . $user_id );
+
+		$result = Agent_Role_Account::delete_agent( $user_id );
 		if ( is_wp_error( $result ) ) {
 			set_transient( 'agent_role_notice_' . get_current_user_id(), $result->get_error_message(), 60 );
 		}

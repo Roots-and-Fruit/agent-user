@@ -7,9 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- The Agents list has a Delete column. Delete asks for confirmation, then removes the agent account. Activity keeps a record that the account was deleted.
+
 ### Changed
 
 - Agent Role screens ship Domine and Nunito Sans in the plugin. Headings use Domine Bold. Body text uses Nunito Sans. The stylesheet no longer loads fonts from rootsandfruit.com.
+- Revoke on the Agents list uses a grey undo icon instead of a red X.
 
 ## [1.8.0] - 2026-10-01
 
