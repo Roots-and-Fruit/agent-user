@@ -3,7 +3,7 @@ Contributors: webdevmattcrom
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.7.0
+Stable tag: 1.8.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 Tags: users, roles, rest-api
@@ -39,6 +39,13 @@ Yes, and the adapter is optional. When it is active, the agent list can show the
 The role stays, so existing Agent accounts keep their capabilities. The login blocks are removed with the plugin. Uninstalling the plugin removes the role, the application passwords it created, and the activity log. It does not delete the users.
 
 == Changelog ==
+
+= 1.8.0 =
+Released 2026-10-01.
+
+**Changed**
+
+* **Breaking:** The text domain is `agent-role`, the same as the plugin directory. Language packs attach under that slug.
 
 = 1.7.0 =
 Released 2026-10-01.
@@ -139,6 +146,9 @@ Released 2026-09-28.
 * First release.
 
 == Upgrade Notice ==
+
+= 1.8.0 =
+The text domain is now agent-role, matching the plugin folder. Custom language files named for rf-agent-role need to use the new domain.
 
 = 1.7.0 =
 Creating an agent now gives you a prompt to paste into that agent, and the password once. A footer on each screen opens a short note about the project.
