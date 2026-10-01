@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Agent Role screens ship Domine and Nunito Sans in the plugin. Headings use Domine Bold. Body text uses Nunito Sans. The stylesheet no longer loads fonts from rootsandfruit.com.
+
 ## [1.8.0] - 2026-10-01
 
 ### Changed
