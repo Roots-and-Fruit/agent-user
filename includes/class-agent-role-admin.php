@@ -46,7 +46,7 @@ class Agent_Role_Admin {
 		echo '<p>' . esc_html__(
 			/* translators: "Users" and "Agents" are WordPress admin menu labels. */
 			'To give an agent access to this site, create an Agent under Users → Agents.',
-			'rf-agent-role'
+			'agent-role'
 		) . '</p>';
 	}
 
@@ -55,8 +55,8 @@ class Agent_Role_Admin {
 	 */
 	public static function menu() {
 		add_users_page(
-			__( 'Agent Role', 'rf-agent-role' ),
-			__( 'Agents', 'rf-agent-role' ),
+			__( 'Agent Role', 'agent-role' ),
+			__( 'Agents', 'agent-role' ),
 			'manage_options',
 			'agent-role',
 			array( __CLASS__, 'render' )
@@ -99,17 +99,17 @@ class Agent_Role_Admin {
 			'agentRoleAdmin',
 			array(
 				/* translators: Shown on a Copy button after the value is copied. */
-				'copied'     => __( 'Copied', 'rf-agent-role' ),
+				'copied'     => __( 'Copied', 'agent-role' ),
 				'ajaxUrl'    => admin_url( 'admin-ajax.php' ),
 				'nonce'      => wp_create_nonce( 'agent_role_add_agent' ),
 				'draftNonce' => wp_create_nonce( 'agent_role_draft_instructions' ),
 				'resetNonce' => wp_create_nonce( 'agent_role_reset_instructions' ),
-				'drafting'   => __( 'Writing instructions…', 'rf-agent-role' ),
+				'drafting'   => __( 'Writing instructions…', 'agent-role' ),
 				/* translators: "Update Agent" is the primary submit button on this screen. */
-				'draftDone'  => __( 'Draft is in the box. Click "Update Agent" to save it.', 'rf-agent-role' ),
-				'resetting'  => __( 'Loading this persona’s default instructions…', 'rf-agent-role' ),
+				'draftDone'  => __( 'Draft is in the box. Click "Update Agent" to save it.', 'agent-role' ),
+				'resetting'  => __( 'Loading this persona’s default instructions…', 'agent-role' ),
 				/* translators: "Update Agent" is the primary submit button on this screen. */
-				'resetDone'  => __( 'This persona’s default instructions are in the box. Click "Update Agent" to save them.', 'rf-agent-role' ),
+				'resetDone'  => __( 'This persona’s default instructions are in the box. Click "Update Agent" to save them.', 'agent-role' ),
 				'logDates'   => Agent_Role_Log::logged_dates(),
 			)
 		);
@@ -137,9 +137,9 @@ class Agent_Role_Admin {
 		echo '<header class="ar-rf-settings__header">';
 		echo '<h1 class="ar-rf-settings__title">';
 		echo '<img class="ar-rf-settings__mark" src="' . esc_url( plugins_url( 'admin/images/agent-mark.png', AGENT_ROLE_FILE ) ) . '" alt="" width="56" height="56" />';
-		echo esc_html__( 'Agent Role', 'rf-agent-role' );
+		echo esc_html__( 'Agent Role', 'agent-role' );
 		echo '</h1>';
-		echo '<p class="ar-rf-settings__lede">' . esc_html__( 'A dedicated Agent role for your AI tools to interact with your website based on the rules you set.', 'rf-agent-role' ) . '</p>';
+		echo '<p class="ar-rf-settings__lede">' . esc_html__( 'A dedicated Agent role for your AI tools to interact with your website based on the rules you set.', 'agent-role' ) . '</p>';
 		echo '</header>';
 		// WordPress moves .notice elements to after this marker, under the heading.
 		echo '<hr class="wp-header-end" />';
@@ -154,7 +154,7 @@ class Agent_Role_Admin {
 			self::render_agent_screen( $detail );
 		} else {
 			if ( false === $detail ) {
-				echo '<div class="notice notice-error"><p>' . esc_html__( 'That user is not an Agent.', 'rf-agent-role' ) . '</p></div>';
+				echo '<div class="notice notice-error"><p>' . esc_html__( 'That user is not an Agent.', 'agent-role' ) . '</p></div>';
 			}
 			$tab = self::current_tab();
 			echo '<div class="rf-tabs">';
@@ -183,33 +183,33 @@ class Agent_Role_Admin {
 	 */
 	private static function render_footer() {
 		echo '<footer class="ar-rf-footer">';
-		echo '<a class="ar-rf-footer__rate" href="#">' . esc_html__( 'Like Agent Role? Give us a 5-★ Rating Here', 'rf-agent-role' ) . '</a>';
-		echo '<nav class="ar-rf-footer__links" aria-label="' . esc_attr__( 'Plugin links', 'rf-agent-role' ) . '">';
-		echo '<a href="#">' . esc_html__( 'Docs', 'rf-agent-role' ) . '</a>';
-		echo '<a href="#">' . esc_html__( 'Feedback', 'rf-agent-role' ) . '</a>';
-		echo '<a href="#">' . esc_html__( 'Support', 'rf-agent-role' ) . '</a>';
+		echo '<a class="ar-rf-footer__rate" href="#">' . esc_html__( 'Like Agent Role? Give us a 5-★ Rating Here', 'agent-role' ) . '</a>';
+		echo '<nav class="ar-rf-footer__links" aria-label="' . esc_attr__( 'Plugin links', 'agent-role' ) . '">';
+		echo '<a href="#">' . esc_html__( 'Docs', 'agent-role' ) . '</a>';
+		echo '<a href="#">' . esc_html__( 'Feedback', 'agent-role' ) . '</a>';
+		echo '<a href="#">' . esc_html__( 'Support', 'agent-role' ) . '</a>';
 		echo '</nav>';
 		echo '<button type="button" class="ar-rf-footer__brand" aria-expanded="false" aria-controls="ar-rf-about">';
-		echo '<img src="' . esc_url( plugins_url( 'admin/images/rf-logo.svg', AGENT_ROLE_FILE ) ) . '" alt="' . esc_attr__( 'Roots and Fruit', 'rf-agent-role' ) . '" width="120" height="53" />';
+		echo '<img src="' . esc_url( plugins_url( 'admin/images/rf-logo.svg', AGENT_ROLE_FILE ) ) . '" alt="' . esc_attr__( 'Roots and Fruit', 'agent-role' ) . '" width="120" height="53" />';
 		echo '</button>';
 		echo '</footer>';
 
 		echo '<aside id="ar-rf-about" class="ar-rf-about" hidden>';
-		echo '<p class="ar-rf-about__hello"><strong>' . esc_html__( 'Hi, I’m Matt!', 'rf-agent-role' ) . '</strong>';
-		echo '<span>' . esc_html__( 'But most folks call me Cromwell.', 'rf-agent-role' ) . '</span></p>';
-		echo '<p>' . esc_html__( 'Roots & Fruit is my digital product practice for solopreneurs and product teams: sustainable growth focused on CX and Marketing driven ROI.', 'rf-agent-role' ) . '</p>';
-		echo '<h2 class="ar-rf-about__heading">' . esc_html__( 'About Agent Role', 'rf-agent-role' ) . '</h2>';
-		echo '<p>' . esc_html__( 'Agent Role is a simple plugin designed to help you connect your agents to your WordPress website with just the right amount of abilities it needs and no more. It has three Core User Commitments:', 'rf-agent-role' ) . '</p>';
+		echo '<p class="ar-rf-about__hello"><strong>' . esc_html__( 'Hi, I’m Matt!', 'agent-role' ) . '</strong>';
+		echo '<span>' . esc_html__( 'But most folks call me Cromwell.', 'agent-role' ) . '</span></p>';
+		echo '<p>' . esc_html__( 'Roots & Fruit is my digital product practice for solopreneurs and product teams: sustainable growth focused on CX and Marketing driven ROI.', 'agent-role' ) . '</p>';
+		echo '<h2 class="ar-rf-about__heading">' . esc_html__( 'About Agent Role', 'agent-role' ) . '</h2>';
+		echo '<p>' . esc_html__( 'Agent Role is a simple plugin designed to help you connect your agents to your WordPress website with just the right amount of abilities it needs and no more. It has three Core User Commitments:', 'agent-role' ) . '</p>';
 		echo '<ol class="ar-rf-about__list">';
-		echo '<li>' . esc_html__( 'An Agent cannot sign in as a person.', 'rf-agent-role' ) . '</li>';
-		echo '<li>' . esc_html__( 'Permissions stay on that Agent’s account.', 'rf-agent-role' ) . '</li>';
-		echo '<li>' . esc_html__( 'The application password is shown once, and it is not stored.', 'rf-agent-role' ) . '</li>';
+		echo '<li>' . esc_html__( 'An Agent cannot sign in as a person.', 'agent-role' ) . '</li>';
+		echo '<li>' . esc_html__( 'Permissions stay on that Agent’s account.', 'agent-role' ) . '</li>';
+		echo '<li>' . esc_html__( 'The application password is shown once, and it is not stored.', 'agent-role' ) . '</li>';
 		echo '</ol>';
-		echo '<p>' . esc_html__( 'I’m always available to chat.', 'rf-agent-role' ) . ' <a href="#">' . esc_html__( 'Here’s my comment form.', 'rf-agent-role' ) . '</a></p>';
+		echo '<p>' . esc_html__( 'I’m always available to chat.', 'agent-role' ) . ' <a href="#">' . esc_html__( 'Here’s my comment form.', 'agent-role' ) . '</a></p>';
 		echo '<div class="ar-rf-about__person">';
 		echo '<img class="ar-rf-about__photo" src="' . esc_url( plugins_url( 'admin/images/matt-cromwell.jpg', AGENT_ROLE_FILE ) ) . '" alt="" width="64" height="64" />';
-		echo '<p class="ar-rf-about__id"><strong>' . esc_html__( 'Matt Cromwell', 'rf-agent-role' ) . '</strong>';
-		echo '<span>' . esc_html__( 'Founder and CGO at Roots and Fruit', 'rf-agent-role' ) . '</span></p>';
+		echo '<p class="ar-rf-about__id"><strong>' . esc_html__( 'Matt Cromwell', 'agent-role' ) . '</strong>';
+		echo '<span>' . esc_html__( 'Founder and CGO at Roots and Fruit', 'agent-role' ) . '</span></p>';
 		echo '</div></aside>';
 	}
 
@@ -230,10 +230,10 @@ class Agent_Role_Admin {
 	 */
 	private static function render_tabs() {
 		$current = self::current_tab();
-		echo '<nav class="rf-tabs__list" aria-label="' . esc_attr__( 'Agent Role', 'rf-agent-role' ) . '">';
-		self::render_tab_link( 'agents', __( 'Agents', 'rf-agent-role' ), $current );
-		self::render_tab_link( 'settings', __( 'Settings', 'rf-agent-role' ), $current );
-		self::render_tab_link( 'activity', __( 'Activity', 'rf-agent-role' ), $current );
+		echo '<nav class="rf-tabs__list" aria-label="' . esc_attr__( 'Agent Role', 'agent-role' ) . '">';
+		self::render_tab_link( 'agents', __( 'Agents', 'agent-role' ), $current );
+		self::render_tab_link( 'settings', __( 'Settings', 'agent-role' ), $current );
+		self::render_tab_link( 'activity', __( 'Activity', 'agent-role' ), $current );
 		echo '</nav>';
 	}
 
@@ -336,34 +336,34 @@ class Agent_Role_Admin {
 		);
 		$rows     = Agent_Role_Log::query( $agent_filter, $event_filter, $from_sql, $to_sql );
 		$labels   = array(
-			'ability' => __( 'Ability Calls', 'rf-agent-role' ),
-			'rest'    => __( 'REST API', 'rf-agent-role' ),
-			'admin'   => __( 'Admin Changes', 'rf-agent-role' ),
+			'ability' => __( 'Ability Calls', 'agent-role' ),
+			'rest'    => __( 'REST API', 'agent-role' ),
+			'admin'   => __( 'Admin Changes', 'agent-role' ),
 		);
 		$outcomes = array(
-			'success' => __( 'Success', 'rf-agent-role' ),
-			'denied'  => __( 'Denied', 'rf-agent-role' ),
-			'changed' => __( 'Changed', 'rf-agent-role' ),
-			'error'   => __( 'Error', 'rf-agent-role' ),
+			'success' => __( 'Success', 'agent-role' ),
+			'denied'  => __( 'Denied', 'agent-role' ),
+			'changed' => __( 'Changed', 'agent-role' ),
+			'error'   => __( 'Error', 'agent-role' ),
 		);
 
 		echo '<div class="ar-rf-panel">';
 		echo '<div class="ar-rf-toolbar ar-rf-activity__head">';
 		echo '<div>';
-		echo '<h2>' . esc_html__( 'Activity', 'rf-agent-role' ) . '</h2>';
-		echo '<p class="description">' . esc_html__( 'A record of agent actions and access changes.', 'rf-agent-role' ) . '</p>';
+		echo '<h2>' . esc_html__( 'Activity', 'agent-role' ) . '</h2>';
+		echo '<p class="description">' . esc_html__( 'A record of agent actions and access changes.', 'agent-role' ) . '</p>';
 		echo '</div>';
 		echo '</div>';
 		$count = sprintf(
 			/* translators: %d: number of visible activity rows. */
-			_n( '%d event', '%d events', count( $rows ), 'rf-agent-role' ),
+			_n( '%d event', '%d events', count( $rows ), 'agent-role' ),
 			count( $rows )
 		);
 		echo '<div class="ar-rf-activity__meta">';
 		echo '<p class="ar-rf-activity__note">' . esc_html(
 			sprintf(
 				/* translators: 1: days to keep events, 2: maximum events per agent. */
-				__( 'Retained for %1$d days (capped at %2$d events per agent)', 'rf-agent-role' ),
+				__( 'Retained for %1$d days (capped at %2$d events per agent)', 'agent-role' ),
 				Agent_Role_Log::days(),
 				Agent_Role_Log::cap()
 			)
@@ -374,44 +374,44 @@ class Agent_Role_Admin {
 		echo '<form method="get" class="ar-rf-activity__filters">';
 		echo '<input type="hidden" name="page" value="agent-role" />';
 		echo '<input type="hidden" name="tab" value="activity" />';
-		echo '<label class="ar-rf-field"><span class="ar-rf-field__label">' . esc_html__( 'Agent', 'rf-agent-role' ) . '</span>';
+		echo '<label class="ar-rf-field"><span class="ar-rf-field__label">' . esc_html__( 'Agent', 'agent-role' ) . '</span>';
 		echo '<select class="ar-rf-select" name="agent">';
-		echo '<option value="">' . esc_html__( 'All Agents', 'rf-agent-role' ) . '</option>';
+		echo '<option value="">' . esc_html__( 'All Agents', 'agent-role' ) . '</option>';
 		foreach ( $agents as $agent_user ) {
 			echo '<option value="' . esc_attr( (string) $agent_user->ID ) . '" ' . selected( $agent_filter, (int) $agent_user->ID, false ) . '>' . esc_html( $agent_user->display_name ) . '</option>';
 		}
 		echo '</select></label>';
-		echo '<label class="ar-rf-field"><span class="ar-rf-field__label">' . esc_html__( 'Event type', 'rf-agent-role' ) . '</span>';
+		echo '<label class="ar-rf-field"><span class="ar-rf-field__label">' . esc_html__( 'Event type', 'agent-role' ) . '</span>';
 		echo '<select class="ar-rf-select" name="event">';
-		echo '<option value="">' . esc_html__( 'All Events', 'rf-agent-role' ) . '</option>';
+		echo '<option value="">' . esc_html__( 'All Events', 'agent-role' ) . '</option>';
 		foreach ( $labels as $type => $label ) {
 			echo '<option value="' . esc_attr( $type ) . '" ' . selected( $event_filter, $type, false ) . '>' . esc_html( $label ) . '</option>';
 		}
 		echo '</select></label>';
-		echo '<label class="ar-rf-field"><span class="ar-rf-field__label">' . esc_html_x( 'From', 'activity log start date', 'rf-agent-role' ) . '</span>';
+		echo '<label class="ar-rf-field"><span class="ar-rf-field__label">' . esc_html_x( 'From', 'activity log start date', 'agent-role' ) . '</span>';
 		echo '<input class="ar-rf-select ar-rf-date ar-rf-date--from" type="text" name="from" value="' . esc_attr( self::activity_input_value( $from_sql ) ) . '" autocomplete="off" />';
 		echo '</label>';
-		echo '<label class="ar-rf-field"><span class="ar-rf-field__label">' . esc_html_x( 'To', 'activity log end date', 'rf-agent-role' ) . '</span>';
+		echo '<label class="ar-rf-field"><span class="ar-rf-field__label">' . esc_html_x( 'To', 'activity log end date', 'agent-role' ) . '</span>';
 		echo '<input class="ar-rf-select ar-rf-date ar-rf-date--to" type="text" name="to" value="' . esc_attr( self::activity_input_value( $to_sql ) ) . '" autocomplete="off" />';
 		echo '</label>';
 		echo '<span class="ar-rf-field ar-rf-field--action">';
 		echo '<span class="ar-rf-field__label" aria-hidden="true">&#160;</span>';
-		echo '<button type="submit" class="button ar-rf-filter">' . esc_html__( 'Filter', 'rf-agent-role' ) . '</button>';
+		echo '<button type="submit" class="button ar-rf-filter">' . esc_html__( 'Filter', 'agent-role' ) . '</button>';
 		echo '</span>';
 		echo '</form>';
 
 		if ( ! $rows ) {
-			echo '<p>' . esc_html__( 'No agent activity yet.', 'rf-agent-role' ) . '</p>';
+			echo '<p>' . esc_html__( 'No agent activity yet.', 'agent-role' ) . '</p>';
 			echo '</div>';
 			return;
 		}
 
 		echo '<table class="widefat ar-rf-table"><thead><tr>';
-		echo '<th>' . esc_html__( 'Time', 'rf-agent-role' ) . '</th>';
-		echo '<th>' . esc_html__( 'Agent', 'rf-agent-role' ) . '</th>';
-		echo '<th>' . esc_html__( 'Event type', 'rf-agent-role' ) . '</th>';
-		echo '<th>' . esc_html__( 'Details', 'rf-agent-role' ) . '</th>';
-		echo '<th>' . esc_html__( 'Outcome', 'rf-agent-role' ) . '</th>';
+		echo '<th>' . esc_html__( 'Time', 'agent-role' ) . '</th>';
+		echo '<th>' . esc_html__( 'Agent', 'agent-role' ) . '</th>';
+		echo '<th>' . esc_html__( 'Event type', 'agent-role' ) . '</th>';
+		echo '<th>' . esc_html__( 'Details', 'agent-role' ) . '</th>';
+		echo '<th>' . esc_html__( 'Outcome', 'agent-role' ) . '</th>';
 		echo '</tr></thead><tbody>';
 		$deleted_at = Agent_Role_Log::deleted_at( array_column( $rows, 'user_id' ) );
 		foreach ( $rows as $row ) {
@@ -459,11 +459,11 @@ class Agent_Role_Admin {
 		if ( '' !== $deleted_at ) {
 			$text = sprintf(
 				/* translators: %s: date and time the agent account was deleted. */
-				__( 'This agent account was deleted on %s.', 'rf-agent-role' ),
+				__( 'This agent account was deleted on %s.', 'agent-role' ),
 				Agent_Role_Log::format_timestamp( $deleted_at )
 			);
 		} else {
-			$text = __( 'This agent account was deleted.', 'rf-agent-role' );
+			$text = __( 'This agent account was deleted.', 'agent-role' );
 		}
 
 		return '<span class="ar-rf-deleted">'
@@ -478,10 +478,10 @@ class Agent_Role_Admin {
 	private static function render_agents_tab() {
 		echo '<div class="ar-rf-panel">';
 		echo '<div class="ar-rf-toolbar">';
-		echo '<h2>' . esc_html__( 'Agents', 'rf-agent-role' ) . '</h2>';
+		echo '<h2>' . esc_html__( 'Agents', 'agent-role' ) . '</h2>';
 		echo '<button type="button" class="button button-primary" id="ar-new-agent">';
 		echo self::plus_icon(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- SVG is escaped in plus_icon().
-		echo esc_html__( 'New Agent', 'rf-agent-role' );
+		echo esc_html__( 'New Agent', 'agent-role' );
 		echo '</button></div>';
 
 		$agents = get_users(
@@ -493,9 +493,9 @@ class Agent_Role_Admin {
 
 		if ( $agents ) {
 			echo '<table class="widefat ar-rf-table"><thead><tr>';
-			echo '<th>' . esc_html__( 'Agent', 'rf-agent-role' ) . '</th>';
-			echo '<th>' . esc_html__( 'Application password', 'rf-agent-role' ) . '</th>';
-			echo '<th>' . esc_html__( 'MCP info', 'rf-agent-role' ) . '</th>';
+			echo '<th>' . esc_html__( 'Agent', 'agent-role' ) . '</th>';
+			echo '<th>' . esc_html__( 'Application password', 'agent-role' ) . '</th>';
+			echo '<th>' . esc_html__( 'MCP info', 'agent-role' ) . '</th>';
 			echo '</tr></thead><tbody>';
 			foreach ( $agents as $agent_user ) {
 				$has_password = (bool) Agent_Role_Account::managed_password( $agent_user->ID );
@@ -515,7 +515,7 @@ class Agent_Role_Admin {
 					echo '<input type="hidden" name="user_id" value="' . esc_attr( (string) $agent_user->ID ) . '" />';
 					echo '<button type="submit" class="button-link ar-rf-revoke">';
 					echo self::circle_x_icon(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- SVG is escaped in circle_x_icon().
-					echo esc_html__( 'Revoke', 'rf-agent-role' );
+					echo esc_html__( 'Revoke', 'agent-role' );
 					echo '</button>';
 					echo '</form>';
 				} else {
@@ -529,24 +529,24 @@ class Agent_Role_Admin {
 						),
 						'agent_role_reissue_' . (int) $agent_user->ID
 					);
-					echo '<a href="' . esc_url( $reissue_url ) . '">' . esc_html__( 'Create password', 'rf-agent-role' ) . '</a>';
+					echo '<a href="' . esc_url( $reissue_url ) . '">' . esc_html__( 'Create password', 'agent-role' ) . '</a>';
 				}
 				echo '</td><td>';
 				if ( ! Agent_Role_Mcp::is_available() ) {
 					echo '<p class="ar-rf-mcp-notice" role="note">';
 					echo self::info_icon(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- SVG is escaped in info_icon().
-					echo '<span>' . esc_html__( 'No MCP is currently present.', 'rf-agent-role' ) . '</span>';
+					echo '<span>' . esc_html__( 'No MCP is currently present.', 'agent-role' ) . '</span>';
 					echo '</p>';
 				} elseif ( ! $has_password ) {
 					echo '<p class="ar-rf-mcp-notice" role="note">';
 					echo self::info_icon(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- SVG is escaped in info_icon().
-					echo '<span>' . esc_html__( 'Generate App Password for MCP access', 'rf-agent-role' ) . '</span>';
+					echo '<span>' . esc_html__( 'Generate App Password for MCP access', 'agent-role' ) . '</span>';
 					echo '</p>';
 				} else {
 					$template_id = 'ar-mcp-' . (int) $agent_user->ID;
 					echo '<button type="button" class="ar-rf-mcp-view" data-template="' . esc_attr( $template_id ) . '">';
 					echo self::eye_icon(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- SVG is escaped in eye_icon().
-					echo esc_html__( 'View', 'rf-agent-role' );
+					echo esc_html__( 'View', 'agent-role' );
 					echo '</button>';
 					echo '<template id="' . esc_attr( $template_id ) . '">';
 					self::render_mcp_preview( $agent_user );
@@ -556,7 +556,7 @@ class Agent_Role_Admin {
 			}
 			echo '</tbody></table>';
 		} else {
-			echo '<p class="description">' . esc_html__( 'No agents yet. Create one when you are ready to connect a tool.', 'rf-agent-role' ) . '</p>';
+			echo '<p class="description">' . esc_html__( 'No agents yet. Create one when you are ready to connect a tool.', 'agent-role' ) . '</p>';
 		}
 		echo '</div>';
 	}
@@ -573,16 +573,16 @@ class Agent_Role_Admin {
 		echo '<dialog class="ar-rf-modal" id="ar-agent-modal">';
 		echo '<form method="dialog" class="ar-rf-modal__panel" id="ar-agent-form">';
 		echo '<div class="ar-rf-modal__step" id="ar-agent-step-create"' . ( $show_result ? ' hidden' : '' ) . '>';
-		echo '<h2>' . esc_html__( 'New Agent', 'rf-agent-role' ) . '</h2>';
-		echo '<p>' . esc_html__( 'This account cannot sign in as a person.', 'rf-agent-role' ) . '</p>';
-		echo '<p><label for="agent_role_username">' . esc_html__( 'Username', 'rf-agent-role' ) . '</label><br />';
+		echo '<h2>' . esc_html__( 'New Agent', 'agent-role' ) . '</h2>';
+		echo '<p>' . esc_html__( 'This account cannot sign in as a person.', 'agent-role' ) . '</p>';
+		echo '<p><label for="agent_role_username">' . esc_html__( 'Username', 'agent-role' ) . '</label><br />';
 		echo '<input name="agent_role_username" id="agent_role_username" type="text" class="regular-text" required /></p>';
-		echo '<p><label for="agent_role_display_name">' . esc_html__( 'Display name', 'rf-agent-role' ) . '</label><br />';
+		echo '<p><label for="agent_role_display_name">' . esc_html__( 'Display name', 'agent-role' ) . '</label><br />';
 		echo '<input name="agent_role_display_name" id="agent_role_display_name" type="text" class="regular-text" /></p>';
 		echo '<p class="ar-rf-modal__error" id="ar-agent-error" hidden></p>';
 		echo '<p class="ar-rf-modal__actions">';
-		echo '<button type="button" class="button" id="ar-agent-cancel">' . esc_html__( 'Cancel', 'rf-agent-role' ) . '</button> ';
-		echo '<button type="button" class="button button-primary" id="ar-agent-create">' . esc_html__( 'Create Agent', 'rf-agent-role' ) . '</button>';
+		echo '<button type="button" class="button" id="ar-agent-cancel">' . esc_html__( 'Cancel', 'agent-role' ) . '</button> ';
+		echo '<button type="button" class="button button-primary" id="ar-agent-create">' . esc_html__( 'Create Agent', 'agent-role' ) . '</button>';
 		echo '</p></div>';
 		echo '<div class="ar-rf-modal__step" id="ar-agent-step-result"' . ( $show_result ? '' : ' hidden' ) . '>';
 		if ( $show_result ) {
@@ -602,12 +602,12 @@ class Agent_Role_Admin {
 	 * @param WP_User $agent Agent account.
 	 */
 	private static function render_mcp_preview( $agent ) {
-		echo '<h2>' . esc_html__( 'MCP info', 'rf-agent-role' ) . '</h2>';
-		echo '<p>' . esc_html__( 'Paste this prompt into your agent. It will add this site and leave a line for the password.', 'rf-agent-role' ) . '</p>';
+		echo '<h2>' . esc_html__( 'MCP info', 'agent-role' ) . '</h2>';
+		echo '<p>' . esc_html__( 'Paste this prompt into your agent. It will add this site and leave a line for the password.', 'agent-role' ) . '</p>';
 		self::render_agent_prompt( $agent->user_login );
-		echo '<p class="ar-rf-code-label">' . esc_html__( 'Application password', 'rf-agent-role' ) . '</p>';
-		echo '<p>' . esc_html__( 'You were provided the application password when you first created this agent. It is shown only that one time for security. If you no longer have that password, you\'ll need to revoke this one and create a new one. Save that password securely and ask your agent where it should be saved in your project.', 'rf-agent-role' ) . '</p>';
-		echo '<p class="ar-rf-modal__actions"><button type="submit" class="button button-primary" value="close">' . esc_html__( 'Close', 'rf-agent-role' ) . '</button></p>';
+		echo '<p class="ar-rf-code-label">' . esc_html__( 'Application password', 'agent-role' ) . '</p>';
+		echo '<p>' . esc_html__( 'You were provided the application password when you first created this agent. It is shown only that one time for security. If you no longer have that password, you\'ll need to revoke this one and create a new one. Save that password securely and ask your agent where it should be saved in your project.', 'agent-role' ) . '</p>';
+		echo '<p class="ar-rf-modal__actions"><button type="submit" class="button button-primary" value="close">' . esc_html__( 'Close', 'agent-role' ) . '</button></p>';
 	}
 
 	/**
@@ -787,21 +787,21 @@ class Agent_Role_Admin {
 		$list_url = admin_url( 'users.php?page=agent-role&tab=agents' );
 		echo '<p class="ar-rf-back"><a href="' . esc_url( $list_url ) . '">';
 		echo self::back_arrow(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- SVG is escaped in back_arrow().
-		echo esc_html__( 'Back to Agents', 'rf-agent-role' );
+		echo esc_html__( 'Back to Agents', 'agent-role' );
 		echo '</a></p>';
 
 		// The flag only chooses the notice. Saving is checked in handle_save_agent().
 		if ( isset( $_GET['updated'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 			$persona_notice = isset( $_GET['persona_notice'] ) ? sanitize_key( wp_unslash( $_GET['persona_notice'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 			$messages       = array(
-				'save_default' => __( 'Saved as the default for this Agent persona.', 'rf-agent-role' ),
-				'reset'        => __( 'This agent now matches the saved default for this persona.', 'rf-agent-role' ),
-				'factory'      => __( 'This persona is reset to the plugin default. Other customized agent personas remain unchanged.', 'rf-agent-role' ),
+				'save_default' => __( 'Saved as the default for this Agent persona.', 'agent-role' ),
+				'reset'        => __( 'This agent now matches the saved default for this persona.', 'agent-role' ),
+				'factory'      => __( 'This persona is reset to the plugin default. Other customized agent personas remain unchanged.', 'agent-role' ),
 			);
-			$message        = isset( $messages[ $persona_notice ] ) ? $messages[ $persona_notice ] : __( 'Agent updated.', 'rf-agent-role' );
+			$message        = isset( $messages[ $persona_notice ] ) ? $messages[ $persona_notice ] : __( 'Agent updated.', 'agent-role' );
 			echo '<div class="notice notice-success is-dismissible"><p>' . esc_html( $message ) . '</p></div>';
 			if ( isset( $_GET['stripped'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-				echo '<div class="notice notice-warning is-dismissible"><p>' . esc_html__( 'Some tools were not saved as default because they need a permission this agent does not have.', 'rf-agent-role' ) . '</p></div>';
+				echo '<div class="notice notice-warning is-dismissible"><p>' . esc_html__( 'Some tools were not saved as default because they need a permission this agent does not have.', 'agent-role' ) . '</p></div>';
 			}
 		}
 
@@ -820,20 +820,20 @@ class Agent_Role_Admin {
 		echo '<h2 class="ar-rf-profile__name">' . esc_html( $agent->display_name ) . '</h2>';
 		echo '<p class="ar-rf-profile__meta">';
 		echo '<span class="ar-rf-profile__fact">';
-		echo '<span class="ar-rf-profile__label">' . esc_html__( 'Username', 'rf-agent-role' ) . '</span>';
+		echo '<span class="ar-rf-profile__label">' . esc_html__( 'Username', 'agent-role' ) . '</span>';
 		echo '<span class="ar-rf-profile__value">' . esc_html( $agent->user_login ) . '</span>';
 		echo '</span>';
 		echo '<span class="ar-rf-profile__fact" id="ar-profile-persona-line"' . ( $state['slug'] ? '' : ' hidden' ) . '>';
-		echo '<span class="ar-rf-profile__label">' . esc_html__( 'Persona', 'rf-agent-role' ) . '</span>';
+		echo '<span class="ar-rf-profile__label">' . esc_html__( 'Persona', 'agent-role' ) . '</span>';
 		echo '<span class="ar-rf-profile__value" id="ar-profile-persona-name">' . esc_html( $state['label'] ) . '</span>';
 		echo '</span>';
-		echo '<span class="ar-rf-profile__badge" id="ar-profile-custom-badge"' . ( $state['custom'] ? '' : ' hidden' ) . '>' . esc_html__( 'Customized', 'rf-agent-role' ) . '</span>';
+		echo '<span class="ar-rf-profile__badge" id="ar-profile-custom-badge"' . ( $state['custom'] ? '' : ' hidden' ) . '>' . esc_html__( 'Customized', 'agent-role' ) . '</span>';
 		echo '</p>';
 		echo '</div></div>';
 
 		self::render_personas( $agent, $caps );
 
-		submit_button( __( 'Update Agent', 'rf-agent-role' ) );
+		submit_button( __( 'Update Agent', 'agent-role' ) );
 		echo '</div></form>';
 	}
 
@@ -846,7 +846,7 @@ class Agent_Role_Admin {
 		if ( Agent_Role_Mcp::is_available() ) {
 			self::render_mcp_setting();
 		} else {
-			echo '<p class="description">' . esc_html__( 'The MCP Adapter is not active.', 'rf-agent-role' ) . '</p>';
+			echo '<p class="description">' . esc_html__( 'The MCP Adapter is not active.', 'agent-role' ) . '</p>';
 		}
 
 		self::render_log_setting();
@@ -860,9 +860,9 @@ class Agent_Role_Admin {
 	private static function toggle_labels() {
 		return array(
 			/* translators: Visible state of an on/off switch. */
-			'enabled'  => _x( 'Enabled', 'toggle state', 'rf-agent-role' ),
+			'enabled'  => _x( 'Enabled', 'toggle state', 'agent-role' ),
 			/* translators: Visible state of an on/off switch. */
-			'disabled' => _x( 'Disabled', 'toggle state', 'rf-agent-role' ),
+			'disabled' => _x( 'Disabled', 'toggle state', 'agent-role' ),
 		);
 	}
 
@@ -913,18 +913,18 @@ class Agent_Role_Admin {
 	 * @param string  $password Application password.
 	 */
 	private static function render_credentials_body( $agent, $password ) {
-		echo '<h2>' . esc_html__( 'Agent connected', 'rf-agent-role' ) . '</h2>';
+		echo '<h2>' . esc_html__( 'Agent connected', 'agent-role' ) . '</h2>';
 		if ( Agent_Role_Mcp::is_available() ) {
-			echo '<p>' . esc_html__( 'Paste the prompt into your agent. It will set up MCP and tell you where to put this password. The password is shown once.', 'rf-agent-role' ) . '</p>';
+			echo '<p>' . esc_html__( 'Paste the prompt into your agent. It will set up MCP and tell you where to put this password. The password is shown once.', 'agent-role' ) . '</p>';
 			self::render_agent_prompt( $agent->user_login );
-			self::render_copy_row( __( 'Application password', 'rf-agent-role' ), $password );
+			self::render_copy_row( __( 'Application password', 'agent-role' ), $password );
 		} else {
-			echo '<p>' . esc_html__( 'Copy these now. They will not be shown again.', 'rf-agent-role' ) . '</p>';
-			self::render_copy_row( __( 'Site URL', 'rf-agent-role' ), home_url( '/' ) );
-			self::render_copy_row( __( 'Username', 'rf-agent-role' ), $agent->user_login );
-			self::render_copy_row( __( 'Application password', 'rf-agent-role' ), $password );
+			echo '<p>' . esc_html__( 'Copy these now. They will not be shown again.', 'agent-role' ) . '</p>';
+			self::render_copy_row( __( 'Site URL', 'agent-role' ), home_url( '/' ) );
+			self::render_copy_row( __( 'Username', 'agent-role' ), $agent->user_login );
+			self::render_copy_row( __( 'Application password', 'agent-role' ), $password );
 		}
-		echo '<p class="ar-rf-modal__actions"><button type="submit" class="button button-primary" value="close">' . esc_html__( 'Close', 'rf-agent-role' ) . '</button></p>';
+		echo '<p class="ar-rf-modal__actions"><button type="submit" class="button button-primary" value="close">' . esc_html__( 'Close', 'agent-role' ) . '</button></p>';
 	}
 
 	/**
@@ -944,7 +944,7 @@ class Agent_Role_Admin {
 		$agent    = get_userdata( $result['user_id'] );
 		$password = Agent_Role_Account::take_password( get_current_user_id(), $result['user_id'] );
 		if ( ! $agent instanceof WP_User || '' === $password ) {
-			wp_send_json_error( array( 'message' => __( 'The account was created, but the password could not be shown.', 'rf-agent-role' ) ) );
+			wp_send_json_error( array( 'message' => __( 'The account was created, but the password could not be shown.', 'agent-role' ) ) );
 		}
 
 		ob_start();
@@ -968,7 +968,7 @@ class Agent_Role_Admin {
 			$text = Agent_Role_Brief::draft( $user->ID, $caps, $abilities, $persona );
 		} catch ( \Throwable $e ) {
 			unset( $e );
-			wp_send_json_error( array( 'message' => __( 'AI is not available on this site.', 'rf-agent-role' ) ) );
+			wp_send_json_error( array( 'message' => __( 'AI is not available on this site.', 'agent-role' ) ) );
 		}
 		if ( is_wp_error( $text ) ) {
 			wp_send_json_error( array( 'message' => $text->get_error_message() ) );
@@ -1018,7 +1018,7 @@ class Agent_Role_Admin {
 
 		$user = get_userdata( $user_id );
 		if ( ! $user instanceof WP_User || ! Agent_Role::is_agent( $user ) ) {
-			wp_die( esc_html__( 'That user is not an Agent.', 'rf-agent-role' ), '', array( 'response' => 400 ) );
+			wp_die( esc_html__( 'That user is not an Agent.', 'agent-role' ), '', array( 'response' => 400 ) );
 		}
 
 		$previous         = Agent_Role::instructions_for( $user );
@@ -1099,7 +1099,7 @@ class Agent_Role_Admin {
 		if ( ! current_user_can( 'manage_options' ) ) {
 			return new WP_Error(
 				'agent_role_forbidden',
-				__( 'You do not have permission to change this setting.', 'rf-agent-role' ),
+				__( 'You do not have permission to change this setting.', 'agent-role' ),
 				403
 			);
 		}
@@ -1109,7 +1109,7 @@ class Agent_Role_Admin {
 		if ( ! $user instanceof WP_User || ! Agent_Role::is_agent( $user ) ) {
 			return new WP_Error(
 				'agent_role_not_agent',
-				__( 'That user is not an Agent.', 'rf-agent-role' ),
+				__( 'That user is not an Agent.', 'agent-role' ),
 				400
 			);
 		}
@@ -1202,10 +1202,10 @@ class Agent_Role_Admin {
 	 */
 	private static function render_code_block( $label, $code, $lang = '', $copy_label = '' ) {
 		if ( '' === $lang ) {
-			$lang = __( 'JSON', 'rf-agent-role' );
+			$lang = __( 'JSON', 'agent-role' );
 		}
 		if ( '' === $copy_label ) {
-			$copy_label = __( 'Copy client config', 'rf-agent-role' );
+			$copy_label = __( 'Copy client config', 'agent-role' );
 		}
 		echo '<p class="ar-rf-code-label">' . esc_html( $label ) . '</p>';
 		echo '<div class="rf-code">';
@@ -1231,7 +1231,7 @@ class Agent_Role_Admin {
 		echo '<div class="ar-rf-copy">';
 		echo '<span class="ar-rf-copy__label">' . esc_html( $label ) . '</span>';
 		echo '<code class="ar-rf-copy__value">' . esc_html( $value ) . '</code>';
-		echo '<button type="button" class="button ar-rf-copy__button">' . esc_html__( 'Copy', 'rf-agent-role' ) . '</button>';
+		echo '<button type="button" class="button ar-rf-copy__button">' . esc_html__( 'Copy', 'agent-role' ) . '</button>';
 		echo '</div>';
 	}
 
@@ -1242,10 +1242,10 @@ class Agent_Role_Admin {
 	 */
 	private static function render_agent_prompt( $username ) {
 		self::render_code_block(
-			__( 'Prompt for your Agent', 'rf-agent-role' ),
+			__( 'Prompt for your Agent', 'agent-role' ),
 			Agent_Role_Mcp::setup_prompt( $username ),
-			__( 'Text', 'rf-agent-role' ),
-			__( 'Copy prompt', 'rf-agent-role' )
+			__( 'Text', 'agent-role' ),
+			__( 'Copy prompt', 'agent-role' )
 		);
 	}
 
@@ -1257,7 +1257,7 @@ class Agent_Role_Admin {
 			return;
 		}
 
-		echo '<h2>' . esc_html__( 'MCP Adapter', 'rf-agent-role' ) . '</h2>';
+		echo '<h2>' . esc_html__( 'MCP Adapter', 'agent-role' ) . '</h2>';
 		echo '<form method="post" action="' . esc_url( admin_url( 'options.php' ) ) . '">';
 		settings_fields( Agent_Role_Mcp::GROUP );
 		echo '<p>';
@@ -1267,13 +1267,13 @@ class Agent_Role_Admin {
 				'value'         => '1',
 				'checked'       => Agent_Role_Mcp::agents_only(),
 				'labelledby'    => 'agent-role-mcp-label',
-				'note'          => __( 'Only Agent accounts may use the MCP server.', 'rf-agent-role' ),
+				'note'          => __( 'Only Agent accounts may use the MCP server.', 'agent-role' ),
 				'note_is_label' => true,
 			)
 		);
 		echo '</p>';
-		echo '<p class="description">' . esc_html__( 'When off, the MCP Adapter accepts any logged-in user, as it ships.', 'rf-agent-role' ) . '</p>';
-		submit_button( __( 'Save MCP Setting', 'rf-agent-role' ) );
+		echo '<p class="description">' . esc_html__( 'When off, the MCP Adapter accepts any logged-in user, as it ships.', 'agent-role' ) . '</p>';
+		submit_button( __( 'Save MCP Setting', 'agent-role' ) );
 		echo '</form>';
 	}
 
@@ -1285,17 +1285,17 @@ class Agent_Role_Admin {
 			return;
 		}
 
-		echo '<h2>' . esc_html__( 'Activity log', 'rf-agent-role' ) . '</h2>';
+		echo '<h2>' . esc_html__( 'Activity log', 'agent-role' ) . '</h2>';
 		echo '<form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '" class="ar-rf-log-settings">';
 		wp_nonce_field( 'agent_role_log_setting', 'agent_role_log_nonce' );
 		echo '<input type="hidden" name="action" value="agent_role_log_setting" />';
-		echo '<p class="ar-rf-log-settings__field"><label for="agent_role_log_days">' . esc_html__( 'Keep records for', 'rf-agent-role' ) . '</label> ';
+		echo '<p class="ar-rf-log-settings__field"><label for="agent_role_log_days">' . esc_html__( 'Keep records for', 'agent-role' ) . '</label> ';
 		echo '<input type="number" class="small-text" id="agent_role_log_days" name="agent_role_log_days" min="1" max="' . esc_attr( (string) Agent_Role_Log::MAX_DAYS ) . '" value="' . esc_attr( (string) Agent_Role_Log::days() ) . '" required /> ';
-		echo '<span>' . esc_html__( 'days', 'rf-agent-role' ) . '</span></p>';
-		echo '<p class="ar-rf-log-settings__field"><label for="agent_role_log_cap">' . esc_html__( 'Events per agent', 'rf-agent-role' ) . '</label> ';
+		echo '<span>' . esc_html__( 'days', 'agent-role' ) . '</span></p>';
+		echo '<p class="ar-rf-log-settings__field"><label for="agent_role_log_cap">' . esc_html__( 'Events per agent', 'agent-role' ) . '</label> ';
 		echo '<input type="number" class="small-text" id="agent_role_log_cap" name="agent_role_log_cap" min="1" max="' . esc_attr( (string) Agent_Role_Log::MAX_CAP ) . '" value="' . esc_attr( (string) Agent_Role_Log::cap() ) . '" required /></p>';
-		echo '<p class="description">' . esc_html__( 'A longer window or a higher cap stores more of what agents tried, including ability names and REST routes, and the Activity screen has to load all of it. The log does not store passwords or request contents. The limit is 365 days and 5,000 events per agent. Saving a smaller number deletes the older rows.', 'rf-agent-role' ) . '</p>';
-		submit_button( __( 'Save log settings', 'rf-agent-role' ) );
+		echo '<p class="description">' . esc_html__( 'A longer window or a higher cap stores more of what agents tried, including ability names and REST routes, and the Activity screen has to load all of it. The log does not store passwords or request contents. The limit is 365 days and 5,000 events per agent. Saving a smaller number deletes the older rows.', 'agent-role' ) . '</p>';
+		submit_button( __( 'Save log settings', 'agent-role' ) );
 		echo '</form>';
 	}
 
@@ -1429,7 +1429,7 @@ class Agent_Role_Admin {
 			return;
 		}
 
-		$message = __( 'You do not have permission to manage these settings.', 'rf-agent-role' );
+		$message = __( 'You do not have permission to manage these settings.', 'agent-role' );
 		if ( $ajax ) {
 			wp_send_json_error( array( 'message' => $message ), 403 );
 		}
@@ -1447,48 +1447,48 @@ class Agent_Role_Admin {
 
 		return array(
 			'webdev'  => array(
-				'label'   => __( 'Web Dev', 'rf-agent-role' ),
+				'label'   => __( 'Web Dev', 'agent-role' ),
 				/* translators: Two-letter initials on the Web Dev persona card. */
-				'letters' => _x( 'WD', 'persona initials', 'rf-agent-role' ),
+				'letters' => _x( 'WD', 'persona initials', 'agent-role' ),
 				'color'   => '#2c2922',
 				'soft'    => '#e6e2da',
 				/* translators: WP Rollback is a plugin name. */
-				'text'    => __( 'Editor, plus they can update plugins. Roll those updates back with WP Rollback.', 'rf-agent-role' ),
+				'text'    => __( 'Editor, plus they can update plugins. Roll those updates back with WP Rollback.', 'agent-role' ),
 				/* translators: WP Rollback is a plugin name. */
-				'note'    => __( 'You are the Web Dev for this WordPress site. Keep the site working. Update plugins when that is the job, and roll a bad update back with WP Rollback. Write and edit content when the site needs it. Do not change settings you were not asked to change.', 'rf-agent-role' ),
+				'note'    => __( 'You are the Web Dev for this WordPress site. Keep the site working. Update plugins when that is the job, and roll a bad update back with WP Rollback. Write and edit content when the site needs it. Do not change settings you were not asked to change.', 'agent-role' ),
 				'caps'    => $writer_caps,
 				'actions' => array( 'read_others', 'edit_others', 'update_plugins' ),
 			),
 			'editor'  => array(
-				'label'   => __( 'Editor', 'rf-agent-role' ),
+				'label'   => __( 'Editor', 'agent-role' ),
 				/* translators: Two-letter initials on the Editor persona card. */
-				'letters' => _x( 'ED', 'persona initials', 'rf-agent-role' ),
+				'letters' => _x( 'ED', 'persona initials', 'agent-role' ),
 				'color'   => '#d4844e',
 				'soft'    => '#f0d5c0',
-				'text'    => __( 'Writer, plus they can edit and publish a post or page other users wrote.', 'rf-agent-role' ),
-				'note'    => __( 'You are the Editor for this WordPress site. Write when you need to, and edit and publish posts and pages other people wrote. Keep the site’s voice. Do not update plugins or change site settings.', 'rf-agent-role' ),
+				'text'    => __( 'Writer, plus they can edit and publish a post or page other users wrote.', 'agent-role' ),
+				'note'    => __( 'You are the Editor for this WordPress site. Write when you need to, and edit and publish posts and pages other people wrote. Keep the site’s voice. Do not update plugins or change site settings.', 'agent-role' ),
 				'caps'    => $writer_caps,
 				'actions' => array( 'read_others', 'edit_others' ),
 			),
 			'writer'  => array(
-				'label'   => __( 'Writer', 'rf-agent-role' ),
+				'label'   => __( 'Writer', 'agent-role' ),
 				/* translators: Two-letter initials on the Writer persona card. */
-				'letters' => _x( 'WR', 'persona initials', 'rf-agent-role' ),
+				'letters' => _x( 'WR', 'persona initials', 'agent-role' ),
 				'color'   => '#62744d',
 				'soft'    => '#e4eadc',
-				'text'    => __( 'Creates, edits, and publishes their own posts and pages, and can upload files.', 'rf-agent-role' ),
-				'note'    => __( 'You are the Writer for this WordPress site. Write and publish this site’s own posts and pages, and upload the files those pieces need. Stay in your own work. Do not take over a post someone else wrote. Do not update plugins or change site settings.', 'rf-agent-role' ),
+				'text'    => __( 'Creates, edits, and publishes their own posts and pages, and can upload files.', 'agent-role' ),
+				'note'    => __( 'You are the Writer for this WordPress site. Write and publish this site’s own posts and pages, and upload the files those pieces need. Stay in your own work. Do not take over a post someone else wrote. Do not update plugins or change site settings.', 'agent-role' ),
 				'caps'    => $writer_caps,
 				'actions' => array(),
 			),
 			'analyst' => array(
-				'label'   => __( 'Analyst', 'rf-agent-role' ),
+				'label'   => __( 'Analyst', 'agent-role' ),
 				/* translators: Two-letter initials on the Analyst persona card. */
-				'letters' => _x( 'AN', 'persona initials', 'rf-agent-role' ),
+				'letters' => _x( 'AN', 'persona initials', 'agent-role' ),
 				'color'   => '#8c5a3c',
 				'soft'    => '#f3e0d2',
-				'text'    => __( 'An expert in reading and exporting data related to your website.', 'rf-agent-role' ),
-				'note'    => __( 'You are the Analyst for this WordPress site. Read published content and export data about this site. Report what you find. Do not create, edit, or delete content. Do not update plugins or change site settings.', 'rf-agent-role' ),
+				'text'    => __( 'An expert in reading and exporting data related to your website.', 'agent-role' ),
+				'note'    => __( 'You are the Analyst for this WordPress site. Read published content and export data about this site. Report what you find. Do not create, edit, or delete content. Do not update plugins or change site settings.', 'agent-role' ),
 				'caps'    => array(),
 				'actions' => array( 'read_others', 'export' ),
 			),
@@ -1505,93 +1505,93 @@ class Agent_Role_Admin {
 			array(
 				'id'    => 'edit_posts',
 				'group' => 'create',
-				'label' => __( 'Create their own posts and pages', 'rf-agent-role' ),
+				'label' => __( 'Create their own posts and pages', 'agent-role' ),
 				'hint'  => '',
 				'kind'  => 'cap',
 			),
 			array(
 				'id'    => 'upload_files',
 				'group' => 'create',
-				'label' => __( 'Upload files', 'rf-agent-role' ),
+				'label' => __( 'Upload files', 'agent-role' ),
 				'hint'  => '',
 				'kind'  => 'cap',
 			),
 			array(
 				'id'    => 'core/get-site-info',
 				'group' => 'read',
-				'label' => __( 'Read this site’s name, URL, and description', 'rf-agent-role' ),
+				'label' => __( 'Read this site’s name, URL, and description', 'agent-role' ),
 				'hint'  => '',
 				'kind'  => 'ability',
 			),
 			array(
 				'id'    => 'core/get-user-info',
 				'group' => 'read',
-				'label' => __( 'Read the connected user', 'rf-agent-role' ),
+				'label' => __( 'Read the connected user', 'agent-role' ),
 				'hint'  => '',
 				'kind'  => 'ability',
 			),
 			array(
 				'id'    => 'core/get-environment-info',
 				'group' => 'read',
-				'label' => __( 'Read the WordPress version and environment', 'rf-agent-role' ),
+				'label' => __( 'Read the WordPress version and environment', 'agent-role' ),
 				'hint'  => '',
 				'kind'  => 'ability',
 			),
 			array(
 				'id'    => 'read_others',
 				'group' => 'read',
-				'label' => __( 'Read other people’s published posts and pages', 'rf-agent-role' ),
+				'label' => __( 'Read other people’s published posts and pages', 'agent-role' ),
 				'hint'  => '',
 				'kind'  => 'action',
 			),
 			array(
 				'id'    => 'export',
 				'group' => 'read',
-				'label' => __( 'Export SEO or website data', 'rf-agent-role' ),
+				'label' => __( 'Export SEO or website data', 'agent-role' ),
 				'hint'  => '',
 				'kind'  => 'action',
 			),
 			array(
 				'id'    => 'edit_published_posts',
 				'group' => 'undo',
-				'label' => __( 'Edit their own posts and pages after they are published', 'rf-agent-role' ),
+				'label' => __( 'Edit their own posts and pages after they are published', 'agent-role' ),
 				'hint'  => '',
 				'kind'  => 'cap',
 			),
 			array(
 				'id'    => 'publish_posts',
 				'group' => 'undo',
-				'label' => __( 'Publish their own posts and pages', 'rf-agent-role' ),
+				'label' => __( 'Publish their own posts and pages', 'agent-role' ),
 				'hint'  => '',
 				'kind'  => 'cap',
 			),
 			array(
 				'id'    => 'edit_others',
 				'group' => 'undo',
-				'label' => __( 'Edit and publish a post or page a person wrote', 'rf-agent-role' ),
+				'label' => __( 'Edit and publish a post or page a person wrote', 'agent-role' ),
 				'hint'  => '',
 				'kind'  => 'action',
 			),
 			array(
 				'id'    => 'update_plugins',
 				'group' => 'undo',
-				'label' => __( 'Update plugins', 'rf-agent-role' ),
+				'label' => __( 'Update plugins', 'agent-role' ),
 				/* translators: WP Rollback is a plugin name. */
-				'hint'  => __( 'Roll a plugin update back with WP Rollback.', 'rf-agent-role' ),
+				'hint'  => __( 'Roll a plugin update back with WP Rollback.', 'agent-role' ),
 				'kind'  => 'action',
 			),
 			array(
 				'id'    => 'delete_posts',
 				'group' => 'delete',
-				'label' => __( 'Delete their own drafts', 'rf-agent-role' ),
-				'hint'  => __( 'This can delete content.', 'rf-agent-role' ),
+				'label' => __( 'Delete their own drafts', 'agent-role' ),
+				'hint'  => __( 'This can delete content.', 'agent-role' ),
 				'kind'  => 'cap',
 			),
 			array(
 				'id'    => 'delete_published_posts',
 				'group' => 'delete',
-				'label' => __( 'Delete their own published posts and pages', 'rf-agent-role' ),
-				'hint'  => __( 'This can delete content.', 'rf-agent-role' ),
+				'label' => __( 'Delete their own published posts and pages', 'agent-role' ),
+				'hint'  => __( 'This can delete content.', 'agent-role' ),
 				'kind'  => 'cap',
 			),
 		);
@@ -2112,8 +2112,8 @@ class Agent_Role_Admin {
 		$accent            = ( $persona && isset( $personas[ $persona ] ) ) ? $personas[ $persona ]['color'] : '';
 
 		echo '<fieldset class="ar-rf-section ar-rf-section--persona"' . ( $accent ? ' style="--ar-persona:' . esc_attr( $accent ) . '"' : '' ) . '>';
-		echo '<legend>' . esc_html__( 'What this agent is for', 'rf-agent-role' ) . '</legend>';
-		echo '<p class="ar-rf-lede">' . esc_html__( 'Pick an Agent persona. Permissions and instructions start from that persona.', 'rf-agent-role' ) . '</p>';
+		echo '<legend>' . esc_html__( 'What this agent is for', 'agent-role' ) . '</legend>';
+		echo '<p class="ar-rf-lede">' . esc_html__( 'Pick an Agent persona. Permissions and instructions start from that persona.', 'agent-role' ) . '</p>';
 		$slugs     = array_keys( $personas );
 		$tab_first = $persona && ( $slugs[0] ?? '' ) === $persona;
 		$tab_last  = $persona && ( array_key_last( $personas ) ?? '' ) === $persona;
@@ -2146,13 +2146,13 @@ class Agent_Role_Admin {
 			echo esc_html(
 				sprintf(
 					/* translators: %s is the persona name, such as Writer. */
-					__( 'Select %s Persona', 'rf-agent-role' ),
+					__( 'Select %s Persona', 'agent-role' ),
 					$shape['label']
 				)
 			);
 			echo '</button>';
 			echo '<button type="button" class="button ar-persona__customize" aria-controls="ar-persona-adjust" aria-expanded="' . ( $open && $selected ? 'true' : 'false' ) . '"' . ( $selected ? '' : ' hidden' ) . '>';
-			echo esc_html__( 'Customize this Agent', 'rf-agent-role' );
+			echo esc_html__( 'Customize this Agent', 'agent-role' );
 			echo '</button>';
 			echo '</div>';
 		}
@@ -2163,13 +2163,13 @@ class Agent_Role_Admin {
 		self::render_persona_groups( $agent, $caps, $actions, $abilities );
 		echo '<div class="ar-persona-instructions">';
 		echo '<button type="button" class="ar-persona-instructions__toggle" id="ar-instructions-toggle" aria-expanded="' . ( $instructions_open ? 'true' : 'false' ) . '" aria-controls="ar-instructions-panel">';
-		echo esc_html__( 'Customize instructions', 'rf-agent-role' );
+		echo esc_html__( 'Customize instructions', 'agent-role' );
 		echo '</button>';
 		echo '<div class="ar-rf-instructions-panel" id="ar-instructions-panel"' . ( $instructions_open ? '' : ' hidden' ) . '>';
 		echo '<p class="ar-rf-lede">' . esc_html__(
 			/* translators: Quoted words are button labels on this screen: Reset, Generate, and Update Agent. */
 			'Sent when this agent connects over MCP. These start from the persona’s job, not from the ability list. "Reset Instructions" puts the box back to this persona’s default. "Generate" drafts a version with AI via your Connector. Changing permissions does not rewrite this box.',
-			'rf-agent-role'
+			'agent-role'
 		) . '</p>';
 		echo '<textarea class="ar-rf-instructions" id="agent_role_instructions" name="agent_role_instructions" rows="14">';
 		echo esc_textarea( $instructions );
@@ -2177,11 +2177,11 @@ class Agent_Role_Admin {
 		echo '<p class="ar-rf-draft">';
 		if ( current_user_can( 'manage_options' ) && class_exists( 'Agent_Role_Brief', false ) && Agent_Role_Brief::can_draft() ) {
 			echo '<button type="button" class="button" id="ar-draft-instructions" data-user="' . esc_attr( (string) $agent->ID ) . '">';
-			echo esc_html__( 'Generate Instructions based on your website', 'rf-agent-role' );
+			echo esc_html__( 'Generate Instructions based on your website', 'agent-role' );
 			echo '</button>';
 		}
 		echo '<button type="button" class="button" id="ar-reset-instructions" data-user="' . esc_attr( (string) $agent->ID ) . '">';
-		echo esc_html__( 'Reset Instructions', 'rf-agent-role' );
+		echo esc_html__( 'Reset Instructions', 'agent-role' );
 		echo '</button></p>';
 		echo '<p class="ar-rf-draft__status" id="ar-draft-instructions-status" aria-live="polite"></p>';
 		echo '</div></div>';
@@ -2189,12 +2189,12 @@ class Agent_Role_Admin {
 		echo '<p class="ar-rf-lede">' . esc_html__(
 			/* translators: "Save as Default", "Reset", and "Factory Reset" are button labels on this screen. */
 			'Save as Default becomes the starting permissions and instructions for this Agent persona. Reset puts this agent on your saved default. Factory Reset puts the persona back to the plugin default. Agents you already customized stay as they are.',
-			'rf-agent-role'
+			'agent-role'
 		) . '</p>';
 		echo '<p class="ar-persona-defaults__actions">';
-		echo '<button type="submit" class="button" name="agent_role_persona_action" value="save_default" id="ar-persona-save-default"' . disabled( ! $persona, true, false ) . '>' . esc_html__( 'Save as Default', 'rf-agent-role' ) . '</button> ';
-		echo '<button type="submit" class="button" name="agent_role_persona_action" value="reset" id="ar-persona-reset-default"' . disabled( ! $persona, true, false ) . '>' . esc_html__( 'Reset to Default', 'rf-agent-role' ) . '</button> ';
-		echo '<button type="submit" class="button" name="agent_role_persona_action" value="factory" id="ar-persona-factory-default"' . disabled( ! $persona, true, false ) . '>' . esc_html__( 'Factory Reset', 'rf-agent-role' ) . '</button>';
+		echo '<button type="submit" class="button" name="agent_role_persona_action" value="save_default" id="ar-persona-save-default"' . disabled( ! $persona, true, false ) . '>' . esc_html__( 'Save as Default', 'agent-role' ) . '</button> ';
+		echo '<button type="submit" class="button" name="agent_role_persona_action" value="reset" id="ar-persona-reset-default"' . disabled( ! $persona, true, false ) . '>' . esc_html__( 'Reset to Default', 'agent-role' ) . '</button> ';
+		echo '<button type="submit" class="button" name="agent_role_persona_action" value="factory" id="ar-persona-factory-default"' . disabled( ! $persona, true, false ) . '>' . esc_html__( 'Factory Reset', 'agent-role' ) . '</button>';
 		echo '</p></div>';
 		echo '</div>';
 		echo '</div>';
@@ -2212,24 +2212,24 @@ class Agent_Role_Admin {
 	private static function render_persona_groups( $agent, array $caps, array $actions, array $abilities ) {
 		$groups = array(
 			'create' => array(
-				'label' => _x( 'Create', 'ability group title', 'rf-agent-role' ),
-				'lede'  => __( 'Abilities related to creating new posts and post types and uploading files.', 'rf-agent-role' ),
+				'label' => _x( 'Create', 'ability group title', 'agent-role' ),
+				'lede'  => __( 'Abilities related to creating new posts and post types and uploading files.', 'agent-role' ),
 			),
 			'read'   => array(
-				'label' => _x( 'Read', 'ability group title', 'rf-agent-role' ),
-				'lede'  => __( 'Abilities related to reading your website information and content. Cannot make changes.', 'rf-agent-role' ),
+				'label' => _x( 'Read', 'ability group title', 'agent-role' ),
+				'lede'  => __( 'Abilities related to reading your website information and content. Cannot make changes.', 'agent-role' ),
 			),
 			'undo'   => array(
-				'label' => _x( 'Undo', 'ability group title', 'rf-agent-role' ),
-				'lede'  => __( 'Abilities related to changing things on your website that already exist.', 'rf-agent-role' ),
+				'label' => _x( 'Undo', 'ability group title', 'agent-role' ),
+				'lede'  => __( 'Abilities related to changing things on your website that already exist.', 'agent-role' ),
 			),
 			'delete' => array(
-				'label' => _x( 'Delete', 'ability group title', 'rf-agent-role' ),
-				'lede'  => __( 'Removes content.', 'rf-agent-role' ),
+				'label' => _x( 'Delete', 'ability group title', 'agent-role' ),
+				'lede'  => __( 'Removes content.', 'agent-role' ),
 			),
 			'other'  => array(
-				'label' => __( 'Other Abilities', 'rf-agent-role' ),
-				'lede'  => __( 'Abilities that cannot be easily classified and come from plugins or a theme you installed on this site.', 'rf-agent-role' ),
+				'label' => __( 'Other Abilities', 'agent-role' ),
+				'lede'  => __( 'Abilities that cannot be easily classified and come from plugins or a theme you installed on this site.', 'agent-role' ),
 			),
 		);
 

@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **Breaking:** The text domain is `agent-role`, the same as the plugin directory. Language packs attach under that slug.
+
 ## [1.7.0] - 2026-10-01
 
 ### Changed

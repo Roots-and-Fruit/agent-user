@@ -105,14 +105,14 @@ class Agent_Role_Account {
 		if ( '' === $username ) {
 			return new WP_Error(
 				'agent_role_invalid_username',
-				__( 'A username is required.', 'rf-agent-role' )
+				__( 'A username is required.', 'agent-role' )
 			);
 		}
 
 		if ( username_exists( $username ) ) {
 			return new WP_Error(
 				'agent_role_username_exists',
-				__( 'That username is already taken.', 'rf-agent-role' )
+				__( 'That username is already taken.', 'agent-role' )
 			);
 		}
 
@@ -209,7 +209,7 @@ class Agent_Role_Account {
 			self::restore_role( $user_id, self::previous_role( $old_roles ) );
 			self::remember_notice(
 				/* translators: "Users" and "Agents" are WordPress admin menu labels. */
-				__( 'This account was not created as an Agent. Create an Agent under Users → Agents.', 'rf-agent-role' )
+				__( 'This account was not created as an Agent. Create an Agent under Users → Agents.', 'agent-role' )
 			);
 			return;
 		}
@@ -217,7 +217,7 @@ class Agent_Role_Account {
 		if ( $managed && Agent_Role::SLUG !== $role ) {
 			self::restore_role( $user_id, Agent_Role::SLUG );
 			self::remember_notice(
-				__( 'Agent accounts stay Agents. Create a separate user for a person.', 'rf-agent-role' )
+				__( 'Agent accounts stay Agents. Create a separate user for a person.', 'agent-role' )
 			);
 		}
 	}
@@ -246,7 +246,7 @@ class Agent_Role_Account {
 
 		self::remember_notice(
 			/* translators: "Users" and "Agents" are WordPress admin menu labels. */
-			__( 'This account was not created as an Agent. Create an Agent under Users → Agents.', 'rf-agent-role' )
+			__( 'This account was not created as an Agent. Create an Agent under Users → Agents.', 'agent-role' )
 		);
 	}
 
@@ -336,7 +336,7 @@ class Agent_Role_Account {
 		if ( self::managed_password( $user_id ) ) {
 			return new WP_Error(
 				'agent_role_password_exists',
-				__( 'This agent already has an application password.', 'rf-agent-role' )
+				__( 'This agent already has an application password.', 'agent-role' )
 			);
 		}
 
@@ -396,7 +396,7 @@ class Agent_Role_Account {
 		if ( ! $item ) {
 			return new WP_Error(
 				'agent_role_password_missing',
-				__( 'This agent has no application password.', 'rf-agent-role' )
+				__( 'This agent has no application password.', 'agent-role' )
 			);
 		}
 
@@ -409,7 +409,7 @@ class Agent_Role_Account {
 		if ( ! $deleted ) {
 			return new WP_Error(
 				'agent_role_password_missing',
-				__( 'This agent has no application password.', 'rf-agent-role' )
+				__( 'This agent has no application password.', 'agent-role' )
 			);
 		}
 

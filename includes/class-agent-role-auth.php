@@ -43,7 +43,7 @@ class Agent_Role_Auth {
 
 		return new WP_Error(
 			'agent_role_password_login_blocked',
-			__( 'This account cannot sign in with a password.', 'rf-agent-role' )
+			__( 'This account cannot sign in with a password.', 'agent-role' )
 		);
 	}
 
@@ -81,7 +81,7 @@ class Agent_Role_Auth {
 
 		$error->add(
 			'agent_role_xmlrpc_blocked',
-			__( 'Agent accounts cannot authenticate over XML-RPC.', 'rf-agent-role' )
+			__( 'Agent accounts cannot authenticate over XML-RPC.', 'agent-role' )
 		);
 	}
 }

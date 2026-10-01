@@ -31,7 +31,7 @@ class Agent_Role_Brief {
 	public static function for_user( $user_id, $caps = null, $abilities = null, $persona = '' ) {
 		$user = get_userdata( (int) $user_id );
 		if ( ! $user instanceof WP_User || ! Agent_Role::is_agent( $user ) ) {
-			return new WP_Error( 'agent_role_not_agent', __( 'That user is not an Agent.', 'rf-agent-role' ) );
+			return new WP_Error( 'agent_role_not_agent', __( 'That user is not an Agent.', 'agent-role' ) );
 		}
 
 		$home = home_url( '/' );
@@ -98,7 +98,7 @@ class Agent_Role_Brief {
 			unset( $e );
 			return new WP_Error(
 				'agent_role_ai_unavailable',
-				__( 'AI is not available on this site.', 'rf-agent-role' )
+				__( 'AI is not available on this site.', 'agent-role' )
 			);
 		}
 
@@ -107,7 +107,7 @@ class Agent_Role_Brief {
 		}
 
 		if ( ! is_string( $text ) || '' === trim( $text ) ) {
-			return new WP_Error( 'agent_role_draft_empty', __( 'The AI returned no instructions.', 'rf-agent-role' ) );
+			return new WP_Error( 'agent_role_draft_empty', __( 'The AI returned no instructions.', 'agent-role' ) );
 		}
 
 		return trim( $text );
@@ -138,13 +138,13 @@ class Agent_Role_Brief {
 		try {
 			if ( function_exists( 'wp_ai_client_prompt' ) && function_exists( 'wp_supports_ai' ) && wp_supports_ai() ) {
 				/* translators: "Settings" and "Connectors" are WordPress admin menu labels. */
-				return __( 'Connect an AI provider under Settings → Connectors, then try again.', 'rf-agent-role' );
+				return __( 'Connect an AI provider under Settings → Connectors, then try again.', 'agent-role' );
 			}
 		} catch ( \Throwable $e ) {
 			unset( $e );
 		}
 
-		return __( 'AI is not available on this site.', 'rf-agent-role' );
+		return __( 'AI is not available on this site.', 'agent-role' );
 	}
 
 	/**

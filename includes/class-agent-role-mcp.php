@@ -235,7 +235,7 @@ WP_API_PASSWORD: PASTE_APPLICATION_PASSWORD_HERE
 Leave the password as the text PASTE_APPLICATION_PASSWORD_HERE. Do not replace it. Do not ask the user to paste the application password into the chat. Do not invent one. Do not repeat one if you see one. Do not open the config again after the user edits it. If the file you write is inside a repository, say so and tell the user not to commit it.
 
 After the file is saved, tell the user three things: which file you changed, that they should replace PASTE_APPLICATION_PASSWORD_HERE in that file with the application password shown in WordPress, and that they should save the file and restart the app. Stop there.',
-				'rf-agent-role'
+				'agent-role'
 			),
 			self::server_name( $username ),
 			self::endpoint(),
