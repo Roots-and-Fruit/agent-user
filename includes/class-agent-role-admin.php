@@ -180,15 +180,15 @@ class Agent_Role_Admin {
 	}
 
 	/**
-	 * Sticky bar on every Agent Role screen. Link targets are placeholders.
+	 * Sticky bar on every Agent Role screen.
 	 */
 	private static function render_footer() {
 		echo '<footer class="ar-rf-footer">';
 		echo '<a class="ar-rf-footer__rate" href="#">' . esc_html__( 'Like Agent Role? Give us a 5-★ Rating Here', 'agent-role' ) . '</a>';
 		echo '<nav class="ar-rf-footer__links" aria-label="' . esc_attr__( 'Plugin links', 'agent-role' ) . '">';
-		echo '<a href="#">' . esc_html__( 'Docs', 'agent-role' ) . '</a>';
-		echo '<a href="#">' . esc_html__( 'Feedback', 'agent-role' ) . '</a>';
-		echo '<a href="#">' . esc_html__( 'Support', 'agent-role' ) . '</a>';
+		echo '<a href="' . esc_url( 'https://mattc.link/agent-role-docs' ) . '">' . esc_html__( 'Docs', 'agent-role' ) . '</a>';
+		echo '<a href="' . esc_url( 'https://mattc.link/agent-role-feedback' ) . '">' . esc_html__( 'Feedback', 'agent-role' ) . '</a>';
+		echo '<a href="' . esc_url( 'https://mattc.link/agent-role-support' ) . '">' . esc_html__( 'Support', 'agent-role' ) . '</a>';
 		echo '</nav>';
 		echo '<button type="button" class="ar-rf-footer__brand" aria-expanded="false" aria-controls="ar-rf-about">';
 		echo '<img src="' . esc_url( plugins_url( 'admin/images/rf-logo.svg', AGENT_ROLE_FILE ) ) . '" alt="' . esc_attr__( 'Roots and Fruit', 'agent-role' ) . '" width="120" height="53" />';

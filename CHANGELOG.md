@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Agent Role screens ship Domine and Nunito Sans in the plugin. Headings use Domine Bold. Body text uses Nunito Sans. The stylesheet no longer loads fonts from rootsandfruit.com.
 - Revoke on the Agents list uses a grey undo icon instead of a red X.
+- Footer Docs, Feedback, and Support link to the plugin wiki, GitHub feature requests, and the WordPress.org support forum.
 
 ## [1.8.0] - 2026-10-01
 
