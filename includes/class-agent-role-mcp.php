@@ -217,7 +217,7 @@ class Agent_Role_Mcp {
 	 */
 	public static function setup_prompt( $username ) {
 		return sprintf(
-			/* translators: 1: MCP server name for this site and agent, 2: MCP endpoint URL, 3: agent username. */
+			/* translators: 1: MCP server name for this site and agent, 2: MCP endpoint URL, 3: agent username, 4: password placeholder. */
 			__(
 				'Add this WordPress site as an MCP server in the app you are running in now. Use that app\'s own MCP configuration. Merge this server into the existing file and keep every server that is already configured.
 
@@ -230,16 +230,17 @@ arguments: -y @automattic/mcp-wordpress-remote@latest
 WP_API_URL: %2$s
 WP_API_USERNAME: %3$s
 OAUTH_ENABLED: "false"
-WP_API_PASSWORD: PASTE_APPLICATION_PASSWORD_HERE
+WP_API_PASSWORD: %4$s
 
-Leave the password as the text PASTE_APPLICATION_PASSWORD_HERE. Do not replace it. Do not ask the user to paste the application password into the chat. Do not invent one. Do not repeat one if you see one. Do not open the config again after the user edits it. If the file you write is inside a repository, say so and tell the user not to commit it.
+Leave the password as the text %4$s. Do not replace it. Do not ask the user to paste the application password into the chat. Do not invent one. Do not repeat one if you see one. Do not open the config again after the user edits it. If the file you write is inside a repository, say so and tell the user not to commit it.
 
-After the file is saved, tell the user three things: which file you changed, that they should replace PASTE_APPLICATION_PASSWORD_HERE in that file with the application password shown in WordPress, and that they should save the file and restart the app. Stop there.',
+After the file is saved, tell the user three things: which file you changed, that they should replace %4$s in that file with the application password shown in WordPress, and that they should save the file and restart the app. Stop there.',
 				'agent-role'
 			),
 			self::server_name( $username ),
 			self::endpoint(),
-			$username
+			$username,
+			Agent_Role_Connection::PASSWORD_PLACEHOLDER
 		);
 	}
 

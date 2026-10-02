@@ -7,15 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.9.0] - 2026-10-02
+
 ### Added
 
+- Web Dev agents can keep plugins up to date. They list the updates WordPress has already found, read the WordPress.org changelog for the offered version, then update one plugin at a time. If the plugin was active, Agent Role loads the homepage in the same request and puts the previous version back when it hits a fatal error. Each update ends as updated, restored, or failed, with a plain-text reason.
+- When WP Rollback is active, Web Dev agents can roll a plugin back to an older version listed on WordPress.org. Agent Role checks the plugin and version before anything changes, checks the homepage afterwards, and never runs a rollback and an update at the same time.
+- Existing Web Dev agents, and a saved Web Dev default, get the new plugin-update switches turned on once after this update. Each switch can still be turned off per agent.
+- Sites without the WordPress MCP Adapter get a setup prompt too. It connects the agent through the WordPress REST API with its application password, keeps the password out of the chat, and tells the agent how to find and run abilities. It lists what that agent is allowed to do, including each switched-on ability by name. View on the Agents list opens the same prompt.
 - The Agents list has a Delete column. Delete asks for confirmation, then removes the agent account. Activity keeps a record that the account was deleted.
 
 ### Changed
 
-- Agent Role screens ship Domine and Nunito Sans in the plugin. Headings use Domine Bold. Body text uses Nunito Sans. The stylesheet no longer loads fonts from rootsandfruit.com.
-- Revoke on the Agents list uses a grey undo icon instead of a red X.
-- Footer Docs, Feedback, and Support link to the plugin wiki, GitHub feature requests, and the WordPress.org support forum.
+- Web Dev instructions walk the agent through plugin updates: list them, read the changelog, update one at a time, and use WP Rollback only when an update could not be restored or the user names a version.
+- Activity shows what an ability reported, such as "Update a plugin: restored", so a restored or failed update reads as an error instead of a success.
+- On the Agents list, the MCP info column is now Connection, and an agent without a password reads "Create a password to connect this agent." Revoke uses a grey undo icon instead of a red X.
+- Agent Role screens ship their own fonts, Domine for headings and Nunito Sans for body text, and no longer load fonts from rootsandfruit.com.
+- The footer's Docs, Feedback, and Support links go to the plugin wiki, GitHub feature requests, and the WordPress.org support forum.
+
+### Fixed
+
+- The window that opens after you create or view an agent closes when you click Close, click outside it, or press Escape.
 
 ## [1.8.0] - 2026-10-01
 
@@ -113,7 +125,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - First release.
 
-[Unreleased]: https://github.com/Roots-and-Fruit/agent-user/compare/v1.8.0...HEAD
+[Unreleased]: https://github.com/Roots-and-Fruit/agent-user/compare/v1.9.0...HEAD
+[1.9.0]: https://github.com/Roots-and-Fruit/agent-user/compare/v1.8.0...v1.9.0
 [1.8.0]: https://github.com/Roots-and-Fruit/agent-user/compare/v1.7.0...v1.8.0
 [1.7.0]: https://github.com/Roots-and-Fruit/agent-user/compare/v1.6.0...v1.7.0
 [1.6.0]: https://github.com/Roots-and-Fruit/agent-user/compare/v1.5.0...v1.6.0

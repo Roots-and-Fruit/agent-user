@@ -122,6 +122,8 @@ class McpTest extends TestCase {
 		$this->assertStringContainsString( '@automattic/mcp-wordpress-remote@latest', $html );
 		$this->assertStringContainsString( 'PASTE_APPLICATION_PASSWORD_HERE', $html );
 		$this->assertStringContainsString( 'Merge this server into the existing file', $html );
+		$this->assertStringNotContainsString( 'connect through the WordPress REST API', $html );
+		$this->assertStringNotContainsString( 'This site has no MCP server', $html );
 		$this->assertStringNotContainsString( 'claude_desktop_config.json', $html );
 		$this->assertStringNotContainsString( '.cursor/mcp.json', $html );
 		$this->assertStringNotContainsString( 'config.toml', $html );

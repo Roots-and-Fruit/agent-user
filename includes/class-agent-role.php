@@ -27,6 +27,8 @@ class Agent_Role {
 
 	const MIGRATED_OPTION = 'agent_role_caps_migrated';
 
+	const WEBDEV_ABILITIES_OPTION = 'agent_role_webdev_abilities_migrated';
+
 	const ABILITIES_META = '_agent_role_abilities';
 
 	const INSTRUCTIONS_META = '_agent_role_instructions';
@@ -153,6 +155,45 @@ class Agent_Role {
 		}
 
 		self::migrate_caps();
+		self::migrate_webdev_abilities();
+	}
+
+	/**
+	 * Switch the plugin update abilities on for every Web Dev agent and saved Web Dev default, once.
+	 *
+	 * Customized agents get them too. Each switch can still be turned off per agent.
+	 */
+	public static function migrate_webdev_abilities() {
+		if ( get_option( self::WEBDEV_ABILITIES_OPTION ) ) {
+			return;
+		}
+
+		if ( ! class_exists( 'Agent_Role_Admin', false ) ) {
+			require_once AGENT_ROLE_DIR . 'includes/class-agent-role-admin.php';
+		}
+
+		$add = array_fill_keys( Agent_Role_Plugin_Updates::ability_names(), true );
+		$ids = get_users(
+			array(
+				'role'       => self::SLUG,
+				'fields'     => 'ID',
+				'meta_key'   => Agent_Role_Admin::PERSONA_META, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key -- Runs once.
+				'meta_value' => 'webdev', // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value -- Runs once.
+			)
+		);
+		foreach ( $ids as $user_id ) {
+			$saved = get_user_meta( (int) $user_id, self::ABILITIES_META, true );
+			update_user_meta( (int) $user_id, self::ABILITIES_META, array_merge( is_array( $saved ) ? $saved : array(), $add ) );
+		}
+
+		$stored = get_option( self::PERSONA_DEFAULTS_OPTION, array() );
+		if ( is_array( $stored ) && isset( $stored['webdev'] ) && is_array( $stored['webdev'] ) ) {
+			$saved                         = isset( $stored['webdev']['abilities'] ) && is_array( $stored['webdev']['abilities'] ) ? $stored['webdev']['abilities'] : array();
+			$stored['webdev']['abilities'] = array_merge( $saved, $add );
+			update_option( self::PERSONA_DEFAULTS_OPTION, $stored, false );
+		}
+
+		update_option( self::WEBDEV_ABILITIES_OPTION, '1', false );
 	}
 
 	/**
@@ -201,6 +242,7 @@ class Agent_Role {
 		Agent_Role_Account::delete_credentials();
 		delete_option( Agent_Role_Mcp::OPTION );
 		delete_option( self::MIGRATED_OPTION );
+		delete_option( self::WEBDEV_ABILITIES_OPTION );
 		delete_option( self::PERSONA_DEFAULTS_OPTION );
 		if ( class_exists( 'Agent_Role_Log' ) ) {
 			delete_option( Agent_Role_Log::OPTION_DAYS );

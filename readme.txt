@@ -3,42 +3,120 @@ Contributors: webdevmattcrom
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.8.0
+Stable tag: 1.9.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
-Tags: users, roles, rest-api
+Tags: mcp, agent, users, roles, security
 
-An Agent role for accounts that cannot log in with a password.
+Give your AI its own WordPress account, with only the access you choose.
 
 == Description ==
 
-Agent Role adds a user role named Agent. An Agent can publish and upload like an Author. The account cannot sign in on the login screen, cannot reset its password, and cannot open wp-admin.
+Most sites connect an AI assistant by handing over an admin password, spinning up a hosted relay, or installing a plugin that exposes hundreds of tools and hopes you notice the dangerous ones.
 
-Create the account from Users, then Agents. The password is shown once, in a window, with copy buttons. Open an agent from the list to choose what that account can do, which abilities it may run, and the instructions sent when it connects. Revoke the password from the list when you want to replace it. Activity lists what those agents tried. A name links to that agent's screen. A deleted account is marked, with the deletion time when it was recorded.
+Agent Role takes a different path. It creates a real WordPress user named Agent that can publish and upload like an Author, but cannot sign in on the login screen, cannot reset a password, and cannot open wp-admin. You create the account from **Users → Agents**, copy the application password once, and paste the setup prompt into Cursor, Claude, or whatever agent you already use.
 
-The normal Add User screen does not offer the Agent role.
+Your login stays yours. If you stop trusting the connection, you revoke one password or delete one agent. The rest of your site does not move.
+
+The plugin is built for people who want AI on a live WordPress site without treating the assistant like a second administrator.
+
+= Benefits =
+
+* **You stop sharing the keys to the whole house.** The AI connects with its own credentials, not your admin account. That alone cuts most of the "what if it deletes a plugin" anxiety.
+
+* **An agent is not a person on your team.** Agents cannot log in as humans, cannot use the lost-password flow, and never show up on the normal Add User screen. People stay people. Agents stay agents.
+
+* **You choose the job, not a wall of toggles.** Pick a persona (Writer, Editor, Analyst, Web Dev) and get a sensible starting point. Customize from there, or save your own default for the next agent you add.
+
+* **Each agent gets its own scope.** Capabilities and abilities live on that account. Turn off delete posts for the writer agent while the editor agent keeps it. One agent's limits do not rewrite everyone else's.
+
+* **You see what was attempted, not just what succeeded.** The Activity log records ability calls, REST writes, and account changes. Filter by agent, outcome, and date. Denied attempts show up too, so a blocked call reads differently from a broken one.
+
+* **Onboarding that respects your password.** After you create an agent, you get a ready-made prompt for your agent plus the application password beside it. The prompt uses a placeholder for the secret so you are not pasting live credentials into chat.
+
+* **Trust grows in steps.** Abilities from other plugins appear in your agent's list, grouped and off until you turn them on. You add reach as you get comfortable, not all at once on day one.
+
+* **You can lock MCP to agents only.** When the official WordPress MCP Adapter is active, an optional setting (off until you turn it on) limits the default MCP server to Agent accounts. Your personal admin login cannot open that door by accident.
+
+* **Revoke without drama.** Replace an application password from the agent list, or delete the agent entirely. Activity keeps a record either way.
+
+= Integrations =
+
+* **WordPress MCP Adapter (official).** Agent Role is a companion to the [WordPress MCP Adapter](https://github.com/WordPress/mcp-adapter), not a replacement for it. Install the adapter, create an agent, paste the generated config. Each agent can carry connection instructions the adapter sends when that account connects. Optional agents-only mode adds a gate on top.
+
+* **WordPress Connectors.** If your site has an AI Connector that can write text (under **Settings → Connectors**), Agent Role can draft connection instructions from a short site brief. Generate, edit, save. Permission changes do not silently rewrite the box.
+
+* **Abilities from other plugins.** Anything that registers with the WordPress Abilities API can show up on an agent's Customize screen, grouped as Create, Read, Undo, Delete, and Other. Each tool names its source plugin. You decide what this agent may call.
+
+* **WP Rollback.** The Web Dev persona includes plugin update access with rollback in mind. If WP Rollback is on the site, the persona's instructions point the agent at rolling back a bad update, not just pushing forward.
+
+* **Custom abilities you build.** Register your own abilities in your plugin or theme. They appear alongside the rest. Agent Role scopes them per agent the same way it scopes everything else.
+
+* **Works with the agent you already use, MCP or not.** With the MCP Adapter active, the setup prompt adds your site as an MCP server in Cursor, Claude Desktop, Claude Code, VS Code, or any other MCP client. Without it, the prompt connects your agent through the WordPress REST API with the same application password, so you can start today and add MCP later. One agent account, one connection, one scope. Add a second agent when you want a second job with different limits.
+
+= Support and resources =
+
+* **Documentation:** [GitHub repository and wiki](https://github.com/Roots-and-Fruit/agent-user)
+* **Support:** [WordPress.org support forum](https://wordpress.org/support/plugin/agent-role/)
+* **Feature requests:** [GitHub Issues](https://github.com/Roots-and-Fruit/agent-user/issues)
+* **Changelog:** Notable releases are in `CHANGELOG.md` in the plugin folder. GitHub release notes are copied from that file.
 
 == Installation ==
 
 1. Upload the `agent-role` folder to `/wp-content/plugins/`.
-2. Activate the plugin.
-3. Open Users, then Agents.
+2. Activate the plugin through the **Plugins** screen.
+3. Open **Users → Agents** and create your first agent.
+4. Copy the application password from the window. WordPress will not show it again.
+5. Paste the setup prompt into your agent and replace the password placeholder with the one you copied.
+
+HTTPS is required. WordPress only offers application passwords on secure sites.
 
 == Frequently Asked Questions ==
 
 = Can a person log in as an Agent? =
 
-No. Password sign-in and password reset are refused. The application password works on the REST API only.
+No. Password sign-in and password reset are refused. The application password works on the REST API and MCP only.
 
-= Does this work with the WordPress MCP Adapter? =
+= Do I need the WordPress MCP Adapter? =
 
-Yes, and the adapter is optional. When it is active, the agent list can show the MCP endpoint and a client config. The password in that config is a placeholder, because WordPress does not keep the plaintext. A setting, off by default, limits the adapter's default server to Agent accounts. Each agent can also store instructions that the adapter sends when that account connects.
+No. Without it, the setup prompt connects your agent through the WordPress REST API, using the agent's application password, and lists what that agent is allowed to do. Install the adapter later and new prompts set up an MCP connection for the same account.
+
+= Does this replace the WordPress MCP Adapter? =
+
+No. Agent Role manages agent accounts and scoping. The [WordPress MCP Adapter](https://github.com/WordPress/mcp-adapter) is what turns WordPress abilities into MCP tools. Install both when you want a governed connection: create an agent here, connect through the adapter.
+
+= Does this work with other MCP plugins? =
+
+Agent Role does not ship its own MCP server. It adds agent identity and per-account limits on top of the official adapter. If another plugin also registers an MCP endpoint, pick one connection path and scope the agent account to match what you trust.
 
 = What happens if I deactivate the plugin? =
 
-The role stays, so existing Agent accounts keep their capabilities. The login blocks are removed with the plugin. Uninstalling the plugin removes the role, the application passwords it created, and the activity log. It does not delete the users.
+The Agent role stays, so existing agent accounts keep their capabilities. The login blocks are removed with the plugin. Uninstalling the plugin removes the role, the application passwords it created, and the activity log. It does not delete the user accounts.
 
 == Changelog ==
+
+= 1.9.0 =
+Released 2026-10-02.
+
+**Added**
+
+* Web Dev agents can keep plugins up to date. They list the updates WordPress has already found, read the WordPress.org changelog for the offered version, then update one plugin at a time. If the plugin was active, Agent Role loads the homepage in the same request and puts the previous version back when it hits a fatal error. Each update ends as updated, restored, or failed, with a plain-text reason.
+* When WP Rollback is active, Web Dev agents can roll a plugin back to an older version listed on WordPress.org. Agent Role checks the plugin and version before anything changes, checks the homepage afterwards, and never runs a rollback and an update at the same time.
+* Existing Web Dev agents, and a saved Web Dev default, get the new plugin-update switches turned on once after this update. Each switch can still be turned off per agent.
+* Sites without the WordPress MCP Adapter get a setup prompt too. It connects the agent through the WordPress REST API with its application password, keeps the password out of the chat, and tells the agent how to find and run abilities. It lists what that agent is allowed to do, including each switched-on ability by name. View on the Agents list opens the same prompt.
+* The Agents list has a Delete column. Delete asks for confirmation, then removes the agent account. Activity keeps a record that the account was deleted.
+
+**Changed**
+
+* Web Dev instructions walk the agent through plugin updates: list them, read the changelog, update one at a time, and use WP Rollback only when an update could not be restored or the user names a version.
+* Activity shows what an ability reported, such as "Update a plugin: restored", so a restored or failed update reads as an error instead of a success.
+* On the Agents list, the MCP info column is now Connection, and an agent without a password reads "Create a password to connect this agent." Revoke uses a grey undo icon instead of a red X.
+* Agent Role screens ship their own fonts, Domine for headings and Nunito Sans for body text, and no longer load fonts from rootsandfruit.com.
+* The footer's Docs, Feedback, and Support links go to the plugin wiki, GitHub feature requests, and the WordPress.org support forum.
+
+**Fixed**
+
+* The window that opens after you create or view an agent closes when you click Close, click outside it, or press Escape.
 
 = 1.8.0 =
 Released 2026-10-01.
@@ -146,6 +224,9 @@ Released 2026-09-28.
 * First release.
 
 == Upgrade Notice ==
+
+= 1.9.0 =
+Web Dev agents can now update plugins one at a time, with an automatic restore if the homepage breaks, and roll back through WP Rollback. Existing Web Dev agents get these switches on once. Sites without MCP get a REST setup prompt.
 
 = 1.8.0 =
 The text domain is now agent-role, matching the plugin folder. Custom language files named for rf-agent-role need to use the new domain.

@@ -48,7 +48,7 @@ class Agent_Role_Log {
 		add_action( 'wp_ability_invoked', array( __CLASS__, 'on_ability_invoked' ), 10, 1 );
 		add_filter( 'wp_ability_permission_result', array( __CLASS__, 'on_ability_permission' ), 100, 2 );
 		add_filter( 'wp_ability_execute_result', array( __CLASS__, 'on_ability_result' ), 100, 2 );
-		add_action( 'wp_after_execute_ability', array( __CLASS__, 'on_ability_after' ), 10, 1 );
+		add_action( 'wp_after_execute_ability', array( __CLASS__, 'on_ability_after' ), 10, 3 );
 		add_filter( 'rest_request_after_callbacks', array( __CLASS__, 'on_rest_dispatch' ), 10, 3 );
 		add_action( 'delete_user', array( __CLASS__, 'on_user_delete' ) );
 	}
@@ -471,11 +471,23 @@ class Agent_Role_Log {
 	}
 
 	/**
+	 * Result outcomes that mean the ability did not do what was asked.
+	 *
+	 * @var string[]
+	 */
+	const ERROR_OUTCOMES = array( 'failed', 'restored' );
+
+	/**
 	 * Record a finished execution. Quiet reads are omitted.
 	 *
+	 * A result with an `outcome` field adds that word to the row, and a failed or restored outcome is an error.
+	 *
 	 * @param string $ability_name Ability name.
+	 * @param mixed  $input        Ability input.
+	 * @param mixed  $result       Ability result.
 	 */
-	public static function on_ability_after( $ability_name ) {
+	public static function on_ability_after( $ability_name, $input = null, $result = null ) {
+		unset( $input );
 		if ( ! self::accept_invocation( $ability_name ) ) {
 			return;
 		}
@@ -487,7 +499,14 @@ class Agent_Role_Log {
 
 		$ability = function_exists( 'wp_get_ability' ) ? wp_get_ability( $ability_name ) : null;
 		$detail  = ( $ability && method_exists( $ability, 'get_label' ) ) ? $ability->get_label() : $ability_name;
-		self::record_ability( $ability_name, 'success', $detail );
+		$outcome = 'success';
+		if ( is_array( $result ) && isset( $result['outcome'] ) && is_string( $result['outcome'] ) && '' !== $result['outcome'] ) {
+			$detail .= ': ' . str_replace( '_', ' ', $result['outcome'] );
+			if ( in_array( $result['outcome'], self::ERROR_OUTCOMES, true ) ) {
+				$outcome = 'error';
+			}
+		}
+		self::record_ability( $ability_name, $outcome, $detail );
 	}
 
 	/**

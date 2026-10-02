@@ -496,7 +496,7 @@ class Agent_Role_Admin {
 			echo '<table class="widefat ar-rf-table"><thead><tr>';
 			echo '<th>' . esc_html__( 'Agent', 'agent-role' ) . '</th>';
 			echo '<th>' . esc_html__( 'Application password', 'agent-role' ) . '</th>';
-			echo '<th>' . esc_html__( 'MCP info', 'agent-role' ) . '</th>';
+			echo '<th>' . esc_html__( 'Connection', 'agent-role' ) . '</th>';
 			echo '<th>' . esc_html__( 'Delete', 'agent-role' ) . '</th>';
 			echo '</tr></thead><tbody>';
 			foreach ( $agents as $agent_user ) {
@@ -534,15 +534,10 @@ class Agent_Role_Admin {
 					echo '<a href="' . esc_url( $reissue_url ) . '">' . esc_html__( 'Create password', 'agent-role' ) . '</a>';
 				}
 				echo '</td><td>';
-				if ( ! Agent_Role_Mcp::is_available() ) {
+				if ( ! $has_password ) {
 					echo '<p class="ar-rf-mcp-notice" role="note">';
 					echo self::info_icon(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- SVG is escaped in info_icon().
-					echo '<span>' . esc_html__( 'No MCP is currently present.', 'agent-role' ) . '</span>';
-					echo '</p>';
-				} elseif ( ! $has_password ) {
-					echo '<p class="ar-rf-mcp-notice" role="note">';
-					echo self::info_icon(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- SVG is escaped in info_icon().
-					echo '<span>' . esc_html__( 'Generate App Password for MCP access', 'agent-role' ) . '</span>';
+					echo '<span>' . esc_html__( 'Create a password to connect this agent.', 'agent-role' ) . '</span>';
 					echo '</p>';
 				} else {
 					$template_id = 'ar-mcp-' . (int) $agent_user->ID;
@@ -619,16 +614,20 @@ class Agent_Role_Admin {
 	 * @param WP_User $agent Agent account.
 	 */
 	private static function render_mcp_preview( $agent ) {
-		echo '<h2>' . esc_html__( 'MCP info', 'agent-role' ) . '</h2>';
-		echo '<p>' . esc_html__( 'Paste this prompt into your agent. It will add this site and leave a line for the password.', 'agent-role' ) . '</p>';
-		self::render_agent_prompt( $agent->user_login );
+		echo '<h2>' . esc_html__( 'Connection', 'agent-role' ) . '</h2>';
+		echo '<p>' . esc_html(
+			Agent_Role_Connection::uses_mcp()
+				? __( 'Paste this prompt into your agent. It will add this site as an MCP server and leave a line for the password.', 'agent-role' )
+				: __( 'Paste this prompt into your agent. It will connect through the WordPress REST API and leave a line for the password. This site has no MCP server, and the agent does not need one.', 'agent-role' )
+		) . '</p>';
+		self::render_agent_prompt( $agent->user_login, $agent->ID );
 		echo '<p class="ar-rf-code-label">' . esc_html__( 'Application password', 'agent-role' ) . '</p>';
 		echo '<p>' . esc_html__( 'You were provided the application password when you first created this agent. It is shown only that one time for security. If you no longer have that password, you\'ll need to revoke this one and create a new one. Save that password securely and ask your agent where it should be saved in your project.', 'agent-role' ) . '</p>';
-		echo '<p class="ar-rf-modal__actions"><button type="submit" class="button button-primary" value="close">' . esc_html__( 'Close', 'agent-role' ) . '</button></p>';
+		echo '<p class="ar-rf-modal__actions"><button type="button" class="button button-primary ar-rf-modal__close">' . esc_html__( 'Close', 'agent-role' ) . '</button></p>';
 	}
 
 	/**
-	 * Info mark for the note that MCP needs an application password.
+	 * Info mark for the note that connecting needs an application password.
 	 */
 	private static function info_icon() {
 		return self::kses_icon(
@@ -940,17 +939,14 @@ class Agent_Role_Admin {
 	 */
 	private static function render_credentials_body( $agent, $password ) {
 		echo '<h2>' . esc_html__( 'Agent connected', 'agent-role' ) . '</h2>';
-		if ( Agent_Role_Mcp::is_available() ) {
-			echo '<p>' . esc_html__( 'Paste the prompt into your agent. It will set up MCP and tell you where to put this password. The password is shown once.', 'agent-role' ) . '</p>';
-			self::render_agent_prompt( $agent->user_login );
-			self::render_copy_row( __( 'Application password', 'agent-role' ), $password );
-		} else {
-			echo '<p>' . esc_html__( 'Copy these now. They will not be shown again.', 'agent-role' ) . '</p>';
-			self::render_copy_row( __( 'Site URL', 'agent-role' ), home_url( '/' ) );
-			self::render_copy_row( __( 'Username', 'agent-role' ), $agent->user_login );
-			self::render_copy_row( __( 'Application password', 'agent-role' ), $password );
-		}
-		echo '<p class="ar-rf-modal__actions"><button type="submit" class="button button-primary" value="close">' . esc_html__( 'Close', 'agent-role' ) . '</button></p>';
+		echo '<p>' . esc_html(
+			Agent_Role_Connection::uses_mcp()
+				? __( 'Paste the prompt into your agent. It will set up MCP and tell you where to put this password. The password is shown once.', 'agent-role' )
+				: __( 'Paste the prompt into your agent. It will connect through the WordPress REST API and tell you where to put this password. The password is shown once.', 'agent-role' )
+		) . '</p>';
+		self::render_agent_prompt( $agent->user_login, $agent->ID );
+		self::render_copy_row( __( 'Application password', 'agent-role' ), $password );
+		echo '<p class="ar-rf-modal__actions"><button type="button" class="button button-primary ar-rf-modal__close">' . esc_html__( 'Close', 'agent-role' ) . '</button></p>';
 	}
 
 	/**
@@ -1262,14 +1258,15 @@ class Agent_Role_Admin {
 	}
 
 	/**
-	 * Copyable setup prompt for one agent username.
+	 * Copyable setup prompt for one agent.
 	 *
 	 * @param string $username Agent username.
+	 * @param int    $user_id  Agent user ID.
 	 */
-	private static function render_agent_prompt( $username ) {
+	private static function render_agent_prompt( $username, $user_id ) {
 		self::render_code_block(
 			__( 'Prompt for your Agent', 'agent-role' ),
-			Agent_Role_Mcp::setup_prompt( $username ),
+			Agent_Role_Connection::setup_prompt( $username, $user_id ),
 			__( 'Text', 'agent-role' ),
 			__( 'Copy prompt', 'agent-role' )
 		);
@@ -1482,25 +1479,27 @@ class Agent_Role_Admin {
 
 	/**
 	 * Starting shapes. Caps are the six publishing switches. Actions are the extra rows.
+	 * Abilities are switched on in addition to the core reads every shape starts with.
 	 *
-	 * @return array<string,array{label:string,letters:string,color:string,soft:string,text:string,note:string,caps:string[],actions:string[]}>
+	 * @return array<string,array{label:string,letters:string,color:string,soft:string,text:string,note:string,caps:string[],actions:string[],abilities:string[]}>
 	 */
 	private static function personas() {
 		$writer_caps = array( 'edit_posts', 'edit_published_posts', 'publish_posts', 'upload_files' );
 
 		return array(
 			'webdev'  => array(
-				'label'   => __( 'Web Dev', 'agent-role' ),
+				'label'     => __( 'Web Dev', 'agent-role' ),
 				/* translators: Two-letter initials on the Web Dev persona card. */
-				'letters' => _x( 'WD', 'persona initials', 'agent-role' ),
-				'color'   => '#2c2922',
-				'soft'    => '#e6e2da',
+				'letters'   => _x( 'WD', 'persona initials', 'agent-role' ),
+				'color'     => '#2c2922',
+				'soft'      => '#e6e2da',
 				/* translators: WP Rollback is a plugin name. */
-				'text'    => __( 'Editor, plus they can update plugins. Roll those updates back with WP Rollback.', 'agent-role' ),
-				/* translators: WP Rollback is a plugin name. */
-				'note'    => __( 'You are the Web Dev for this WordPress site. Keep the site working. Update plugins when that is the job, and roll a bad update back with WP Rollback. Write and edit content when the site needs it. Do not change settings you were not asked to change.', 'agent-role' ),
-				'caps'    => $writer_caps,
-				'actions' => array( 'read_others', 'edit_others', 'update_plugins' ),
+				'text'      => __( 'Editor, plus they can update plugins one at a time and roll a bad update back with WP Rollback.', 'agent-role' ),
+				/* translators: Keep the ability names (agent-role/..., wp-rollback/rollback) in English. */
+				'note'      => __( 'You are the Web Dev for this WordPress site. Keep the site working. For plugin updates, run agent-role/list-plugin-updates first and read what changed with agent-role/get-plugin-changelog. Then update one plugin at a time with agent-role/update-plugin. If an update ends as restored, the old version is back and the site works, so report the reason it gave. Use wp-rollback/rollback only when an update could not be restored or the user names a version. Write and edit content when the site needs it. Do not change settings you were not asked to change.', 'agent-role' ),
+				'caps'      => $writer_caps,
+				'actions'   => array( 'read_others', 'edit_others', 'update_plugins' ),
+				'abilities' => Agent_Role_Plugin_Updates::ability_names(),
 			),
 			'editor'  => array(
 				'label'   => __( 'Editor', 'agent-role' ),
@@ -1654,10 +1653,15 @@ class Agent_Role_Admin {
 			$caps[ $cap ] = in_array( $cap, $enabled, true );
 		}
 
+		$abilities = self::core_read_abilities();
+		if ( ! empty( $personas[ $persona ]['abilities'] ) ) {
+			$abilities += array_fill_keys( $personas[ $persona ]['abilities'], true );
+		}
+
 		return array(
 			'caps'         => $caps,
 			'actions'      => isset( $personas[ $persona ] ) ? array_values( $personas[ $persona ]['actions'] ) : array(),
-			'abilities'    => self::core_read_abilities(),
+			'abilities'    => $abilities,
 			'instructions' => self::factory_persona_instructions( $persona ),
 		);
 	}

@@ -87,6 +87,37 @@
 		resultStep.hidden = name !== 'result';
 	}
 
+	function bindModalClose(modal) {
+		if (!modal || modal.dataset.closeBound || typeof modal.close !== 'function') {
+			return;
+		}
+		modal.dataset.closeBound = '1';
+
+		modal.addEventListener('click', function (event) {
+			if (event.target === modal) {
+				modal.close();
+			}
+		});
+
+		modal.addEventListener('click', function (event) {
+			var closeButton = event.target.closest('.ar-rf-modal__close, button[value="close"]');
+			if (closeButton && modal.contains(closeButton)) {
+				event.preventDefault();
+				modal.close();
+			}
+		});
+
+		var form = modal.querySelector('form[method="dialog"]');
+		if (form) {
+			form.addEventListener('submit', function (event) {
+				event.preventDefault();
+				modal.close();
+			});
+		}
+	}
+
+	bindModalClose(dialog);
+
 	if (dialog && resultStep && !resultStep.hidden && typeof dialog.showModal === 'function') {
 		bindCopy(resultStep);
 		dialog.showModal();
@@ -146,6 +177,7 @@
 
 	var mcpDialog = document.getElementById('ar-mcp-modal');
 	var mcpBody = document.getElementById('ar-mcp-modal-body');
+	bindModalClose(mcpDialog);
 	document.querySelectorAll('.ar-rf-mcp-view').forEach(function (button) {
 		button.addEventListener('click', function () {
 			var template = document.getElementById(button.getAttribute('data-template'));

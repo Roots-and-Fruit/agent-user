@@ -1,0 +1,137 @@
+<h4>5.7.2</h4>
+<p><em>Release Date &#8211; 19 August 2026</em></p>
+<ul>
+<li>Fix Fluent Forms integration on WordPress versions older than 6.1.</li>
+</ul>
+<h4>5.7.1</h4>
+<p><em>Release Date &#8211; 17 August 2026</em></p>
+<ul>
+<li>Fix link styling and hover previews in the Comments screen for the upcoming WordPress 7.1.</li>
+<li>Display external links consistently.</li>
+</ul>
+<h4>5.7</h4>
+<p><em>Release Date &#8211; 23 April 2026</em></p>
+<ul>
+<li>Add Abilities API support for stats and comment checking, including MCP tool integration.</li>
+<li>Add support for the new Connectors page in the upcoming WordPress 7.0.</li>
+<li>Improve detection of automated spam submissions on the front end.</li>
+<li>Make comment history sorting more resilient when called with invalid data.</li>
+<li>Use wp_get_inline_script_tag() for safer inline script output, and other small security enhancements.</li>
+<li>Add action hooks to allow customization of the admin page header and footer.</li>
+<li>Accessibility improvements.</li>
+</ul>
+<h4>5.6</h4>
+<p><em>Release Date &#8211; 12 November 2025</em></p>
+<ul>
+<li>Improve caching of compatible plugins.</li>
+<li>Explain the key features of Akismet more clearly on the setup page.</li>
+<li>Improve the configuration process to better explain errors when they occur.</li>
+<li>Setup UI cleanup and refresh.</li>
+<li>Improve messaging related to usage limits.</li>
+</ul>
+<h4>5.5</h4>
+<p><em>Release Date &#8211; 15 July 2025</em></p>
+<ul>
+<li>Enable webhooks so that Akismet can process comments asynchronously to detect more types of spam.</li>
+<li>Only include the Akismet widget CSS when the Akismet widget is present</li>
+<li>Improve contrast/readability for certain UI elements</li>
+</ul>
+<h4>5.4</h4>
+<p><em>Release Date &#8211; 7 May 2025</em></p>
+<ul>
+<li>The stats pages now use the user&#8217;s locale instead of the site&#8217;s locale if they&#8217;re different.</li>
+<li>Adds a &#8216;Compatible plugins&#8217; section that will show installed and active plugins that are compatible with Akismet.</li>
+<li>Akismet now requires PHP version 7.2 or above.</li>
+</ul>
+<h4>5.3.7</h4>
+<p><em>Release Date &#8211; 14 February 2025</em></p>
+<ul>
+<li>Simplify the logic used during a comment-check request to compare comments.</li>
+</ul>
+<h4>5.3.6</h4>
+<p><em>Release Date &#8211; 4 February 2025</em></p>
+<ul>
+<li>Improve the utility of submit-spam and submit-ham requests.</li>
+<li>Modernize styles for the Akismet classic widget.</li>
+</ul>
+<h4>5.3.5</h4>
+<p><em>Release Date &#8211; 18 November 2024</em></p>
+<ul>
+<li>Address compatibility issues with &lt; PHP 7.3 in v5.3.4 release.</li>
+</ul>
+<h4>5.3.4</h4>
+<p><em>Release Date &#8211; 18 November 2024</em></p>
+<ul>
+<li>Improve activation notice on Comments for users who haven&#8217;t set up their API key yet.</li>
+<li>Improve notice about commercial site status.</li>
+</ul>
+<h4>5.3.3</h4>
+<p><em>Release Date &#8211; 10 July 2024</em></p>
+<ul>
+<li>Make setup step clearer for new users.</li>
+<li>Remove the stats section from the configuration page if the site has been revoked from the key.</li>
+<li>Skip the Akismet comment check when the comment matches something in the disallowed list.</li>
+<li>Prompt users on legacy plans to contact Akismet support for upgrades.</li>
+</ul>
+<h4>5.3.2</h4>
+<p><em>Release Date &#8211; 21 March 2024</em></p>
+<ul>
+<li>Improve the empty state shown to new users when no spam has been caught yet.</li>
+<li>Update the message shown to users without a current subscription.</li>
+<li>Add foundations for future webhook support.</li>
+</ul>
+<h4>5.3.1</h4>
+<p><em>Release Date &#8211; 17 January 2024</em></p>
+<ul>
+<li>Make the plugin more resilient when asset files are missing (as seen in WordPress Playground).</li>
+<li>Add a link to the &#8216;Account overview&#8217; page on akismet.com.</li>
+<li>Fix a minor error that occurs when another plugin removes all comment actions from the dashboard.</li>
+<li>Add the akismet_request_args filter to allow request args in Akismet API requests to be filtered.</li>
+<li>Fix a bug that causes some contact forms to include unnecessary data in the comment_content parameter.</li>
+</ul>
+<h4>5.3</h4>
+<p><em>Release Date &#8211; 14 September 2023</em></p>
+<ul>
+<li>Improve display of user notices.</li>
+<li>Add stylesheets for RTL languages.</li>
+<li>Remove initial disabled state from &#8216;Save changes&#8217; button.</li>
+<li>Improve accessibility of API key entry form.</li>
+<li>Add new filter hooks for Fluent Forms.</li>
+<li>Fix issue with PHP 8.1 compatibility.</li>
+</ul>
+<h4>5.2</h4>
+<p><em>Release Date &#8211; 21 June 2023</em></p>
+<ul>
+<li>Visual refresh of Akismet stats.</li>
+<li>Improve PHP 8.1 compatibility.</li>
+<li>Improve appearance of plugin to match updated stats.</li>
+<li>Change minimum supported PHP version to 5.6 to match WordPress.</li>
+<li>Drop IE11 support and update minimum WordPress version to 5.8 (where IE11 support was removed from WP Core).</li>
+</ul>
+<h4>5.1</h4>
+<p><em>Release Date &#8211; 20 March 2023</em></p>
+<ul>
+<li>Removed unnecessary limit notices from admin page.</li>
+<li>Improved spam detection by including post taxonomies in the comment-check call.</li>
+<li>Removed API keys from stats iframes to avoid possible inadvertent exposure.</li>
+</ul>
+<h4>5.0.2</h4>
+<p><em>Release Date &#8211; 1 December 2022</em></p>
+<ul>
+<li>Improved compatibility with themes that hide or show UI elements based on mouse movements.</li>
+<li>Increased security of API keys by sending them in request bodies instead of subdomains.</li>
+</ul>
+<h4>5.0.1</h4>
+<p><em>Release Date &#8211; 28 September 2022</em></p>
+<ul>
+<li>Added an empty state for the Statistics section on the admin page.</li>
+<li>Fixed a bug that broke some admin page links when Jetpack plugins are active.</li>
+<li>Marked some event listeners as passive to improve performance in newer browsers.</li>
+<li>Disabled interaction observation on forms that post to other domains.</li>
+</ul>
+<h4>5.0</h4>
+<p><em>Release Date &#8211; 26 July 2022</em></p>
+<ul>
+<li>Added a new feature to catch spammers by observing how they interact with the page.</li>
+</ul>
+<p>For older changelog entries, please see the <a href="https://plugins.svn.wordpress.org/akismet/trunk/changelog.txt" rel="nofollow ugc">additional changelog.txt file</a> delivered with the plugin.</p>
