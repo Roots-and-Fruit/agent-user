@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.9.1] - 2026-10-02
+
+### Fixed
+
+- MCP initialize again sends this agent's persona instructions with MCP Adapter 0.7.0, which moved to the new schema records.
+
+### Changed
+
+- The readme notes that MCP Adapter 0.7 and later require WordPress 6.9, and that Agent Role works without the adapter over the REST API.
+- The readme explains that MCP discovery lists every MCP-public tool on the site, while Customize switches still decide what each agent may run.
+
 ## [1.9.0] - 2026-10-02
 
 ### Added
@@ -125,7 +136,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - First release.
 
-[Unreleased]: https://github.com/Roots-and-Fruit/agent-user/compare/v1.9.0...HEAD
+[Unreleased]: https://github.com/Roots-and-Fruit/agent-user/compare/v1.9.1...HEAD
+[1.9.1]: https://github.com/Roots-and-Fruit/agent-user/compare/v1.9.0...v1.9.1
 [1.9.0]: https://github.com/Roots-and-Fruit/agent-user/compare/v1.8.0...v1.9.0
 [1.8.0]: https://github.com/Roots-and-Fruit/agent-user/compare/v1.7.0...v1.8.0
 [1.7.0]: https://github.com/Roots-and-Fruit/agent-user/compare/v1.6.0...v1.7.0

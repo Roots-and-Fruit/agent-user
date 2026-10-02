@@ -3,7 +3,7 @@ Contributors: webdevmattcrom
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.9.0
+Stable tag: 1.9.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 Tags: mcp, agent, users, roles, security
@@ -42,7 +42,7 @@ The plugin is built for people who want AI on a live WordPress site without trea
 
 = Integrations =
 
-* **WordPress MCP Adapter (official).** Agent Role is a companion to the [WordPress MCP Adapter](https://github.com/WordPress/mcp-adapter), not a replacement for it. Install the adapter, create an agent, paste the generated config. Each agent can carry connection instructions the adapter sends when that account connects. Optional agents-only mode adds a gate on top.
+* **WordPress MCP Adapter (official).** Agent Role is a companion to the [WordPress MCP Adapter](https://github.com/WordPress/mcp-adapter), not a replacement for it. Install the adapter, create an agent, paste the generated config. Each agent can carry connection instructions the adapter sends when that account connects. Optional agents-only mode adds a gate on top. MCP Adapter 0.7 and later require WordPress 6.9 or newer because the Abilities API is in core. Agent Role itself still runs on WordPress 6.0 without the adapter.
 
 * **WordPress Connectors.** If your site has an AI Connector that can write text (under **Settings → Connectors**), Agent Role can draft connection instructions from a short site brief. Generate, edit, save. Permission changes do not silently rewrite the box.
 
@@ -79,7 +79,7 @@ No. Password sign-in and password reset are refused. The application password wo
 
 = Do I need the WordPress MCP Adapter? =
 
-No. Without it, the setup prompt connects your agent through the WordPress REST API, using the agent's application password, and lists what that agent is allowed to do. Install the adapter later and new prompts set up an MCP connection for the same account.
+No. Agent Role works without it. Without the adapter, the setup prompt connects your agent through the WordPress REST API, using the agent's application password, and lists what that agent is allowed to do. Install the adapter later and new prompts set up an MCP connection for the same account. If you do install MCP Adapter 0.7 or later, your site needs WordPress 6.9 or newer.
 
 = Does this replace the WordPress MCP Adapter? =
 
@@ -89,11 +89,27 @@ No. Agent Role manages agent accounts and scoping. The [WordPress MCP Adapter](h
 
 Agent Role does not ship its own MCP server. It adds agent identity and per-account limits on top of the official adapter. If another plugin also registers an MCP endpoint, pick one connection path and scope the agent account to match what you trust.
 
+= Why can my agent see abilities in MCP discovery that are off on the Customize screen? =
+
+MCP discovery lists every tool the site marks as MCP-public. Agent Role still enforces your per-agent switches when the agent tries to run one. A switch turned off means the call is refused, even if discovery showed the name. Customize is the source of truth for what may run. Discovery is a catalog of what exists on the site.
+
 = What happens if I deactivate the plugin? =
 
 The Agent role stays, so existing agent accounts keep their capabilities. The login blocks are removed with the plugin. Uninstalling the plugin removes the role, the application passwords it created, and the activity log. It does not delete the user accounts.
 
 == Changelog ==
+
+= 1.9.1 =
+Released 2026-10-02.
+
+**Fixed**
+
+* MCP initialize again sends this agent's persona instructions with MCP Adapter 0.7.0, which moved to the new schema records.
+
+**Changed**
+
+* The readme notes that MCP Adapter 0.7 and later require WordPress 6.9, and that Agent Role works without the adapter over the REST API.
+* The readme explains that MCP discovery lists every MCP-public tool on the site, while Customize switches still decide what each agent may run.
 
 = 1.9.0 =
 Released 2026-10-02.
@@ -224,6 +240,9 @@ Released 2026-09-28.
 * First release.
 
 == Upgrade Notice ==
+
+= 1.9.1 =
+Fixes MCP persona instructions with MCP Adapter 0.7.0. No settings changes.
 
 = 1.9.0 =
 Web Dev agents can now update plugins one at a time, with an automatic restore if the homepage breaks, and roll back through WP Rollback. Existing Web Dev agents get these switches on once. Sites without MCP get a REST setup prompt.

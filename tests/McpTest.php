@@ -134,7 +134,7 @@ class McpTest extends TestCase {
 		$this->assertStringNotContainsString( $expected, $again );
 		$this->assertStringContainsString( 'Prompt for your Agent', $again );
 		$this->assertStringContainsString( 'Save that password securely', $again );
-		$this->assertStringNotContainsString( Agent_Role_Mcp::PASSWORD_PLACEHOLDER, $again );
+		$this->assertStringNotContainsString( Agent_Role_Mcp::PASSWORD_PLACEHOLDER, $this->modal_result_html( $again ) );
 		$this->assertStringNotContainsString( 'ar-rf-mcp-copy', $html );
 		$this->assertStringNotContainsString( 'Copy MCP info', $html );
 	}
@@ -149,6 +149,28 @@ class McpTest extends TestCase {
 		$this->assertSame( '0', Agent_Role_Mcp::sanitize_agents_only( null ) );
 		$this->assertSame( '1', Agent_Role_Mcp::sanitize_agents_only( '1' ) );
 		$this->assertSame( '0', Agent_Role_Mcp::sanitize_agents_only( 'yes' ) );
+	}
+
+	public function test_initialize_includes_persona_instructions_for_a_web_dev_agent(): void {
+		$agent = $this->make_user( Agent_Role::SLUG );
+		Agent_Role_Admin::assign_persona( $agent, 'webdev' );
+		$expected = Agent_Role::instructions_for( get_userdata( $agent ) );
+		$this->assertNotSame( '', $expected );
+
+		wp_set_current_user( $agent );
+		$response = $this->dispatch_initialize();
+		$this->assertSame( 200, $response->get_status(), wp_json_encode( $response->get_data() ) );
+		$this->assertSame( $expected, $this->initialize_instructions( $response ) );
+	}
+
+	public function test_initialize_leaves_the_server_description_for_non_agents(): void {
+		Agent_Role_Mcp::set_agents_only( false );
+		$author = $this->make_user( 'author' );
+
+		wp_set_current_user( $author );
+		$response = $this->dispatch_initialize();
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertStringNotContainsString( 'agent-role/list-plugin-updates', $this->initialize_instructions( $response ) );
 	}
 
 	public function test_uninstall_removes_the_option(): void {
@@ -172,9 +194,16 @@ class McpTest extends TestCase {
 	private function initialize_as( int $user_id ): int {
 		wp_set_current_user( $user_id );
 
+		return $this->dispatch_initialize()->get_status();
+	}
+
+	/**
+	 * Dispatch an MCP initialize request through Core's REST server.
+	 */
+	private function dispatch_initialize(): WP_REST_Response {
 		$request = new WP_REST_Request( 'POST', '/' . Agent_Role_Mcp::ROUTE );
 		$request->set_header( 'Content-Type', 'application/json' );
-		$request->set_header( 'Accept', 'application/json' );
+		$request->set_header( 'Accept', 'application/json, text/event-stream' );
 		$request->set_body(
 			(string) wp_json_encode(
 				array(
@@ -183,7 +212,7 @@ class McpTest extends TestCase {
 					'method'  => 'initialize',
 					'params'  => array(
 						'protocolVersion' => '2025-11-25',
-						'capabilities'    => array(),
+						'capabilities'    => (object) array(),
 						'clientInfo'      => array(
 							'name'    => 'agent-role-tests',
 							'version' => '1.0.0',
@@ -195,7 +224,30 @@ class McpTest extends TestCase {
 
 		$response = rest_get_server()->dispatch( $request );
 
-		return $response->get_status();
+		return $response instanceof WP_REST_Response ? $response : new WP_REST_Response( $response );
+	}
+
+	/**
+	 * Persona instructions from an MCP initialize response body.
+	 */
+	private function initialize_instructions( WP_REST_Response $response ): string {
+		$data = $response->get_data();
+		if ( is_object( $data ) ) {
+			$data = json_decode( wp_json_encode( $data ), true );
+		}
+
+		return is_array( $data ) ? (string) ( $data['result']['instructions'] ?? '' ) : '';
+	}
+
+	/**
+	 * HTML inside the post-create modal step.
+	 */
+	private function modal_result_html( string $html ): string {
+		if ( ! preg_match( '#<div class="ar-rf-modal__step" id="ar-agent-step-result"[^>]*>(.*?)</div>#s', $html, $matches ) ) {
+			return '';
+		}
+
+		return $matches[1];
 	}
 
 	private function render_created( int $admin_id, int $user_id ): string {

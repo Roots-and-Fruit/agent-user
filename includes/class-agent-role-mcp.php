@@ -22,7 +22,7 @@ class Agent_Role_Mcp {
 
 	const ROUTE = 'mcp/mcp-adapter-default-server';
 
-	const PASSWORD_PLACEHOLDER = 'YOUR_APPLICATION_PASSWORD';
+	const PASSWORD_PLACEHOLDER = Agent_Role_Connection::PASSWORD_PLACEHOLDER;
 
 	const GROUP = 'agent_role_mcp';
 
@@ -36,7 +36,7 @@ class Agent_Role_Mcp {
 
 		add_filter( 'user_has_cap', array( __CLASS__, 'grant_capability' ), 10, 4 );
 		add_filter( 'mcp_adapter_default_transport_permission_user_capability', array( __CLASS__, 'transport_capability' ) );
-		add_filter( 'mcp_adapter_initialize_response', array( __CLASS__, 'initialize_response' ) );
+		add_filter( 'mcp_adapter_initialize_response', array( __CLASS__, 'initialize_response' ), 10, 3 );
 		add_action( 'admin_init', array( __CLASS__, 'register_setting' ) );
 		self::register_setting();
 	}
@@ -130,11 +130,18 @@ class Agent_Role_Mcp {
 	/**
 	 * Put this agent's instructions on the MCP initialize response.
 	 *
-	 * @param mixed $result Initialize result from the adapter.
+	 * MCP Adapter 0.7.0 passes the selected schema as the third argument. Rebuild
+	 * the result record through that schema, as the adapter docs describe.
+	 *
+	 * @param mixed $result  Initialize result from the adapter.
+	 * @param mixed $server  MCP server instance. Unused.
+	 * @param mixed $schema  Selected MCP schema, when the adapter supplies one.
 	 * @return mixed
 	 */
-	public static function initialize_response( $result ) {
-		if ( ! is_object( $result ) || ! method_exists( $result, 'toArray' ) ) {
+	public static function initialize_response( $result, $server = null, $schema = null ) {
+		unset( $server );
+
+		if ( ! is_object( $result ) || ! method_exists( $result, 'jsonSerialize' ) ) {
 			return $result;
 		}
 
@@ -144,14 +151,25 @@ class Agent_Role_Mcp {
 		}
 
 		$note = Agent_Role::instructions_for( $user );
-		if ( '' === $note || ! class_exists( '\WP\McpSchema\Common\Protocol\DTO\InitializeResult' ) ) {
+		if ( '' === $note ) {
 			return $result;
 		}
 
-		$data                 = $result->toArray();
+		$data                 = (array) $result->jsonSerialize();
 		$data['instructions'] = $note;
 
-		return \WP\McpSchema\Common\Protocol\DTO\InitializeResult::fromArray( $data );
+		if ( $schema instanceof \WP\McpSchema\Schema && class_exists( '\WP\McpSchema\Record\InitializeResult' ) ) {
+			return $schema->fromArray( \WP\McpSchema\Record\InitializeResult::class, $data );
+		}
+
+		if ( class_exists( '\WP\McpSchema\Common\Protocol\DTO\InitializeResult' ) && method_exists( $result, 'toArray' ) ) {
+			$legacy                 = $result->toArray();
+			$legacy['instructions'] = $note;
+
+			return \WP\McpSchema\Common\Protocol\DTO\InitializeResult::fromArray( $legacy );
+		}
+
+		return $result;
 	}
 
 	/**

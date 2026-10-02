@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Agent Role
  * Description: Registers an Agent role and creates accounts that cannot log in with a password. Each account gets one application password for REST API access.
- * Version: 1.9.0
+ * Version: 1.9.1
  * Requires at least: 6.0
  * Requires PHP: 7.4
  * Author: Roots & Fruit
@@ -18,16 +18,16 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'AGENT_ROLE_VERSION', '1.9.0' );
+define( 'AGENT_ROLE_VERSION', '1.9.1' );
 define( 'AGENT_ROLE_FILE', __FILE__ );
 define( 'AGENT_ROLE_DIR', plugin_dir_path( __FILE__ ) );
 
 require_once AGENT_ROLE_DIR . 'includes/class-agent-role.php';
 require_once AGENT_ROLE_DIR . 'includes/class-agent-role-auth.php';
 require_once AGENT_ROLE_DIR . 'includes/class-agent-role-account.php';
-require_once AGENT_ROLE_DIR . 'includes/class-agent-role-mcp.php';
-require_once AGENT_ROLE_DIR . 'includes/class-agent-role-harness.php';
 require_once AGENT_ROLE_DIR . 'includes/class-agent-role-connection.php';
+require_once AGENT_ROLE_DIR . 'includes/class-agent-role-harness.php';
+require_once AGENT_ROLE_DIR . 'includes/class-agent-role-mcp.php';
 require_once AGENT_ROLE_DIR . 'includes/class-agent-role-log.php';
 require_once AGENT_ROLE_DIR . 'includes/class-agent-role-plugin-updates.php';
 require_once AGENT_ROLE_DIR . 'includes/class-agent-role-wp-rollback.php';
