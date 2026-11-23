@@ -184,6 +184,86 @@ class RoleTest extends TestCase {
 		$this->assertSame( $stored, get_user_meta( $user_id, $user->cap_key, true ) );
 	}
 
+	public function test_post_switches_mirror_matching_page_capabilities(): void {
+		$this->reset_role();
+		Agent_Role::activate();
+
+		$agent_id = $this->make_managed_agent();
+		Agent_Role::apply_cap_map(
+			$agent_id,
+			array(
+				'edit_posts'             => true,
+				'edit_published_posts'   => true,
+				'publish_posts'          => true,
+				'upload_files'           => true,
+				'delete_posts'           => false,
+				'delete_published_posts' => false,
+			)
+		);
+
+		$agent = get_userdata( $agent_id );
+		$this->assertTrue( $agent->has_cap( 'edit_pages' ) );
+		$this->assertTrue( $agent->has_cap( 'edit_published_pages' ) );
+		$this->assertTrue( $agent->has_cap( 'publish_pages' ) );
+		$this->assertFalse( $agent->has_cap( 'delete_pages' ) );
+		$this->assertFalse( $agent->has_cap( 'delete_published_pages' ) );
+
+		$agent->add_cap( 'edit_others_pages', true );
+		$other_author = wp_insert_user(
+			array(
+				'user_login' => 'agentrole_test_author_' . strtolower( wp_generate_password( 6, false, false ) ),
+				'user_pass'  => wp_generate_password( 24 ),
+				'user_email' => 'agentrole_test_author_' . strtolower( wp_generate_password( 6, false, false ) ) . '@example.invalid',
+				'role'       => 'administrator',
+			)
+		);
+		$this->assertIsInt( $other_author );
+		$this->user_ids[] = $other_author;
+
+		$page_id = wp_insert_post(
+			array(
+				'post_type'   => 'page',
+				'post_status' => 'publish',
+				'post_title'  => 'Agent Role Page Cap Test',
+				'post_author' => $other_author,
+			)
+		);
+		$this->assertIsInt( $page_id );
+
+		try {
+			$this->assertTrue( user_can( $agent_id, 'edit_post', $page_id ) );
+		} finally {
+			wp_delete_post( $page_id, true );
+		}
+	}
+
+	public function test_migrate_page_caps_syncs_existing_agents_once(): void {
+		$this->reset_role();
+		Agent_Role::activate();
+		delete_option( Agent_Role::PAGE_CAPS_OPTION );
+
+		$user_id = $this->make_managed_agent();
+		$user    = get_userdata( $user_id );
+		$user->add_cap( 'edit_posts', true );
+		$user->add_cap( 'edit_published_posts', true );
+		$user->add_cap( 'publish_posts', false );
+		$user->add_cap( 'delete_posts', false );
+		$user->add_cap( 'delete_published_posts', false );
+		$user->add_cap( 'edit_pages', false );
+		$user->add_cap( 'edit_published_pages', false );
+		$user->add_cap( 'publish_pages', true );
+
+		Agent_Role::migrate_page_caps();
+
+		$after = get_userdata( $user_id );
+		$this->assertTrue( $after->has_cap( 'edit_pages' ) );
+		$this->assertTrue( $after->has_cap( 'edit_published_pages' ) );
+		$this->assertFalse( $after->has_cap( 'publish_pages' ) );
+		$this->assertFalse( $after->has_cap( 'delete_pages' ) );
+		$this->assertFalse( $after->has_cap( 'delete_published_pages' ) );
+		$this->assertSame( '1', (string) get_option( Agent_Role::PAGE_CAPS_OPTION ) );
+	}
+
 	private function make_managed_agent(): int {
 		$login   = 'agentrole_test_' . strtolower( wp_generate_password( 8, false, false ) );
 		add_filter( 'insert_custom_user_meta', array( 'Agent_Role_Account', 'add_managed_meta' ), 10, 4 );
@@ -239,10 +319,15 @@ class RoleTest extends TestCase {
 	 */
 	private function expected_caps(): array {
 		return array(
+			'delete_pages'           => true,
 			'delete_posts'           => true,
+			'delete_published_pages' => true,
 			'delete_published_posts' => true,
+			'edit_pages'             => true,
 			'edit_posts'             => true,
+			'edit_published_pages'   => true,
 			'edit_published_posts'   => true,
+			'publish_pages'          => true,
 			'publish_posts'          => true,
 			'read'                   => true,
 			'upload_files'           => true,

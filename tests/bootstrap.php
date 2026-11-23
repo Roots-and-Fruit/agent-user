@@ -76,7 +76,8 @@ foreach ( $agent_role_password_users as $agent_role_password_user_id ) {
 	}
 }
 
-$agent_role_caps_migrated  = get_option( Agent_Role::MIGRATED_OPTION, null );
+$agent_role_caps_migrated      = get_option( Agent_Role::MIGRATED_OPTION, null );
+$agent_role_page_caps_migrated = get_option( Agent_Role::PAGE_CAPS_OPTION, null );
 $agent_role_saved_cap_users = array();
 $agent_role_cap_ids         = get_users(
 	array(
@@ -98,7 +99,7 @@ foreach ( $agent_role_cap_ids as $agent_role_cap_id ) {
 }
 
 register_shutdown_function(
-	static function () use ( $agent_role_saved_role, $agent_role_was_active, $agent_role_plugin_basename, $agent_role_mcp_option, $agent_role_persona_defaults, $agent_role_saved_passwords, $agent_role_caps_migrated, $agent_role_saved_cap_users ) {
+	static function () use ( $agent_role_saved_role, $agent_role_was_active, $agent_role_plugin_basename, $agent_role_mcp_option, $agent_role_persona_defaults, $agent_role_saved_passwords, $agent_role_caps_migrated, $agent_role_page_caps_migrated, $agent_role_saved_cap_users ) {
 		remove_role( Agent_Role::SLUG );
 
 		if ( null !== $agent_role_saved_role ) {
@@ -150,6 +151,12 @@ register_shutdown_function(
 			delete_option( Agent_Role::MIGRATED_OPTION );
 		} else {
 			update_option( Agent_Role::MIGRATED_OPTION, $agent_role_caps_migrated, false );
+		}
+
+		if ( null === $agent_role_page_caps_migrated ) {
+			delete_option( Agent_Role::PAGE_CAPS_OPTION );
+		} else {
+			update_option( Agent_Role::PAGE_CAPS_OPTION, $agent_role_page_caps_migrated, false );
 		}
 
 		if ( $agent_role_was_active && ! is_plugin_active( $agent_role_plugin_basename ) ) {

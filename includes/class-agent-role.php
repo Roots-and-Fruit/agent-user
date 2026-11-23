@@ -29,6 +29,8 @@ class Agent_Role {
 
 	const WEBDEV_ABILITIES_OPTION = 'agent_role_webdev_abilities_migrated';
 
+	const PAGE_CAPS_OPTION = 'agent_role_page_caps_migrated';
+
 	const ABILITIES_META = '_agent_role_abilities';
 
 	const INSTRUCTIONS_META = '_agent_role_instructions';
@@ -40,7 +42,8 @@ class Agent_Role {
 	const PERSONA_DEFAULTS_OPTION = 'agent_role_persona_defaults';
 
 	/**
-	 * Author primitive capabilities. add_role() will not update this list later.
+	 * Author primitive capabilities plus their matching page capabilities.
+	 * add_role() will not update this list later.
 	 *
 	 * @var array<string,bool>
 	 */
@@ -52,6 +55,27 @@ class Agent_Role {
 		'upload_files'           => true,
 		'edit_published_posts'   => true,
 		'delete_published_posts' => true,
+		'edit_pages'             => true,
+		'delete_pages'           => true,
+		'publish_pages'          => true,
+		'edit_published_pages'   => true,
+		'delete_published_pages' => true,
+	);
+
+	/**
+	 * Page capability that pairs with each post publishing switch.
+	 *
+	 * The Customize switches read "posts and pages", so turning a post switch on
+	 * or off writes its matching page capability at the same time.
+	 *
+	 * @var array<string,string>
+	 */
+	const PAGE_CAP_MAP = array(
+		'edit_posts'             => 'edit_pages',
+		'edit_published_posts'   => 'edit_published_pages',
+		'publish_posts'          => 'publish_pages',
+		'delete_posts'           => 'delete_pages',
+		'delete_published_posts' => 'delete_published_pages',
 	);
 
 	/**
@@ -140,7 +164,11 @@ class Agent_Role {
 		}
 
 		foreach ( self::cap_slugs() as $cap ) {
-			$user->add_cap( $cap, ! empty( $enabled[ $cap ] ) );
+			$on = ! empty( $enabled[ $cap ] );
+			$user->add_cap( $cap, $on );
+			if ( isset( self::PAGE_CAP_MAP[ $cap ] ) ) {
+				$user->add_cap( self::PAGE_CAP_MAP[ $cap ], $on );
+			}
 		}
 	}
 
@@ -156,6 +184,38 @@ class Agent_Role {
 
 		self::migrate_caps();
 		self::migrate_webdev_abilities();
+		self::migrate_page_caps();
+	}
+
+	/**
+	 * Sync the matching page capabilities onto every existing Agent once.
+	 *
+	 * Earlier versions wrote only the post capability for each switch. This
+	 * mirrors each Agent's current post switches onto the matching page caps.
+	 */
+	public static function migrate_page_caps() {
+		if ( get_option( self::PAGE_CAPS_OPTION ) ) {
+			return;
+		}
+
+		$ids = get_users(
+			array(
+				'role'   => self::SLUG,
+				'fields' => 'ID',
+			)
+		);
+		foreach ( $ids as $user_id ) {
+			$user = get_userdata( (int) $user_id );
+			if ( ! $user instanceof WP_User ) {
+				continue;
+			}
+			$map = self::cap_map( $user );
+			foreach ( self::PAGE_CAP_MAP as $post_cap => $page_cap ) {
+				$user->add_cap( $page_cap, ! empty( $map[ $post_cap ] ) );
+			}
+		}
+
+		update_option( self::PAGE_CAPS_OPTION, '1', false );
 	}
 
 	/**
@@ -243,6 +303,7 @@ class Agent_Role {
 		delete_option( Agent_Role_Mcp::OPTION );
 		delete_option( self::MIGRATED_OPTION );
 		delete_option( self::WEBDEV_ABILITIES_OPTION );
+		delete_option( self::PAGE_CAPS_OPTION );
 		delete_option( self::PERSONA_DEFAULTS_OPTION );
 		if ( class_exists( 'Agent_Role_Log' ) ) {
 			delete_option( Agent_Role_Log::OPTION_DAYS );

@@ -3,7 +3,7 @@ Contributors: webdevmattcrom
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.9.1
+Stable tag: 1.9.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 Tags: mcp, agent, users, roles, security
@@ -98,6 +98,13 @@ MCP discovery lists every tool the site marks as MCP-public. Agent Role still en
 The Agent role stays, so existing agent accounts keep their capabilities. The login blocks are removed with the plugin. Uninstalling the plugin removes the role, the application passwords it created, and the activity log. It does not delete the user accounts.
 
 == Changelog ==
+
+= 1.9.2 =
+Released 2026-11-23.
+
+**Fixed**
+
+* The publishing switches under Customize this Agent now grant and revoke the matching page capabilities alongside post capabilities, so agents with those switches on can create, edit, publish, and delete pages as the labels describe. Existing agent accounts are synced once automatically after updating.
 
 = 1.9.1 =
 Released 2026-10-02.
